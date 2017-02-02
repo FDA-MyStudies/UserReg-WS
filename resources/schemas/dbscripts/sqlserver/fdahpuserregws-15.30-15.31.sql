@@ -18,3 +18,62 @@
 -- All SQL VIEW definitions should be created in fdahpuserregws-create.sql and dropped in fdahpuserregws-drop.sql
 CREATE SCHEMA fdahpuserregws;
 GO
+
+
+
+CREATE TABLE fdahpuserregws.AuthInfo
+(
+    -- standard fields
+    _ts TIMESTAMP,
+    AuthId INT IDENTITY(1,1) NOT NULL,
+	ParticipantId INT NULL,
+	DeviceToken NVARCHAR(1000) NULL,
+	DeviceType CHAR(1) NULL,
+	CreatedOn DATETIME NULL,
+	ModifiedOn DATETIME NULL,
+	AuthKey NVARCHAR(50) NULL,
+    CONSTRAINT PK_AuthInfo PRIMARY KEY (AuthId)
+
+);
+
+CREATE TABLE fdahpuserregws.ParticipantDetails
+(
+    -- standard fields
+    _ts TIMESTAMP,
+    Id INT IDENTITY(1,1) NOT NULL,
+	FirstName NVARCHAR(100) NULL,
+    LastName NVARCHAR(100) NULL,
+	Email NVARCHAR(100) NULL,
+	UsePasscode TINYINT NULL,
+	TouchId TINYINT NULL,
+	LocalNotificationFlag TINYINT NULL,
+	RemoteNotificationFlag TINYINT NULL,
+	ReminderFlag TINYINT NULL,
+	Status INT NULL,
+    CONSTRAINT PK_ParticipantDetails PRIMARY KEY (Id)
+	
+  
+);
+CREATE TABLE fdahpuserregws.ParticipantStudies
+(
+    -- standard fields
+    _ts TIMESTAMP,
+    Id INT IDENTITY(1,1) NOT NULL,
+	ParticipantId INT NULL,
+    StudyId INT NULL,
+    Status TINYINT NULL ,
+    Bookmark TINYINT NULL,
+	CONSTRAINT PK_ParticipantStudies PRIMARY KEY (Id)
+);
+CREATE TABLE fdahpuserregws.ParticipantActivities
+(
+    -- standard fields
+    _ts TIMESTAMP,
+    Id INT IDENTITY(1,1) NOT NULL,
+	ParticipantId INT NULL,
+    StudyId INT NULL,
+    ActivityId INT NULL ,
+    ActivityCompleteId INT NULL,
+    ActivityType NVARCHAR(50) NULL ,
+	CONSTRAINT PK_ParticipantActivities PRIMARY KEY (Id)
+);
