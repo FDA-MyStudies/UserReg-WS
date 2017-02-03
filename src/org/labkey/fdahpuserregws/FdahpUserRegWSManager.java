@@ -17,15 +17,22 @@
 package org.labkey.fdahpuserregws;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
+import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.gwt.client.AuditBehaviorType;
 import org.labkey.api.query.FieldKey;
 import org.labkey.fdahpuserregws.bean.ParticipantForm;
+import org.labkey.fdahpuserregws.bean.ProfileBean;
+import org.labkey.fdahpuserregws.bean.SettingsBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantDetails;
@@ -136,7 +143,7 @@ public class FdahpUserRegWSManager
     }
 
     public ParticipantForm signingParticipant(Container container, String email, String password){
-        ParticipantForm participantForm = new ParticipantForm();
+        ParticipantForm participantForm = null;
         ParticipantDetails participantDetails = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -144,6 +151,7 @@ public class FdahpUserRegWSManager
             filter.addCondition(FieldKey.fromParts("Password"), FdahpUserRegUtil.getEncryptedString(password));
             participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
             if(null != participantDetails){
+                participantForm = new ParticipantForm();
                 AuthInfo authInfo = saveAuthInfo(container,participantDetails.getId());
                 if(authInfo != null){
                     participantForm.setAuth(authInfo.getAuthKey());
@@ -158,5 +166,64 @@ public class FdahpUserRegWSManager
             _log.error("HealthStudiesGatewayManager signingParticipant()",e);
         }
         return  participantForm;
+    }
+
+    public ParticipantDetails getParticipantDetailsByEmail(String email){
+        ParticipantDetails participantDetails = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("Email"), email);
+            participantDetails =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
+        }catch (Exception e){
+            _log.error("HealthStudiesGatewayManager getParticipantDetailsByEmail()",e);
+        }
+        return  participantDetails;
+    }
+
+    public String signout(Integer userId){
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        try{
+            DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
+            TableInfo authInfo = FdahpUserRegWSSchema.getInstance().getAuthInfo();
+            authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SqlExecutor executor = new SqlExecutor(schema);
+            SQLFragment sqlUpdateVisitDates = new SQLFragment();
+
+            sqlUpdateVisitDates.append("UPDATE ").append(authInfo.getSelectName()).append("\n")
+                    .append("SET DeviceToken = 0, DeviceType = 0, AuthKey = 0, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
+                    .append(" WHERE ParticipantId = "+userId);
+            int execute = executor.execute(sqlUpdateVisitDates);
+            if (execute >= 0){
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            }
+        }catch (Exception e){
+            _log.error("HealthStudiesGatewayManager signout error:",e);
+        }
+        return message;
+    }
+
+    public ApiSimpleResponse getParticipantDetails(Integer userId){
+        JSONObject jsonObject  = new JSONObject();
+        ApiSimpleResponse response  = new ApiSimpleResponse();
+        try{
+            ParticipantDetails participantDetails = getParticipantDetails(null,userId);
+            if(participantDetails != null){
+                ProfileBean profileBean = new ProfileBean();
+                profileBean.setFirstName(participantDetails.getFirstName());
+                profileBean.setLastName(participantDetails.getLastName());
+                profileBean.setEmailId(participantDetails.getEmail());
+                response.put("profile",profileBean);
+                SettingsBean settingsBean = new SettingsBean();
+                settingsBean.setLocalNotifications(participantDetails.getLocalNotificationFlag());
+                settingsBean.setPasscode(participantDetails.getUsePassCode());
+                settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
+                settingsBean.setTouchId(participantDetails.getTouchId());
+                response.put("settings",settingsBean);
+                response.put("message","success");
+            }
+        }catch (Exception e){
+            _log.error("HealthStudiesGatewayManager getParticipantDetails error:",e);
+        }
+        return  response;
     }
 }

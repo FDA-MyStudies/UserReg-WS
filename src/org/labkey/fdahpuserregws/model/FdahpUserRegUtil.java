@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Ravinder on 2/1/2017.
@@ -32,6 +34,8 @@ public class FdahpUserRegUtil
         EMAIL_EXISTS("the email already exists"),
         INVALID_INPUT_ERROR_MSG("Invalid input."),
         INACTIVE("INACTIVE"),
+        SUCCESS("SUCCESS"),
+        FAILURE("FAILURE"),
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime");
         private final String value;
         ErrorCodes(final String newValue){
@@ -71,5 +75,17 @@ public class FdahpUserRegUtil
            }
         }
         return sb.toString();
+    }
+
+    public static String getCurrentDateTime() {
+        String getToday = "";
+        try {
+            Date today = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            getToday = formatter.format(today.getTime());
+        } catch (Exception e) {
+            _log.error(e);
+        }
+        return getToday;
     }
 }

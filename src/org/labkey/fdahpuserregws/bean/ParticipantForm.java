@@ -16,7 +16,7 @@ public class ParticipantForm extends ReturnUrlForm
     private Boolean _touchId;
     private Boolean _localNotification;
     private Boolean _remoteNotification;
-    private Boolean _reminder_flag;
+    private Boolean _reminderFlag;
     private String _auth;
     private Integer _status;
 
@@ -110,14 +110,15 @@ public class ParticipantForm extends ReturnUrlForm
         _remoteNotification = remoteNotification;
     }
 
-    public Boolean getReminder_flag()
+
+    public Boolean getReminderFlag()
     {
-        return _reminder_flag;
+        return _reminderFlag;
     }
 
-    public void setReminder_flag(Boolean reminder_flag)
+    public void setReminderFlag(Boolean reminderFlag)
     {
-        _reminder_flag = reminder_flag;
+        _reminderFlag = reminderFlag;
     }
 
     public String getAuth()

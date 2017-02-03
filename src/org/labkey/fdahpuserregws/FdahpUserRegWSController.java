@@ -16,26 +16,42 @@
 
 package org.labkey.fdahpuserregws;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
+import org.labkey.api.action.Marshal;
+import org.labkey.api.action.Marshaller;
+import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.settings.Setting;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.fdahpuserregws.bean.ParticipantForm;
+import org.labkey.fdahpuserregws.bean.ProfileBean;
+import org.labkey.fdahpuserregws.bean.SettingsBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantDetails;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Properties;
 
 public class FdahpUserRegWSController extends SpringActionController
 {
@@ -203,6 +219,13 @@ public class FdahpUserRegWSController extends SpringActionController
     public class LoginAction extends ApiAction<Object>{
 
         @Override
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
@@ -212,19 +235,26 @@ public class FdahpUserRegWSController extends SpringActionController
                 String password = getViewContext().getRequest().getHeader("password");
                 if(StringUtils.isNotEmpty(email) && StringUtils.isNotEmpty(password)){
                     participantForm= FdahpUserRegWSManager.get().signingParticipant(getContainer(),email,password);
-                    if(participantForm != null){
+                  //  System.out.println("participantForm:"+participantForm);
+                    if(null!=participantForm){
                         response.put("message","success");
                         response.put("userId",participantForm.getUserId());
                         response.put("auth",participantForm.getAuth());
                         response.put("success",true);
+
                         if(participantForm.getStatus() == 2)
+                        {
                             response.put("verified", false);
-                        if(participantForm.getStatus() == 1)
+                        }
+                        if(participantForm.getStatus() == 1){
                             response.put("verified", true);
+                        }
+
                     }else{
+                        System.out.println("elseeeeeeeeeeeeeeeeee");
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INACTIVE.getValue(),FdahpUserRegUtil.ErrorCodes.INACTIVE.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue(), getViewContext().getResponse());
                         getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
-
+                        return null;
                     }
                 }else{
                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
@@ -261,15 +291,63 @@ public class FdahpUserRegWSController extends SpringActionController
             participantDetails.setUsePassCode(form.getUsePassCode());
         if(form.getLocalNotification() != null)
             participantDetails.setLocalNotificationFlag(form.getLocalNotification());
-        if(form.getReminder_flag() != null)
-            participantDetails.setReminder_flag(form.getReminder_flag());
+        if(form.getReminderFlag() != null)
+            participantDetails.setReminder_flag(form.getReminderFlag());
         if(form.getRemoteNotification() != null)
             participantDetails.setRemoteNotificationFlag(form.getRemoteNotification());
         if(form.getTouchId() != null)
             participantDetails.setTouchId(form.getTouchId());
         return participantDetails;
     }
-/*    public boolean sendemail(String email, String subject, String messageBody) throws Exception{
+    @RequiresPermission(ReadPermission.class)
+    public class ForgotPasswordAction extends ApiAction<Object>
+    {
+
+        @Override
+        public ApiResponse execute(Object o, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            try{
+                String emailId = getViewContext().getRequest().getHeader("emailId");
+                if(StringUtils.isNotEmpty(emailId)){
+                    ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(emailId);
+                    if(participantDetails != null){
+                       /* String password =  RandomStringUtils.randomAlphanumeric(6);
+                        participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(password));
+                        String messageBody = "<html> <body>" +
+                                "Dear "+participantDetails.getFirstName()+" "+participantDetails.getLastName()+",<BR><p> Your new password is '<b>" + password + "</b>'</p>" +
+                                " <BR>Thanks,<BR>BTC Soft"+
+                                "<BR>"+"</body></html>";*/
+                       String message = "<html> <body>" +
+                               "Dear "+participantDetails.getFirstName()+" "+participantDetails.getLastName()+",<BR><p> Please click the below link to reset the password</p>" +
+                               "<a href='www.google.co.in'>reset password</a>"+
+                               " <BR>Thanks,<BR>"+
+                               "<BR>"+"</body></html>";
+                       boolean isMailSent = sendemail(participantDetails.getEmail(),"ForgotPasswordLink",message);
+                        if (isMailSent){
+                            response.put("message","success");
+                        }else{
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                            getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                            return null;
+                        }
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                        return null;
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                    getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue());
+                    return null;
+                }
+            }catch (Exception e){
+                _log.error("ForgotPassword Action Error:",e);
+            }
+            return response;
+        }
+    }
+    public boolean sendemail(String email, String subject, String messageBody) throws Exception{
 
         boolean sentMail = false;
         try {
@@ -298,5 +376,239 @@ public class FdahpUserRegWSController extends SpringActionController
         }
 
         return sentMail;
-    }*/
+    }
+
+    @RequiresPermission(ReadPermission.class)
+    public class ChangePasswordAction extends ApiAction<ChangePasswordForm>{
+
+        @Override
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
+        public ApiResponse execute(ChangePasswordForm form, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            String userId = getViewContext().getRequest().getHeader("userId");
+            String auth = getViewContext().getRequest().getHeader("auth");
+            boolean isAuthenticated = false;
+            try{
+                if(StringUtils.isNotEmpty(userId) && StringUtils.isNotEmpty(auth)){
+                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                    if(isAuthenticated){
+                        String oldPassword = form.getOldPassword();
+                        String newPassword = form.getNewPassword();
+                        ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(getContainer(),Integer.valueOf(userId));
+                        if(participantDetails !=null ){
+                           if(participantDetails.getPassword().equalsIgnoreCase(oldPassword)){
+                               participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(newPassword));
+                               ParticipantDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(),participantDetails);
+                               if(updParticipantDetails != null){
+                                   response.put("message","success");
+                               }
+                           }else{
+                               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                               getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                               return null;
+                           }
+                        }else{
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(),FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                            getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.toString());
+                            return null;
+                        }
+
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                        return null;
+                    }
+
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                    getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                    return null;
+                }
+            }catch (Exception e){
+                _log.error("ChangePassword Action Error",e);
+            }
+            return response;
+        }
+    }
+    public static class ChangePasswordForm extends ReturnUrlForm{
+        private String _oldPassword;
+        private String _newPassword;
+        public String getOldPassword()
+        {
+            return _oldPassword;
+        }
+
+        public void setOldPassword(String oldPassword)
+        {
+            _oldPassword = oldPassword;
+        }
+
+        public String getNewPassword()
+        {
+            return _newPassword;
+        }
+
+        public void setNewPassword(String newPassword)
+        {
+            _newPassword = newPassword;
+        }
+    }
+    @RequiresPermission(ReadPermission.class)
+    public class LogoutAction extends  ApiAction<Object>{
+
+        @Override
+        public Object execute(Object o, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            boolean isAuthenticated = false;
+            String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+            try
+            {
+                 if(isDelete()){
+                    String userId = getViewContext().getRequest().getHeader("userId");
+                    String auth = getViewContext().getRequest().getHeader("auth");
+                    if(StringUtils.isNotEmpty(userId) && StringUtils.isNotEmpty(auth)){
+                        isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                        if(isAuthenticated){
+                            message = FdahpUserRegWSManager.get().signout(Integer.valueOf(userId));
+                            if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
+                                response.put("message","success");
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                                return null;
+                            }
+
+                        }else{
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                            getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                            return null;
+                        }
+
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                        return null;
+                    }
+                }else{
+                    getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the DELETE method when calling this action.");
+                    return null;
+                }
+
+            }catch (Exception e){
+                _log.error("Logout Action Error:",e);
+            }
+            return response;
+        }
+    }
+    @Marshal(Marshaller.Jackson)
+    @RequiresPermission(ReadPermission.class)
+    public class UserProfileAction extends ApiAction<Object>{
+
+        @Override
+        public ApiResponse execute(Object o, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            boolean isAuthenticated = false;
+            try{
+                String userId = getViewContext().getRequest().getHeader("userId");
+                String auth = getViewContext().getRequest().getHeader("auth");
+                if(StringUtils.isNotEmpty(userId) && StringUtils.isNotEmpty(auth)){
+                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                    if(isAuthenticated){
+                        response = FdahpUserRegWSManager.get().getParticipantDetails(Integer.valueOf(userId));
+
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                        return null;
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                    getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                    return null;
+                }
+            }catch (Exception e){
+
+            }
+            return response;
+        }
+    }
+    @RequiresPermission(ReadPermission.class)
+    public class UpdateUserProfileAction extends  ApiAction<ParticipantForm>{
+
+        @Override
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
+        public ApiResponse execute(ParticipantForm participantForm, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            try{
+                String userId = getViewContext().getRequest().getHeader("userId");
+                String auth = getViewContext().getRequest().getHeader("auth");
+                boolean isAuthenticated = false;
+                if(StringUtils.isNotEmpty(userId) && StringUtils.isNotEmpty(auth)){
+                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                    if(isAuthenticated){
+                        if(participantForm != null){
+                            participantForm.setUserId(Integer.valueOf(userId));
+                            //ParticipantDetails participantDetails = getParticipant(participantForm);
+                            ParticipantDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(),getParticipant(participantForm));
+                            if(updateParticipantDetails != null){
+                                response.put("message","success");
+                            }
+                        }
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                        return null;
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                    getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                    return null;
+                }
+            }catch (Exception e){
+                _log.error("UpdateUSerProfile Action Error :",e);
+            }
+            return response;
+        }
+    }
+    public static class ProfileForm {
+
+        public ProfileBean _profile;
+        public SettingsBean _settings;
+
+        public ProfileBean getProfile()
+        {
+            return _profile;
+        }
+
+        public void setProfile(ProfileBean profile)
+        {
+            _profile = profile;
+        }
+
+        public SettingsBean getSettings()
+        {
+            return _settings;
+        }
+
+        public void setSettings(SettingsBean settings)
+        {
+            _settings = settings;
+        }
+    }
 }
