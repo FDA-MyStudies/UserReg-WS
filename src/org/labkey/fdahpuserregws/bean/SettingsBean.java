@@ -5,47 +5,47 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class SettingsBean
 {
-    private boolean _remoteNotifications;
-    private boolean _localNotifications;
-    private boolean _touchId;
-    private boolean _passcode;
+    private Boolean _remoteNotifications;
+    private Boolean _localNotifications;
+    private Boolean _touchId;
+    private Boolean _passcode;
 
-    public boolean isRemoteNotifications()
+    public Boolean getRemoteNotifications()
     {
         return _remoteNotifications;
     }
 
-    public void setRemoteNotifications(boolean remoteNotifications)
+    public void setRemoteNotifications(Boolean remoteNotifications)
     {
         _remoteNotifications = remoteNotifications;
     }
 
-    public boolean isLocalNotifications()
+    public Boolean getLocalNotifications()
     {
         return _localNotifications;
     }
 
-    public void setLocalNotifications(boolean localNotifications)
+    public void setLocalNotifications(Boolean localNotifications)
     {
         _localNotifications = localNotifications;
     }
 
-    public boolean isTouchId()
+    public Boolean getTouchId()
     {
         return _touchId;
     }
 
-    public void setTouchId(boolean touchId)
+    public void setTouchId(Boolean touchId)
     {
         _touchId = touchId;
     }
 
-    public boolean isPasscode()
+    public Boolean getPasscode()
     {
         return _passcode;
     }
 
-    public void setPasscode(boolean passcode)
+    public void setPasscode(Boolean passcode)
     {
         _passcode = passcode;
     }

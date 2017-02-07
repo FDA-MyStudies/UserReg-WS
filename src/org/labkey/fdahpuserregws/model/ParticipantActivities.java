@@ -7,62 +7,62 @@ import org.labkey.api.data.Entity;
  */
 public class ParticipantActivities extends Entity
 {
-    private int _Id;
-    private int _ParticipantId;
-    private int _StudyId;
-    private int _ActivityId;
-    private int _ActivityComplete;
+    private Integer _Id;
+    private Integer _ParticipantId;
+    private Integer _StudyId;
+    private Integer _ActivityId;
+    private Integer _ActivityComplete;
     private String _ActivityType;
-    private boolean _EligibilityStatus;
-    private boolean _ConsentStatus;
-    private String _Consent;
+    private Boolean _Bookmark=false;
+    private String _Status;
+    private String _ActivityVersion;
 
-    public int getId()
+    public Integer getId()
     {
         return _Id;
     }
 
-    public void setId(int id)
+    public void setId(Integer id)
     {
         _Id = id;
     }
 
-    public int getParticipantId()
+    public Integer getParticipantId()
     {
         return _ParticipantId;
     }
 
-    public void setParticipantId(int participantId)
+    public void setParticipantId(Integer participantId)
     {
         _ParticipantId = participantId;
     }
 
-    public int getStudyId()
+    public Integer getStudyId()
     {
         return _StudyId;
     }
 
-    public void setStudyId(int studyId)
+    public void setStudyId(Integer studyId)
     {
         _StudyId = studyId;
     }
 
-    public int getActivityId()
+    public Integer getActivityId()
     {
         return _ActivityId;
     }
 
-    public void setActivityId(int activityId)
+    public void setActivityId(Integer activityId)
     {
         _ActivityId = activityId;
     }
 
-    public int getActivityComplete()
+    public Integer getActivityComplete()
     {
         return _ActivityComplete;
     }
 
-    public void setActivityComplete(int activityComplete)
+    public void setActivityComplete(Integer activityComplete)
     {
         _ActivityComplete = activityComplete;
     }
@@ -77,33 +77,33 @@ public class ParticipantActivities extends Entity
         _ActivityType = activityType;
     }
 
-    public boolean isEligibilityStatus()
+    public Boolean getBookmark()
     {
-        return _EligibilityStatus;
+        return _Bookmark;
     }
 
-    public void setEligibilityStatus(boolean eligibilityStatus)
+    public void setBookmark(Boolean bookmark)
     {
-        _EligibilityStatus = eligibilityStatus;
+        _Bookmark = bookmark;
     }
 
-    public boolean isConsentStatus()
+    public String getStatus()
     {
-        return _ConsentStatus;
+        return _Status;
     }
 
-    public void setConsentStatus(boolean consentStatus)
+    public void setStatus(String status)
     {
-        _ConsentStatus = consentStatus;
+        _Status = status;
     }
 
-    public String getConsent()
+    public String getActivityVersion()
     {
-        return _Consent;
+        return _ActivityVersion;
     }
 
-    public void setConsent(String consent)
+    public void setActivityVersion(String activityVersion)
     {
-        _Consent = consent;
+        _ActivityVersion = activityVersion;
     }
 }

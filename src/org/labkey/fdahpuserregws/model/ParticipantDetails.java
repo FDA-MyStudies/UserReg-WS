@@ -17,7 +17,7 @@ public class ParticipantDetails extends Entity
     private Boolean _TouchId=false;
     private Boolean _LocalNotificationFlag=false;
     private Boolean _RemoteNotificationFlag=false;
-    private Boolean _Reminder_flag=false;
+    private Boolean _ReminderFlag=false;
     private Integer Status;
     private String _Password;
 
@@ -101,14 +101,14 @@ public class ParticipantDetails extends Entity
         _RemoteNotificationFlag = remoteNotificationFlag;
     }
 
-    public Boolean getReminder_flag()
+    public Boolean getReminderFlag()
     {
-        return _Reminder_flag;
+        return _ReminderFlag;
     }
 
-    public void setReminder_flag(Boolean reminder_flag)
+    public void setReminderFlag(Boolean reminderFlag)
     {
-        _Reminder_flag = reminder_flag;
+        _ReminderFlag = reminderFlag;
     }
 
     public Integer getStatus()
@@ -144,4 +144,6 @@ public class ParticipantDetails extends Entity
     {
         return super.lookupContainer();
     }
+
+
 }

@@ -7,59 +7,92 @@ import org.labkey.api.data.Entity;
  */
 public class ParticipantStudies extends Entity
 {
-    private int _Id;
-    private int _ParticipantId;
-    private  int _StudyId;
-    private boolean _Status;
-    private boolean _Bookmark;
+    private Integer _Id;
+    private Integer _ParticipantId;
+    private Integer _StudyId;
+    private String _Status;
+    private Boolean _Bookmark=false;
+    private Boolean _Eligbibility;
+    private Boolean _ConsentStatus=false;
+    private String _Consent;
 
-    public int getId()
+    public Integer getId()
     {
         return _Id;
     }
 
-    public void setId(int id)
+    public void setId(Integer id)
     {
         _Id = id;
     }
 
-    public int getParticipantId()
+    public Integer getParticipantId()
     {
         return _ParticipantId;
     }
 
-    public void setParticipantId(int participantId)
+    public void setParticipantId(Integer participantId)
     {
         _ParticipantId = participantId;
     }
 
-    public int getStudyId()
+    public Integer getStudyId()
     {
         return _StudyId;
     }
 
-    public void setStudyId(int studyId)
+    public void setStudyId(Integer studyId)
     {
         _StudyId = studyId;
     }
 
-    public boolean isStatus()
+    public String getStatus()
     {
         return _Status;
     }
 
-    public void setStatus(boolean status)
+    public void setStatus(String status)
     {
         _Status = status;
     }
 
-    public boolean isBookmark()
+    public Boolean getBookmark()
     {
         return _Bookmark;
     }
 
-    public void setBookmark(boolean bookmark)
+    public void setBookmark(Boolean bookmark)
     {
         _Bookmark = bookmark;
+    }
+
+    public Boolean getEligbibility()
+    {
+        return _Eligbibility;
+    }
+
+    public void setEligbibility(Boolean eligbibility)
+    {
+        _Eligbibility = eligbibility;
+    }
+
+    public Boolean getConsentStatus()
+    {
+        return _ConsentStatus;
+    }
+
+    public void setConsentStatus(Boolean consentStatus)
+    {
+        _ConsentStatus = consentStatus;
+    }
+
+    public String getConsent()
+    {
+        return _Consent;
+    }
+
+    public void setConsent(String consent)
+    {
+        _Consent = consent;
     }
 }

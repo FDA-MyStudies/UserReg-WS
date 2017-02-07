@@ -17,6 +17,7 @@
 package org.labkey.fdahpuserregws;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
+
 import org.json.JSONObject;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.data.Container;
@@ -30,14 +31,22 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.gwt.client.AuditBehaviorType;
 import org.labkey.api.query.FieldKey;
+import org.labkey.fdahpuserregws.bean.ActivitiesBean;
+
 import org.labkey.fdahpuserregws.bean.ParticipantForm;
+import org.labkey.fdahpuserregws.bean.ParticipantInfoBean;
 import org.labkey.fdahpuserregws.bean.ProfileBean;
 import org.labkey.fdahpuserregws.bean.SettingsBean;
+import org.labkey.fdahpuserregws.bean.StudiesBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
+import org.labkey.fdahpuserregws.model.ParticipantActivities;
 import org.labkey.fdahpuserregws.model.ParticipantDetails;
+import org.labkey.fdahpuserregws.model.ParticipantStudies;
 
 
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -71,7 +80,7 @@ public class FdahpUserRegWSManager
             }
 
         }catch (Exception e){
-            _log.error("saveParticipant:",e);
+            _log.debug("saveParticipant:",e);
         }
         transaction.commit();
         return addParticipant;
@@ -116,10 +125,11 @@ public class FdahpUserRegWSManager
                 authInfo.setParticipantId(userId);
                 authInfo.setCreatedOn(new Date());
                 Table.insert(null,table, authInfo);
+
             }
 
         }catch (Exception e){
-            _log.error("saveAuthInfo:",e);
+            _log.debug("saveAuthInfo:",e);
         }
         transaction.commit();
         return authInfo;
@@ -136,7 +146,7 @@ public class FdahpUserRegWSManager
                 isAuthenticated = true;
             }
         }catch (Exception e){
-            _log.error("FdahpUserRegWSManger validatedAuthKey ()",e);
+            _log.debug("FdahpUserRegWSManger validatedAuthKey ()",e);
         }
 
         return isAuthenticated;
@@ -163,7 +173,7 @@ public class FdahpUserRegWSManager
                 participantForm.setEmail(participantDetails.getEmail());
             }
         }catch (Exception e){
-            _log.error("HealthStudiesGatewayManager signingParticipant()",e);
+            _log.debug("HealthStudiesGatewayManager signingParticipant()",e);
         }
         return  participantForm;
     }
@@ -175,7 +185,7 @@ public class FdahpUserRegWSManager
             filter.addCondition(FieldKey.fromParts("Email"), email);
             participantDetails =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
         }catch (Exception e){
-            _log.error("HealthStudiesGatewayManager getParticipantDetailsByEmail()",e);
+            _log.debug("HealthStudiesGatewayManager getParticipantDetailsByEmail()",e);
         }
         return  participantDetails;
     }
@@ -197,7 +207,7 @@ public class FdahpUserRegWSManager
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
         }catch (Exception e){
-            _log.error("HealthStudiesGatewayManager signout error:",e);
+            _log.debug("HealthStudiesGatewayManager signout error:",e);
         }
         return message;
     }
@@ -221,9 +231,142 @@ public class FdahpUserRegWSManager
                 response.put("settings",settingsBean);
                 response.put("message","success");
             }
+            List<ParticipantStudies> participantStudiesList = getParticipantStudiesList(userId);
+            if(participantStudiesList != null && participantStudiesList.size() > 0){
+                List<ParticipantInfoBean> participantInfoBeanList = new ArrayList<ParticipantInfoBean>();
+                for (ParticipantStudies participantStudies : participantStudiesList){
+                    ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
+                    participantInfoBean.setParticipantId(String.valueOf(participantStudies.getParticipantId()));
+                    participantInfoBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                    participantInfoBeanList.add(participantInfoBean);
+                }
+                response.put("participantInfo",participantInfoBeanList);
+            }
         }catch (Exception e){
-            _log.error("HealthStudiesGatewayManager getParticipantDetails error:",e);
+            _log.debug("HealthStudiesGatewayManager getParticipantDetails error:",e);
         }
         return  response;
     }
+
+    public List<ParticipantStudies> getParticipantStudiesList(Integer userId){
+        List<ParticipantStudies> participantStudiesList = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            participantStudiesList = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantStudies(),filter,null).getArrayList(ParticipantStudies.class);
+        }catch (Exception e){
+            _log.debug("HealthStudiesGatewayManager getParticipantStudiesList error:",e);
+        }
+        return  participantStudiesList;
+    }
+
+    public List<ParticipantActivities> getParticipantActivitiesList(Integer userId){
+        List<ParticipantActivities> participantActivitiesList = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            participantActivitiesList = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantActivities(),filter,null).getArrayList(ParticipantActivities.class);
+        }catch (Exception e){
+            _log.debug("HealthStudiesGatewayManager getParticipantActivitiesList error :",e);
+        }
+        return participantActivitiesList;
+    }
+
+    public String saveParticipantStudies(List<ParticipantStudies> participantStudiesList){
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        try{
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            for(ParticipantStudies participantStudies : participantStudiesList)
+                if(participantStudies.getId() != null ){
+                    System.out.println("participantStudies:"+participantStudies.getEligbibility());
+                    Table.update(null,table,participantStudies,participantStudies.getId());
+                }else{
+                    Table.insert(null, table, participantStudies);
+                }
+            if(participantStudiesList.size() > 0){
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            }
+        }catch (Exception e){
+            _log.debug("HealthStudiesGatewayManager saveParticipantStudies error :",e);
+        }
+        transaction.commit();
+        return message;
+    }
+
+    public String saveParticipantActivities(List<ParticipantActivities> participantActivitiesList){
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        try{
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            for (ParticipantActivities participantActivities : participantActivitiesList)
+                Table.insert(null,table,participantActivities);
+            if (participantActivitiesList.size() > 0){
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            }
+        }catch (Exception e){
+            _log.debug("HealthStudiesGatewayManager saveParticipantActivities error :",e);
+        }
+        transaction.commit();
+        return message;
+    }
+
+    public ApiSimpleResponse getPreferences(Integer userId){
+        ApiSimpleResponse response = new ApiSimpleResponse();
+        try{
+            List<ParticipantStudies> participantStudiesList = getParticipantStudiesList(userId);
+            if(null!=participantStudiesList && participantStudiesList.size() >0){
+                List<StudiesBean> studiesBeenList = new ArrayList<StudiesBean>();
+                for (ParticipantStudies participantStudies : participantStudiesList){
+                    StudiesBean studiesBean = new StudiesBean();
+                    studiesBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                    studiesBean.setBookmarked(participantStudies.getBookmark());
+                    studiesBean.setStatus(participantStudies.getStatus());
+                    studiesBeenList.add(studiesBean);
+                }
+                response.put("studies",studiesBeenList);
+            }
+            List<ParticipantActivities> participantActivitiesList = getParticipantActivitiesList(userId);
+            if(null!=participantActivitiesList && participantActivitiesList.size() > 0){
+                List<ActivitiesBean> activitiesBeanList = new ArrayList<ActivitiesBean>();
+                for (ParticipantActivities participantActivities : participantActivitiesList)
+                {
+
+                    ActivitiesBean activitiesBean = new ActivitiesBean();
+                    //activitiesBean.setStatus(participantActivities.getStatus());
+                    activitiesBean.setStudyId(String.valueOf(participantActivities.getStudyId()));
+                    activitiesBean.setActivityId(String.valueOf(participantActivities.getActivityId()));
+                    activitiesBean.setStatus(participantActivities.getStatus());
+                    activitiesBean.setActivityVersion(participantActivities.getActivityVersion());
+                    activitiesBean.setBookmarked(participantActivities.getBookmark());
+                    activitiesBeanList.add(activitiesBean);
+                }
+                response.put("activities",activitiesBeanList);
+            }
+            response.put("message","success");
+        }catch (Exception e){
+            _log.debug("HealthStudiesGatewayManager getPreferences error :",e);
+        }
+        return response;
+    }
+
+    public ParticipantStudies getParticipantStudies(Integer studyId,Integer userId){
+        ParticipantStudies participantStudies = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
+            participantStudies =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantStudies(),filter,null).getObject(ParticipantStudies.class);
+        }catch (Exception e){
+            _log.debug("HealthStudiesGatewayManager getParticipantStudies()",e);
+        }
+        return  participantStudies;
+    }
 }
+
+
+

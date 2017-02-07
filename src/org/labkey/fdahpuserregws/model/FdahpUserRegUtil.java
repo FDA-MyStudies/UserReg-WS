@@ -1,12 +1,16 @@
 package org.labkey.fdahpuserregws.model;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.labkey.api.util.StringUtilsLabKey;
 
 import javax.servlet.http.HttpServletResponse;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
 
 /**
  * Created by Ravinder on 2/1/2017.
@@ -87,5 +91,15 @@ public class FdahpUserRegUtil
             _log.error(e);
         }
         return getToday;
+    }
+
+    public static String getEncodeString(String value){
+        byte[] encodedBytes = Base64.encodeBase64(value.getBytes(DEFAULT_CHARSET));
+        return new String(encodedBytes, DEFAULT_CHARSET);
+
+    }
+    public static String getDecodeString(String values){
+        byte[] decodedBytes = Base64.decodeBase64(values);
+        return new String(decodedBytes, DEFAULT_CHARSET);
     }
 }
