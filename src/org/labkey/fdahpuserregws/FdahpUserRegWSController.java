@@ -18,6 +18,8 @@ package org.labkey.fdahpuserregws;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.util.SystemOutLogger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
@@ -42,6 +44,7 @@ import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantActivities;
 import org.labkey.fdahpuserregws.model.ParticipantDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
+import org.omg.PortableInterceptor.INACTIVE;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import javax.mail.Message;
@@ -92,7 +95,7 @@ public class FdahpUserRegWSController extends SpringActionController
             ParticipantDetails participantDetails = new ParticipantDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
             apiSimpleResponse.put("reponse", "HealthStudiesGatewayServices Works!");
-            apiSimpleResponse.put("success", true);
+            apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
     }
@@ -127,7 +130,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     }else{
                         addParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(),getParticipant(participantForm));
                         if(addParticipantDetails != null){
-                            response.put("message", "success");
+                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             response.put("userId", addParticipantDetails.getId());
                             if(addParticipantDetails.getStatus() == 2)
                                 response.put("verified", false);
@@ -161,9 +164,11 @@ public class FdahpUserRegWSController extends SpringActionController
                 }
 
             }catch (Exception e){
+                 _log.error("register action:",e);
                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                 getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
-                _log.debug("register action:",e);
+                return null;
+
             }
             return response;
         }
@@ -188,7 +193,7 @@ public class FdahpUserRegWSController extends SpringActionController
                             participantDetails.setStatus(1);
                             ParticipantDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(),participantDetails);
                             if(null != updateParticipantDetails){
-                                response.put("message", "success");
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 response.put("userId", updateParticipantDetails.getId());
                                 if(updateParticipantDetails.getStatus() == 2)
                                     response.put("verified", false);
@@ -211,7 +216,7 @@ public class FdahpUserRegWSController extends SpringActionController
             }catch (Exception e){
                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                 getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
-                _log.debug("ConfirmRegistration action:",e);
+                 _log.error("ConfirmRegistration action:",e);
                 return null;
             }
             return response;
@@ -240,11 +245,9 @@ public class FdahpUserRegWSController extends SpringActionController
                     participantForm= FdahpUserRegWSManager.get().signingParticipant(getContainer(),email,password);
                   //  System.out.println("participantForm:"+participantForm);
                     if(null!=participantForm){
-                        response.put("message","success");
+                        response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                         response.put("userId",participantForm.getUserId());
                         response.put("auth",participantForm.getAuth());
-                        response.put("success",true);
-
                         if(participantForm.getStatus() == 2)
                         {
                             response.put("verified", false);
@@ -252,9 +255,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         if(participantForm.getStatus() == 1){
                             response.put("verified", true);
                         }
-
                     }else{
-                        System.out.println("elseeeeeeeeeeeeeeeeee");
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INACTIVE.getValue(),FdahpUserRegUtil.ErrorCodes.INACTIVE.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue(), getViewContext().getResponse());
                         getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
                         return null;
@@ -267,7 +268,7 @@ public class FdahpUserRegWSController extends SpringActionController
             }catch (Exception e){
                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                 getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue());
-                _log.debug("Login Action:",e);
+                 _log.error("Login Action:",e);
                 return null;
             }
             return response;
@@ -328,7 +329,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                "<BR>"+"</body></html>";
                        boolean isMailSent = sendemail(participantDetails.getEmail(),"ForgotPasswordLink",message);
                         if (isMailSent){
-                            response.put("message","success");
+                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                         }else{
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                             getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
@@ -345,7 +346,10 @@ public class FdahpUserRegWSController extends SpringActionController
                     return null;
                 }
             }catch (Exception e){
-                _log.debug("ForgotPassword Action Error:",e);
+                 _log.error("ForgotPassword Action Error:",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
             }
             return response;
         }
@@ -372,10 +376,10 @@ public class FdahpUserRegWSController extends SpringActionController
             Transport.send(message);
             sentMail = true;
         } catch (MessagingException e) {
-            _log.debug("ERROR:  sendemail() - ",e);
+             _log.error("ERROR:  sendemail() - ",e);
             sentMail = false;
         } catch (Exception e) {
-            _log.debug("ERROR:  sendemail() - ",e);
+             _log.error("ERROR:  sendemail() - ",e);
         }
 
         return sentMail;
@@ -410,7 +414,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(newPassword));
                                ParticipantDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(),participantDetails);
                                if(updParticipantDetails != null){
-                                   response.put("message","success");
+                                   response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                }
                            }else{
                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
@@ -435,7 +439,10 @@ public class FdahpUserRegWSController extends SpringActionController
                     return null;
                 }
             }catch (Exception e){
-                _log.debug("ChangePassword Action Error",e);
+                 _log.error("ChangePassword Action Error",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
             }
             return response;
         }
@@ -482,7 +489,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         if(isAuthenticated){
                             message = FdahpUserRegWSManager.get().signout(Integer.valueOf(userId));
                             if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
-                                response.put("message","success");
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                                 getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
@@ -506,7 +513,10 @@ public class FdahpUserRegWSController extends SpringActionController
                 }
 
             }catch (Exception e){
-                _log.debug("Logout Action Error:",e);
+                 _log.error("Logout Action Error:",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
             }
             return response;
         }
@@ -539,7 +549,10 @@ public class FdahpUserRegWSController extends SpringActionController
                     return null;
                 }
             }catch (Exception e){
-
+                _log.error("User Profile Action",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
             }
             return response;
         }
@@ -559,50 +572,114 @@ public class FdahpUserRegWSController extends SpringActionController
         public ApiResponse execute(ProfileForm profileForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
+            List<ParticipantStudies> addParticipantStudiesList = new ArrayList<ParticipantStudies>();
+            String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+            AuthInfo updaAuthInfo = null;
             try{
                 String userId = getViewContext().getRequest().getHeader("userId");
                 String auth = getViewContext().getRequest().getHeader("auth");
                 boolean isAuthenticated = false;
                 if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(auth)){
                     isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
-                    if(isAuthenticated){
-                        if(profileForm != null){
-                            //participantForm.setUserId(Integer.valueOf(userId));
-                            //ParticipantDetails participantDetails = getParticipant(participantForm);
-                            ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(getContainer(),Integer.valueOf(userId));
-                            if(participantDetails != null){
-                                if(profileForm.getProfile() != null){
-                                    if(profileForm.getProfile().getFirstName() != null)
-                                        participantDetails.setFirstName(profileForm.getProfile().getFirstName());
-                                    if(profileForm.getProfile().getLastName() != null)
-                                        participantDetails.setLastName(profileForm.getProfile().getLastName());
-                                    if(profileForm.getProfile().getEmailId() != null)
-                                        participantDetails.setEmail(profileForm.getProfile().getEmailId());
-                                }
-                                if(profileForm.getSettings() != null){
-                                    if(profileForm.getSettings().getRemoteNotifications() != null)
-                                        participantDetails.setRemoteNotificationFlag(profileForm.getSettings().getRemoteNotifications());
-                                    if(profileForm.getSettings().getLocalNotifications() != null)
-                                        participantDetails.setLocalNotificationFlag(profileForm.getSettings().getLocalNotifications());
-                                    if(profileForm.getSettings().getPasscode() != null)
-                                        participantDetails.setUsePassCode(profileForm.getSettings().getPasscode());
-                                    if(profileForm.getSettings().getTouchId())
-                                        participantDetails.setTouchId(profileForm.getSettings().getTouchId());
-                                }
-                                if (profileForm.getInfo() != null){
-
-                                }
-                                ParticipantDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(),participantDetails);
-                                if(updateParticipantDetails != null){
-                                    response.put("message","success");
+                    if(isAuthenticated) if (profileForm != null)
+                    {
+                        //participantForm.setUserId(Integer.valueOf(userId));
+                        //ParticipantDetails participantDetails = getParticipant(participantForm);
+                        ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(getContainer(), Integer.valueOf(userId));
+                        if (participantDetails != null)
+                        {
+                            if (profileForm.getProfile() != null)
+                            {
+                                if (profileForm.getProfile().getFirstName() != null)
+                                    participantDetails.setFirstName(profileForm.getProfile().getFirstName());
+                                if (profileForm.getProfile().getLastName() != null)
+                                    participantDetails.setLastName(profileForm.getProfile().getLastName());
+                                if (profileForm.getProfile().getEmailId() != null)
+                                    participantDetails.setEmail(profileForm.getProfile().getEmailId());
+                            }
+                            if (profileForm.getSettings() != null)
+                            {
+                                if (profileForm.getSettings().getRemoteNotifications() != null)
+                                    participantDetails.setRemoteNotificationFlag(profileForm.getSettings().getRemoteNotifications());
+                                if (profileForm.getSettings().getLocalNotifications() != null)
+                                    participantDetails.setLocalNotificationFlag(profileForm.getSettings().getLocalNotifications());
+                                if (profileForm.getSettings().getPasscode() != null)
+                                    participantDetails.setUsePassCode(profileForm.getSettings().getPasscode());
+                                if (profileForm.getSettings().getTouchId())
+                                    participantDetails.setTouchId(profileForm.getSettings().getTouchId());
+                            }
+                            if (profileForm.getInfo() != null)
+                            {
+                                AuthInfo authInfo = FdahpUserRegWSManager.get().getAuthInfo(getContainer(), auth, Integer.valueOf(userId));
+                                if (authInfo != null)
+                                {
+                                    if (profileForm.getInfo().getOs() != null){
+                                        authInfo.setDeviceType(profileForm.getInfo().getOs());
+                                    }
+                                    if (profileForm.getInfo().getOs() != null && (profileForm.getInfo().getOs().equalsIgnoreCase("IOS") || profileForm.getInfo().getOs().equalsIgnoreCase("I"))){
+                                        authInfo.setIosAppVersion(profileForm.getInfo().getAppVersion());
+                                    }else{
+                                        authInfo.setAndroidAppVersion(profileForm.getInfo().getAppVersion());
+                                    }
+                                    if(profileForm.getInfo().getDeviceToken() != null){
+                                        authInfo.setDeviceToken(profileForm.getInfo().getDeviceToken());
+                                    }
+                                    updaAuthInfo =  FdahpUserRegWSManager.get().updateAuthInfo(authInfo);
                                 }
                             }
-                        }else{
-                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
-                            getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
-                            return null;
+                            if (profileForm.getParticipantInfo() != null && profileForm.getParticipantInfo().size() > 0)
+                            {
+                                List<ParticipantStudies> participantStudiesList = FdahpUserRegWSManager.get().getParticipantStudiesList(Integer.valueOf(userId));
+                                for (int i = 0; i < profileForm.getParticipantInfo().size(); i++)
+                                {
+                                    ParticipantInfoBean participantInfoBean = profileForm.getParticipantInfo().get(i);
+                                    boolean isExists = false;
+                                    if (participantStudiesList != null && participantStudiesList.size() > 0)
+                                    {
+                                        for (ParticipantStudies participantStudies : participantStudiesList)
+                                        {
+                                            if (Integer.valueOf(participantInfoBean.getStudyId()).equals(participantStudies.getStudyId()))
+                                            {
+                                                isExists = true;
+                                                if(participantInfoBean.getAppToken() != null)
+                                                    participantStudies.setAppToken(participantInfoBean.getAppToken());
+                                                if(participantInfoBean.getParticipantId() != null)
+                                                    participantStudies.setParticipantId(Integer.valueOf(participantInfoBean.getParticipantId()));
+                                                participantStudies.setStatus(FdahpUserRegUtil.ErrorCodes.JOINED.getValue());
+                                                addParticipantStudiesList.add(participantStudies);
+                                            }
+                                        }
+                                    }
+                                    if (!isExists)
+                                    {
+                                        ParticipantStudies participantStudies = new ParticipantStudies();
+                                        if(participantInfoBean.getAppToken() != null)
+                                            participantStudies.setAppToken(participantInfoBean.getAppToken());
+                                        if(participantInfoBean.getParticipantId() != null)
+                                            participantStudies.setParticipantId(Integer.valueOf(participantInfoBean.getParticipantId()));
+                                        if(participantInfoBean.getStudyId() != null)
+                                            participantStudies.setStudyId(Integer.valueOf(participantInfoBean.getStudyId()));
+                                        participantStudies.setStatus(FdahpUserRegUtil.ErrorCodes.JOINED.getValue());
+                                        participantStudies.setUserId(Integer.valueOf(userId));
+                                        addParticipantStudiesList.add(participantStudies);
+                                    }
+                                }
+                                message = FdahpUserRegWSManager.get().saveParticipantStudies(addParticipantStudiesList);
+                            }
+                            ParticipantDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getContainer(), participantDetails);
+                            if (updateParticipantDetails != null || message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()) || updaAuthInfo != null)
+                            {
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                            }
                         }
-                    }else{
+                    }
+                    else
+                    {
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                        return null;
+                    }
+                    else{
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
                         getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
                         return null;
@@ -613,7 +690,10 @@ public class FdahpUserRegWSController extends SpringActionController
                     return null;
                 }
             }catch (Exception e){
-                _log.debug("UpdateUSerProfile Action Error :",e);
+                 _log.error("UpdateUSerProfile Action Error :",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
             }
             return response;
         }
@@ -706,10 +786,11 @@ public class FdahpUserRegWSController extends SpringActionController
                                     }
                                     if(!isExists){
                                         ParticipantStudies participantStudies = new ParticipantStudies();
-                                        participantStudies.setParticipantId(Integer.valueOf(userId));
+                                        //participantStudies.setParticipantId(Integer.valueOf(userId));
                                         participantStudies.setStudyId(Integer.valueOf(studiesBean.getStudyId()));
                                         participantStudies.setStatus(studiesBean.getStatus());
                                         participantStudies.setBookmark(studiesBean.getBookmarked());
+                                        participantStudies.setUserId(Integer.valueOf(userId));
                                         addParticipantStudiesList.add(participantStudies);
                                     }
                                 }
@@ -740,8 +821,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                                 FdahpUserRegWSManager.get().saveParticipantActivities(participantActivitiesList);
                             }
-                            response.put("message","success");
-                            response.put("success",true);
+                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+
 
                         }else{
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
@@ -759,7 +840,10 @@ public class FdahpUserRegWSController extends SpringActionController
                     return null;
                 }
             }catch (Exception e){
-                _log.debug("UpdatePreferences Action Error :",e);
+                 _log.error("UpdatePreferences Action Error :",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
             }
             return response;
         }
@@ -818,15 +902,75 @@ public class FdahpUserRegWSController extends SpringActionController
                     return null;
                 }
             }catch (Exception e){
-                _log.debug("UserPreferencesAction Action Error",e);
+                 _log.error("UserPreferencesAction Action Error",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                return null;
 
             }
             return response;
         }
     }
 
+    public class ConsentStatusForm{
+        private  String _studyId;
+        private  Boolean _eligibilityStatus;
+        private  Boolean _consentStatus;
+        private  String _consent;
+        private  String _userId;
+
+        public String getStudyId()
+        {
+            return _studyId;
+        }
+
+        public void setStudyId(String studyId)
+        {
+            _studyId = studyId;
+        }
+
+        public Boolean getEligibilityStatus()
+        {
+            return _eligibilityStatus;
+        }
+
+        public void setEligibilityStatus(Boolean eligibilityStatus)
+        {
+            _eligibilityStatus = eligibilityStatus;
+        }
+
+        public Boolean getConsentStatus()
+        {
+            return _consentStatus;
+        }
+
+        public void setConsentStatus(Boolean consentStatus)
+        {
+            _consentStatus = consentStatus;
+        }
+
+        public String getConsent()
+        {
+            return _consent;
+        }
+
+        public void setConsent(String consent)
+        {
+            _consent = consent;
+        }
+
+        public String getUserId()
+        {
+            return _userId;
+        }
+
+        public void setUserId(String userId)
+        {
+            _userId = userId;
+        }
+    }
     @RequiresPermission(ReadPermission.class)
-   public class UpdateEligibilityConsentStatusAction extends  ApiAction{
+   public class UpdateEligibilityConsentStatusAction extends  ApiAction<ConsentStatusForm>{
 
        @Override
        protected ModelAndView handleGet() throws Exception
@@ -836,7 +980,7 @@ public class FdahpUserRegWSController extends SpringActionController
        }
 
        @Override
-       public ApiResponse execute(Object o, BindException errors) throws Exception
+       public ApiResponse execute(ConsentStatusForm consentStatusForm, BindException errors) throws Exception
        {
            ApiSimpleResponse response = new ApiSimpleResponse();
            boolean isAuthenticated = false;
@@ -846,26 +990,29 @@ public class FdahpUserRegWSController extends SpringActionController
                if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(auth)){
                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
                    if(isAuthenticated){
-                       Boolean eligibility  = Boolean.valueOf(getViewContext().getRequest().getHeader("eligibilityStatus"));
-                       Boolean consentStatus = Boolean.valueOf(getViewContext().getRequest().getHeader("consentStatus"));
-                       String consent = getViewContext().getRequest().getHeader("consent");
-                       String studyId = getViewContext().getRequest().getHeader("studyId");
-                       if(studyId != null ){
-                            ParticipantStudies participantStudies = FdahpUserRegWSManager.get().getParticipantStudies(Integer.valueOf(studyId),Integer.valueOf(userId));
-                            if(participantStudies != null){
-                                if(eligibility != null){
-                                    participantStudies.setEligbibility(eligibility);
-                                }
-                                if(consentStatus != null)
-                                    participantStudies.setConsentStatus(consentStatus);
-                                if(consent!= null)
-                                    participantStudies.setConsent(FdahpUserRegUtil.getEncodeString(consent));
+                       if(consentStatusForm != null ){
+                            if(consentStatusForm.getStudyId() != null){
+                                ParticipantStudies participantStudies = FdahpUserRegWSManager.get().getParticipantStudies(Integer.valueOf(consentStatusForm.getStudyId()),Integer.valueOf(userId));
+                                if(participantStudies != null){
+                                    if(consentStatusForm.getEligibilityStatus() != null){
+                                        participantStudies.setEligbibility(consentStatusForm.getEligibilityStatus());
+                                    }
+                                    if(consentStatusForm.getConsentStatus() != null)
+                                        participantStudies.setConsentStatus(consentStatusForm.getConsentStatus());
+                                    if(consentStatusForm.getConsent()!= null)
+                                        participantStudies.setConsent(consentStatusForm.getConsent());
 
-                                List<ParticipantStudies> participantStudiesList = new ArrayList<ParticipantStudies>();
-                                participantStudiesList.add(participantStudies);
-                                String message = FdahpUserRegWSManager.get().saveParticipantStudies(participantStudiesList);
-                                response.put("message",message);
-                            }
+                                    List<ParticipantStudies> participantStudiesList = new ArrayList<ParticipantStudies>();
+                                    participantStudiesList.add(participantStudies);
+                                    String message = FdahpUserRegWSManager.get().saveParticipantStudies(participantStudiesList);
+                                    response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),message);
+                                }
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                                getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                                return null;
+                           }
+
                        }else{
                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
                            getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
@@ -883,7 +1030,329 @@ public class FdahpUserRegWSController extends SpringActionController
                    return null;
                }
            }catch (Exception e){
-               _log.debug("UserPreferencesAction Action Error",e);
+                _log.error("UserPreferencesAction Action Error",e);
+               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+               getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+               return null;
+           }
+           return response;
+       }
+
+
+   }
+
+   @RequiresPermission(ReadPermission.class)
+    public class ActivityStateAction extends ApiAction
+   {
+
+       @Override
+       public ApiResponse execute(Object o, BindException errors) throws Exception
+       {
+           ApiSimpleResponse response  = new ApiSimpleResponse();
+           boolean isAuthenticated = false;
+           try{
+               String userId = getViewContext().getRequest().getHeader("userId");
+               String auth = getViewContext().getRequest().getHeader("auth");
+               if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(auth)){
+                   isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                   if(isAuthenticated){
+                       String studyId = getViewContext().getRequest().getHeader("studyId");
+                       if(studyId != null){
+                           List<ParticipantActivities> participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(Integer.valueOf(studyId),Integer.valueOf(userId));
+                           JSONArray jsonArray = new JSONArray();
+                           if(participantActivitiesList !=null && participantActivitiesList.size() >0)
+                           {
+                               for (ParticipantActivities participantActivities : participantActivitiesList){
+                                   JSONObject jsonObject = new JSONObject();
+                                   if (participantActivities.getActivityId() != null)
+                                       jsonObject.put("activityId",participantActivities.getActivityId());
+                                   if(participantActivities.getActivityVersion() != null)
+                                       jsonObject.put("activityVersion",participantActivities.getActivityVersion());
+                                   if(participantActivities.getActivityState() != null)
+                                       jsonObject.put("activityState",participantActivities.getActivityState());
+                                   jsonArray.put(jsonObject);
+                               }
+                           }
+                           response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                           response.put(FdahpUserRegUtil.ErrorCodes.ACTIVITIES.getValue(),jsonArray);
+                       }else{
+                           FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                           getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                           return null;
+                       }
+
+                   }else{
+                       FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                       getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                       return null;
+                   }
+               }else{
+                   FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                   getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                   return null;
+               }
+           }catch (Exception e){
+                _log.error("UserPreferencesAction Action Error",e);
+               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+               getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+               return null;
+
+           }
+           return response;
+       }
+   }
+
+   public class ActivityStateForm {
+       private String _userId;
+       private String _studyId;
+       private String _activityId;
+       private String _activityVersion;
+       private String _activityState;
+
+       public String getUserId()
+       {
+           return _userId;
+       }
+
+       public void setUserId(String userId)
+       {
+           _userId = userId;
+       }
+
+       public String getStudyId()
+       {
+           return _studyId;
+       }
+
+       public void setStudyId(String studyId)
+       {
+           _studyId = studyId;
+       }
+
+       public String getActivityId()
+       {
+           return _activityId;
+       }
+
+       public void setActivityId(String activityId)
+       {
+           _activityId = activityId;
+       }
+
+       public String getActivityVersion()
+       {
+           return _activityVersion;
+       }
+
+       public void setActivityVersion(String activityVersion)
+       {
+           _activityVersion = activityVersion;
+       }
+
+       public String getActivityState()
+       {
+           return _activityState;
+       }
+
+       public void setActivityState(String activityState)
+       {
+           _activityState = activityState;
+       }
+   }
+   @RequiresPermission(ReadPermission.class)
+    public class UpdateActivityStateAction extends  ApiAction<ActivityStateForm>{
+
+       @Override
+       protected ModelAndView handleGet() throws Exception
+       {
+           getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+           return null;
+       }
+
+       @Override
+       public ApiResponse execute(ActivityStateForm activityStateForm, BindException errors) throws Exception
+       {
+           ApiSimpleResponse response =  new ApiSimpleResponse();
+           boolean isAuthenticated = false;
+           try{
+               String userId = getViewContext().getRequest().getHeader("userId");
+               String auth = getViewContext().getRequest().getHeader("auth");
+               List<ParticipantActivities> addParticipantActivitiesList = new ArrayList<ParticipantActivities>();
+               if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(auth)){
+                   isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                   if(isAuthenticated){
+
+                       if(activityStateForm != null){
+                           if(activityStateForm.getStudyId() != null && activityStateForm.getActivityId() != null){
+                               List<ParticipantActivities> participantActivitiesList;
+                               participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(Integer.valueOf(activityStateForm.getStudyId()),Integer.valueOf(userId));
+                               boolean isExist = false;
+                               if(participantActivitiesList != null && participantActivitiesList.size()>0){
+                                   for (ParticipantActivities participantActivities : participantActivitiesList)
+                                   {
+                                       if (participantActivities.getActivityId().equals(Integer.valueOf(activityStateForm.getActivityId())))
+                                       {
+                                           isExist = true;
+                                           participantActivities.setActivityVersion(activityStateForm.getActivityVersion());
+                                           participantActivities.setActivityState(activityStateForm.getActivityState());
+                                           addParticipantActivitiesList.add(participantActivities);
+                                       }
+                                   }
+
+                               }
+                               if(!isExist){
+                                   ParticipantActivities addParticipantActivities = new ParticipantActivities();
+                                   addParticipantActivities.setActivityState(activityStateForm.getActivityState());
+                                   addParticipantActivities.setActivityVersion(activityStateForm.getActivityVersion());
+                                   addParticipantActivities.setActivityId(Integer.valueOf(activityStateForm.getActivityId()));
+                                   addParticipantActivities.setStudyId(Integer.valueOf(activityStateForm.getStudyId()));
+                                   addParticipantActivities.setParticipantId(Integer.valueOf(userId));
+                                   addParticipantActivitiesList.add(addParticipantActivities);
+                               }
+                               String message = FdahpUserRegWSManager.get().saveParticipantActivities(addParticipantActivitiesList);
+                               if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
+                                   response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                               }else{
+                                   FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                   getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                                   return null;
+                               }
+                           }else{
+                               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                               getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                               return null;
+                           }
+                       }else{
+                           FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                           getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                           return null;
+                       }
+                   }else{
+                       FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                       getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                       return null;
+                   }
+               }else{
+                   FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                   getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                   return null;
+               }
+           }catch (Exception e){
+               _log.error("UserPreferencesAction Action Error",e);
+               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+               getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+               return null;
+
+           }
+          return response;
+       }
+   }
+
+   @RequiresPermission(ReadPermission.class)
+    public class WithdrawAction extends  ApiAction{
+
+       @Override
+       public ApiResponse execute(Object o, BindException errors) throws Exception
+       {
+           ApiSimpleResponse response = new ApiSimpleResponse();
+           boolean isAuthenticated = false;
+           String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+           try
+           {
+               if(isDelete()){
+                   String userId = getViewContext().getRequest().getHeader("userId");
+                   String auth = getViewContext().getRequest().getHeader("auth");
+                   if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(auth)){
+                       isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                       if(isAuthenticated){
+                           String studyId = getViewContext().getRequest().getHeader("studyId");
+                           if(null !=studyId){
+                                message = FdahpUserRegWSManager.get().withDrawStudy(Integer.valueOf(studyId),Integer.valueOf(userId));
+                               if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
+                                   response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                               }else{
+                                   FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                   getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                                   return null;
+                               }
+                           }else{
+                               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                               getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                               return null;
+                           }
+
+                       }else{
+                           FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                           getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                           return null;
+                       }
+
+                   }else{
+                       FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                       getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                       return null;
+                   }
+               }else{
+                   getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the DELETE method when calling this action.");
+                   return null;
+               }
+
+           }catch (Exception e){
+               _log.error("Withdraw Action Error:",e);
+               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+               getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+               return null;
+           }
+           return response;
+       }
+   }
+
+   @RequiresPermission(ReadPermission.class)
+    public class ConsentPDFAction extends ApiAction{
+
+       @Override
+       public ApiResponse execute(Object o, BindException errors) throws Exception
+       {
+           ApiSimpleResponse response = new ApiSimpleResponse();
+           boolean isAuthenticated = false;
+           try{
+               String userId = getViewContext().getRequest().getHeader("userId");
+               String auth = getViewContext().getRequest().getHeader("auth");
+               if(StringUtils.isNotBlank(userId) && StringUtils.isNotBlank(auth)){
+                   isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(getContainer(),auth,Integer.valueOf(userId));
+                   if(isAuthenticated){
+                       String studyId = getViewContext().getRequest().getHeader("studyId");
+                       if(StringUtils.isNoneBlank(studyId)){
+                            ParticipantStudies participantStudies = FdahpUserRegWSManager.get().getParticipantStudies(Integer.valueOf(studyId),Integer.valueOf(userId));
+                            if(participantStudies != null){
+                                if(participantStudies.getConsent() != null)
+                                    response.put("consent",participantStudies.getConsent());
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                                return  null;
+                            }
+                       }else{
+                           FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                           getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                           return null;
+                       }
+                   }else{
+                       FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                       getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                       return null;
+                   }
+               }else{
+                   FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                   getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                   return null;
+               }
+           }catch (Exception e){
+               _log.error("UserPreferencesAction Action Error",e);
+               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+               getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+               return null;
 
            }
            return response;

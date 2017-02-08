@@ -12,9 +12,11 @@ public class ParticipantStudies extends Entity
     private Integer _StudyId;
     private String _Status;
     private Boolean _Bookmark=false;
-    private Boolean _Eligbibility;
+    private Boolean _Eligbibility=false;
     private Boolean _ConsentStatus=false;
     private String _Consent;
+    private String _AppToken;
+    private Integer _UserId;
 
     public Integer getId()
     {
@@ -94,5 +96,25 @@ public class ParticipantStudies extends Entity
     public void setConsent(String consent)
     {
         _Consent = consent;
+    }
+
+    public String getAppToken()
+    {
+        return _AppToken;
+    }
+
+    public void setAppToken(String appToken)
+    {
+        _AppToken = appToken;
+    }
+
+    public Integer getUserId()
+    {
+        return _UserId;
+    }
+
+    public void setUserId(Integer userId)
+    {
+        _UserId = userId;
     }
 }

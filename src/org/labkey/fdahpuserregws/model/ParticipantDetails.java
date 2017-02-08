@@ -138,12 +138,4 @@ public class ParticipantDetails extends Entity
         return super.getEntityId();
     }
 
-    @Nullable
-    @Override
-    public Container lookupContainer()
-    {
-        return super.lookupContainer();
-    }
-
-
 }

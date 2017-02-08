@@ -11,11 +11,12 @@ public class ParticipantActivities extends Entity
     private Integer _ParticipantId;
     private Integer _StudyId;
     private Integer _ActivityId;
-    private Integer _ActivityComplete;
+    private Integer _ActivityCompleteId;
     private String _ActivityType;
     private Boolean _Bookmark=false;
     private String _Status;
     private String _ActivityVersion;
+    private String _ActivityState;
 
     public Integer getId()
     {
@@ -57,14 +58,24 @@ public class ParticipantActivities extends Entity
         _ActivityId = activityId;
     }
 
-    public Integer getActivityComplete()
+    public Integer getActivityCompleteId()
     {
-        return _ActivityComplete;
+        return _ActivityCompleteId;
     }
 
-    public void setActivityComplete(Integer activityComplete)
+    public void setActivityCompleteId(Integer activityCompleteId)
     {
-        _ActivityComplete = activityComplete;
+        _ActivityCompleteId = activityCompleteId;
+    }
+
+    public String getActivityState()
+    {
+        return _ActivityState;
+    }
+
+    public void setActivityState(String activityState)
+    {
+        _ActivityState = activityState;
     }
 
     public String getActivityType()

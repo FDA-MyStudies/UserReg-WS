@@ -16,7 +16,8 @@ public class AuthInfo extends Entity
     private Date _CreatedOn;
     private Date _ModifiedOn;
     private String _AuthKey;
-
+    private String _IosAppVersion;
+    private String _AndroidAppVersion;
     public int getAuthId()
     {
         return _AuthId;
@@ -85,5 +86,25 @@ public class AuthInfo extends Entity
     public void setAuthKey(String authKey)
     {
         _AuthKey = authKey;
+    }
+
+    public String getIosAppVersion()
+    {
+        return _IosAppVersion;
+    }
+
+    public void setIosAppVersion(String iosAppVersion)
+    {
+        _IosAppVersion = iosAppVersion;
+    }
+
+    public String getAndroidAppVersion()
+    {
+        return _AndroidAppVersion;
+    }
+
+    public void setAndroidAppVersion(String androidAppVersion)
+    {
+        _AndroidAppVersion = androidAppVersion;
     }
 }

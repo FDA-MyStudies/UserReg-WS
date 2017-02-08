@@ -80,7 +80,7 @@ public class FdahpUserRegWSManager
             }
 
         }catch (Exception e){
-            _log.debug("saveParticipant:",e);
+            _log.error("saveParticipant:",e);
         }
         transaction.commit();
         return addParticipant;
@@ -129,7 +129,7 @@ public class FdahpUserRegWSManager
             }
 
         }catch (Exception e){
-            _log.debug("saveAuthInfo:",e);
+            _log.error("saveAuthInfo:",e);
         }
         transaction.commit();
         return authInfo;
@@ -146,7 +146,7 @@ public class FdahpUserRegWSManager
                 isAuthenticated = true;
             }
         }catch (Exception e){
-            _log.debug("FdahpUserRegWSManger validatedAuthKey ()",e);
+            _log.error("FdahpUserRegWSManger validatedAuthKey ()",e);
         }
 
         return isAuthenticated;
@@ -173,7 +173,7 @@ public class FdahpUserRegWSManager
                 participantForm.setEmail(participantDetails.getEmail());
             }
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager signingParticipant()",e);
+            _log.error("HealthStudiesGatewayManager signingParticipant()",e);
         }
         return  participantForm;
     }
@@ -185,7 +185,7 @@ public class FdahpUserRegWSManager
             filter.addCondition(FieldKey.fromParts("Email"), email);
             participantDetails =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager getParticipantDetailsByEmail()",e);
+            _log.error("HealthStudiesGatewayManager getParticipantDetailsByEmail()",e);
         }
         return  participantDetails;
     }
@@ -200,14 +200,14 @@ public class FdahpUserRegWSManager
             SQLFragment sqlUpdateVisitDates = new SQLFragment();
 
             sqlUpdateVisitDates.append("UPDATE ").append(authInfo.getSelectName()).append("\n")
-                    .append("SET DeviceToken = 0, DeviceType = 0, AuthKey = 0, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
+                    .append("SET AuthKey = 0, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
                     .append(" WHERE ParticipantId = "+userId);
             int execute = executor.execute(sqlUpdateVisitDates);
             if (execute >= 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager signout error:",e);
+            _log.error("HealthStudiesGatewayManager signout error:",e);
         }
         return message;
     }
@@ -222,28 +222,32 @@ public class FdahpUserRegWSManager
                 profileBean.setFirstName(participantDetails.getFirstName());
                 profileBean.setLastName(participantDetails.getLastName());
                 profileBean.setEmailId(participantDetails.getEmail());
-                response.put("profile",profileBean);
+                response.put(FdahpUserRegUtil.ErrorCodes.PROFILE.getValue(),profileBean);
                 SettingsBean settingsBean = new SettingsBean();
                 settingsBean.setLocalNotifications(participantDetails.getLocalNotificationFlag());
                 settingsBean.setPasscode(participantDetails.getUsePassCode());
                 settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
                 settingsBean.setTouchId(participantDetails.getTouchId());
-                response.put("settings",settingsBean);
-                response.put("message","success");
+                response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(),settingsBean);
+                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
             }
             List<ParticipantStudies> participantStudiesList = getParticipantStudiesList(userId);
             if(participantStudiesList != null && participantStudiesList.size() > 0){
                 List<ParticipantInfoBean> participantInfoBeanList = new ArrayList<ParticipantInfoBean>();
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                    ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
-                    participantInfoBean.setParticipantId(String.valueOf(participantStudies.getParticipantId()));
-                    participantInfoBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
-                    participantInfoBeanList.add(participantInfoBean);
+                    if(participantStudies.getAppToken() != null)
+                    {
+                        ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
+                        participantInfoBean.setParticipantId(String.valueOf(participantStudies.getParticipantId()));
+                        participantInfoBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                        participantInfoBean.setAppToken(participantStudies.getAppToken());
+                        participantInfoBeanList.add(participantInfoBean);
+                    }
                 }
-                response.put("participantInfo",participantInfoBeanList);
+                response.put(FdahpUserRegUtil.ErrorCodes.PARTICIPANTINFO.getValue(),participantInfoBeanList);
             }
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager getParticipantDetails error:",e);
+            _log.error("HealthStudiesGatewayManager getParticipantDetails error:",e);
         }
         return  response;
     }
@@ -252,10 +256,10 @@ public class FdahpUserRegWSManager
         List<ParticipantStudies> participantStudiesList = null;
         try{
             SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            filter.addCondition(FieldKey.fromParts("UserId"), userId);
             participantStudiesList = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantStudies(),filter,null).getArrayList(ParticipantStudies.class);
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager getParticipantStudiesList error:",e);
+            _log.error("HealthStudiesGatewayManager getParticipantStudiesList error:",e);
         }
         return  participantStudiesList;
     }
@@ -267,7 +271,7 @@ public class FdahpUserRegWSManager
             filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
             participantActivitiesList = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantActivities(),filter,null).getArrayList(ParticipantActivities.class);
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager getParticipantActivitiesList error :",e);
+            _log.error("HealthStudiesGatewayManager getParticipantActivitiesList error :",e);
         }
         return participantActivitiesList;
     }
@@ -281,7 +285,6 @@ public class FdahpUserRegWSManager
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for(ParticipantStudies participantStudies : participantStudiesList)
                 if(participantStudies.getId() != null ){
-                    System.out.println("participantStudies:"+participantStudies.getEligbibility());
                     Table.update(null,table,participantStudies,participantStudies.getId());
                 }else{
                     Table.insert(null, table, participantStudies);
@@ -290,7 +293,7 @@ public class FdahpUserRegWSManager
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager saveParticipantStudies error :",e);
+            _log.error("HealthStudiesGatewayManager saveParticipantStudies error :",e);
         }
         transaction.commit();
         return message;
@@ -304,12 +307,15 @@ public class FdahpUserRegWSManager
             TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for (ParticipantActivities participantActivities : participantActivitiesList)
-                Table.insert(null,table,participantActivities);
+                if(participantActivities.getId() != null)
+                    Table.update(null,table,participantActivities,participantActivities.getId());
+                else
+                    Table.insert(null,table,participantActivities);
             if (participantActivitiesList.size() > 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager saveParticipantActivities error :",e);
+            _log.error("HealthStudiesGatewayManager saveParticipantActivities error :",e);
         }
         transaction.commit();
         return message;
@@ -328,7 +334,7 @@ public class FdahpUserRegWSManager
                     studiesBean.setStatus(participantStudies.getStatus());
                     studiesBeenList.add(studiesBean);
                 }
-                response.put("studies",studiesBeenList);
+                response.put(FdahpUserRegUtil.ErrorCodes.STUDIES.getValue(),studiesBeenList);
             }
             List<ParticipantActivities> participantActivitiesList = getParticipantActivitiesList(userId);
             if(null!=participantActivitiesList && participantActivitiesList.size() > 0){
@@ -345,11 +351,11 @@ public class FdahpUserRegWSManager
                     activitiesBean.setBookmarked(participantActivities.getBookmark());
                     activitiesBeanList.add(activitiesBean);
                 }
-                response.put("activities",activitiesBeanList);
+                response.put(FdahpUserRegUtil.ErrorCodes.ACTIVITIES.getValue(),activitiesBeanList);
             }
-            response.put("message","success");
+            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager getPreferences error :",e);
+            _log.error("HealthStudiesGatewayManager getPreferences error :",e);
         }
         return response;
     }
@@ -362,10 +368,73 @@ public class FdahpUserRegWSManager
             filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
             participantStudies =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantStudies(),filter,null).getObject(ParticipantStudies.class);
         }catch (Exception e){
-            _log.debug("HealthStudiesGatewayManager getParticipantStudies()",e);
+            _log.error("HealthStudiesGatewayManager getParticipantStudies()",e);
         }
         return  participantStudies;
     }
+
+    public List<ParticipantActivities> getParticipantActivitiesList(Integer studyId,Integer userId){
+        List<ParticipantActivities> participantActivitiesList = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
+            participantActivitiesList = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantActivities(),filter,null).getArrayList(ParticipantActivities.class);
+        }catch (Exception e){
+            _log.error("HealthStudiesGatewayManager getParticipantStudies()",e);
+        }
+        return participantActivitiesList;
+    }
+
+    public String withDrawStudy(Integer studyId,Integer userId){
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        try{
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
+            int count = Table.delete(table,filter);
+            if(count >0)
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+        }catch (Exception e){
+            _log.error("HealthStudiesGatewayManager withDrawStudy()",e);
+        }
+        return message;
+    }
+
+    public AuthInfo getAuthInfo(Container container,String authKey,Integer participantId){
+        AuthInfo authInfo = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("AuthKey"), authKey);
+            filter.addCondition(FieldKey.fromParts("ParticipantId"), participantId);
+            authInfo  = new TableSelector(FdahpUserRegWSSchema.getInstance().getAuthInfo(),filter,null).getObject(AuthInfo.class);
+        }catch (Exception e){
+            _log.error("FdahpUserRegWSManger getAuthInfo ()",e);
+        }
+        return authInfo;
+    }
+    public AuthInfo updateAuthInfo(AuthInfo authInfo){
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        try{
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getAuthInfo();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            if(null !=authInfo){
+                authInfo.setDeviceToken(authInfo.getDeviceToken());
+                authInfo.setDeviceType(authInfo.getDeviceType());
+                authInfo.setModifiedOn(new Date());
+                Table.update(null,table, authInfo,authInfo.getAuthId());
+            }
+
+        }catch (Exception e){
+            _log.error("updateAuthInfo:",e);
+        }
+        transaction.commit();
+        return authInfo;
+    }
+
 }
 
 

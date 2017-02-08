@@ -40,6 +40,16 @@ public class FdahpUserRegUtil
         INACTIVE("INACTIVE"),
         SUCCESS("SUCCESS"),
         FAILURE("FAILURE"),
+        JOINED("Joined"),
+        COMPLETED("Completed"),
+        STARTED("Started"),
+        PAUSED("Paused"),
+        PROFILE("profile"),
+        SETTINGS("settings"),
+        MESSAGE("message"),
+        PARTICIPANTINFO("participantInfo"),
+        STUDIES("studies"),
+        ACTIVITIES("activities"),
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime");
         private final String value;
         ErrorCodes(final String newValue){
