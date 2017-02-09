@@ -5,9 +5,9 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class ProfileBean
 {
-    private String _firstName;
-    private String _lastName;
-    private String _emailId;
+    private String _firstName="";
+    private String _lastName="";
+    private String _emailId="";
 
     public String getFirstName()
     {

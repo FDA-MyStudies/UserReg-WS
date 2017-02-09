@@ -111,6 +111,7 @@ public class FdahpUserRegWSManager
             authKey = RandomStringUtils.randomNumeric(9);
             TableInfo table = FdahpUserRegWSSchema.getInstance().getAuthInfo();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            System.out.println("table:"+table.getAuditBehavior());
             if(null !=authInfo){
                 authInfo.setAuthKey(authKey);
                 authInfo.setDeviceToken("");
@@ -219,15 +220,22 @@ public class FdahpUserRegWSManager
             ParticipantDetails participantDetails = getParticipantDetails(null,userId);
             if(participantDetails != null){
                 ProfileBean profileBean = new ProfileBean();
-                profileBean.setFirstName(participantDetails.getFirstName());
-                profileBean.setLastName(participantDetails.getLastName());
-                profileBean.setEmailId(participantDetails.getEmail());
+                if(participantDetails.getFirstName()!=null)
+                    profileBean.setFirstName(participantDetails.getFirstName());
+                if(participantDetails.getLastName() != null)
+                    profileBean.setLastName(participantDetails.getLastName());
+                if(participantDetails.getEmail() != null)
+                    profileBean.setEmailId(participantDetails.getEmail());
                 response.put(FdahpUserRegUtil.ErrorCodes.PROFILE.getValue(),profileBean);
                 SettingsBean settingsBean = new SettingsBean();
-                settingsBean.setLocalNotifications(participantDetails.getLocalNotificationFlag());
-                settingsBean.setPasscode(participantDetails.getUsePassCode());
-                settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
-                settingsBean.setTouchId(participantDetails.getTouchId());
+                if(participantDetails.getLocalNotificationFlag() != null)
+                    settingsBean.setLocalNotifications(participantDetails.getLocalNotificationFlag());
+                if(participantDetails.getUsePassCode())
+                    settingsBean.setPasscode(participantDetails.getUsePassCode());
+                if(participantDetails.getRemoteNotificationFlag()!=null)
+                    settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
+                if(participantDetails.getTouchId() != null)
+                    settingsBean.setTouchId(participantDetails.getTouchId());
                 response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(),settingsBean);
                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
             }
@@ -238,9 +246,12 @@ public class FdahpUserRegWSManager
                     if(participantStudies.getAppToken() != null)
                     {
                         ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
-                        participantInfoBean.setParticipantId(String.valueOf(participantStudies.getParticipantId()));
-                        participantInfoBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
-                        participantInfoBean.setAppToken(participantStudies.getAppToken());
+                        if(participantStudies.getParticipantId() != null)
+                            participantInfoBean.setParticipantId(String.valueOf(participantStudies.getParticipantId()));
+                        if(participantStudies.getStudyId() != null)
+                            participantInfoBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                        if(participantStudies.getAppToken() != null)
+                            participantInfoBean.setAppToken(participantStudies.getAppToken());
                         participantInfoBeanList.add(participantInfoBean);
                     }
                 }
@@ -283,12 +294,14 @@ public class FdahpUserRegWSManager
         try{
             TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
-            for(ParticipantStudies participantStudies : participantStudiesList)
+            for(ParticipantStudies participantStudies : participantStudiesList){
                 if(participantStudies.getId() != null ){
                     Table.update(null,table,participantStudies,participantStudies.getId());
                 }else{
                     Table.insert(null, table, participantStudies);
                 }
+            }
+
             if(participantStudiesList.size() > 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
@@ -328,11 +341,16 @@ public class FdahpUserRegWSManager
             if(null!=participantStudiesList && participantStudiesList.size() >0){
                 List<StudiesBean> studiesBeenList = new ArrayList<StudiesBean>();
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                    StudiesBean studiesBean = new StudiesBean();
-                    studiesBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
-                    studiesBean.setBookmarked(participantStudies.getBookmark());
-                    studiesBean.setStatus(participantStudies.getStatus());
-                    studiesBeenList.add(studiesBean);
+                    if(participantStudies.getAppToken() == null){
+                        StudiesBean studiesBean = new StudiesBean();
+                        if(participantStudies.getStudyId() != null)
+                            studiesBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                        if(participantStudies.getBookmark() != null)
+                            studiesBean.setBookmarked(participantStudies.getBookmark());
+                        if(participantStudies.getStatus() != null)
+                            studiesBean.setStatus(participantStudies.getStatus());
+                        studiesBeenList.add(studiesBean);
+                    }
                 }
                 response.put(FdahpUserRegUtil.ErrorCodes.STUDIES.getValue(),studiesBeenList);
             }
@@ -343,12 +361,16 @@ public class FdahpUserRegWSManager
                 {
 
                     ActivitiesBean activitiesBean = new ActivitiesBean();
-                    //activitiesBean.setStatus(participantActivities.getStatus());
-                    activitiesBean.setStudyId(String.valueOf(participantActivities.getStudyId()));
-                    activitiesBean.setActivityId(String.valueOf(participantActivities.getActivityId()));
-                    activitiesBean.setStatus(participantActivities.getStatus());
-                    activitiesBean.setActivityVersion(participantActivities.getActivityVersion());
-                    activitiesBean.setBookmarked(participantActivities.getBookmark());
+                    if(participantActivities.getStudyId()!=null)
+                        activitiesBean.setStudyId(String.valueOf(participantActivities.getStudyId()));
+                    if(participantActivities.getActivityId()!=null)
+                        activitiesBean.setActivityId(String.valueOf(participantActivities.getActivityId()));
+                    if(participantActivities.getStatus() != null)
+                        activitiesBean.setStatus(participantActivities.getStatus());
+                    if(participantActivities.getActivityVersion()!=null)
+                        activitiesBean.setActivityVersion(participantActivities.getActivityVersion());
+                    if(participantActivities.getBookmark()!=null)
+                        activitiesBean.setBookmarked(participantActivities.getBookmark());
                     activitiesBeanList.add(activitiesBean);
                 }
                 response.put(FdahpUserRegUtil.ErrorCodes.ACTIVITIES.getValue(),activitiesBeanList);

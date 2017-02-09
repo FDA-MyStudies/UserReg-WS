@@ -5,9 +5,9 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class ParticipantInfoBean
 {
-    private String _studyId;
-    private String _participantId;
-    private String _appToken;
+    private String _studyId="";
+    private String _participantId="";
+    private String _appToken="";
 
     public String getStudyId()
     {

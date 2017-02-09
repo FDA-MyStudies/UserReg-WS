@@ -5,9 +5,9 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class InfoBean
 {
-    String _os;
-    String _appVersion;
-    String _deviceToken;
+    String _os="";
+    String _appVersion="";
+    String _deviceToken="";
 
     public String getOs()
     {

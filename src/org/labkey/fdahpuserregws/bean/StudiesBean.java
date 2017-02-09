@@ -5,9 +5,9 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class StudiesBean
 {
-    private String _studyId;
-    private String _status;
-    private Boolean bookmarked;
+    private String _studyId="";
+    private String _status="";
+    private Boolean bookmarked=false;
 
     public String getStudyId()
     {

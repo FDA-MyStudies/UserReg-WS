@@ -5,11 +5,11 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class ActivitiesBean
 {
-    private String _activityId;
-    private String _studyId;
-    private String _activityVersion;
-    private String _status;
-    private Boolean _bookmarked;
+    private String _activityId="";
+    private String _studyId="";
+    private String _activityVersion="";
+    private String _status="";
+    private Boolean _bookmarked=false;
 
     public String getActivityId()
     {

@@ -44,7 +44,7 @@ import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantActivities;
 import org.labkey.fdahpuserregws.model.ParticipantDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
-import org.omg.PortableInterceptor.INACTIVE;
+
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import javax.mail.Message;
@@ -94,7 +94,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             ParticipantDetails participantDetails = new ParticipantDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "HealthStudiesGatewayServices Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserResWebServices Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -781,6 +781,9 @@ public class FdahpUserRegWSController extends SpringActionController
                                          for (ParticipantStudies participantStudies : existParticipantStudies){
                                              if(Integer.valueOf(studiesBean.getStudyId()).equals(participantStudies.getStudyId())){
                                                  isExists = true;
+                                                 participantStudies.setStatus(studiesBean.getStatus());
+                                                 participantStudies.setBookmark(studiesBean.getBookmarked());
+                                                 addParticipantStudiesList.add(participantStudies);
                                              }
                                          }
                                     }
@@ -806,6 +809,11 @@ public class FdahpUserRegWSController extends SpringActionController
                                         for(ParticipantActivities participantActivities : existedParticipantActivitiesList){
                                             if(Integer.valueOf(activitiesBean.getStudyId()).equals(participantActivities.getStudyId()) && Integer.valueOf(activitiesBean.getActivityId()).equals(participantActivities.getActivityId())){
                                                 isExists =true;
+                                                participantActivities.setParticipantId(Integer.valueOf(userId));
+                                                participantActivities.setStatus(activitiesBean.getStatus());
+                                                participantActivities.setBookmark(activitiesBean.getBookmarked());
+                                                participantActivities.setActivityVersion(activitiesBean.getActivityVersion());
+                                                participantActivitiesList.add(participantActivities);
                                             }
                                         }
                                     if (!isExists){
@@ -912,7 +920,7 @@ public class FdahpUserRegWSController extends SpringActionController
         }
     }
 
-    public class ConsentStatusForm{
+    public static class ConsentStatusForm{
         private  String _studyId;
         private  Boolean _eligibilityStatus;
         private  Boolean _consentStatus;
@@ -1006,6 +1014,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                     participantStudiesList.add(participantStudies);
                                     String message = FdahpUserRegWSManager.get().saveParticipantStudies(participantStudiesList);
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),message);
+                                }else{
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                                    getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                                    return null;
                                 }
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
@@ -1102,7 +1114,7 @@ public class FdahpUserRegWSController extends SpringActionController
        }
    }
 
-   public class ActivityStateForm {
+   public static class ActivityStateForm {
        private String _userId;
        private String _studyId;
        private String _activityId;
