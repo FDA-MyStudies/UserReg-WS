@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 
 import org.json.JSONObject;
 import org.labkey.api.action.ApiSimpleResponse;
-import org.labkey.api.data.Container;
+
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SQLFragment;
@@ -66,7 +66,7 @@ public class FdahpUserRegWSManager
 
     private static final Logger _log = Logger.getLogger(FdahpUserRegWSManager.class);
 
-    public ParticipantDetails saveParticipant(Container container, ParticipantDetails participant){
+    public ParticipantDetails saveParticipant(ParticipantDetails participant){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         ParticipantDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -86,19 +86,19 @@ public class FdahpUserRegWSManager
         return addParticipant;
     }
 
-    public ParticipantDetails getParticipantDetails(Container container,int id){
+    public ParticipantDetails getParticipantDetails(int id){
         SimpleFilter filter = new SimpleFilter();
         filter.addCondition(FieldKey.fromParts("Id"), id);
         return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(ParticipantDetails.class);
     }
 
-    public List<ParticipantDetails> getParticipantDetailsByEmail(Container container, String email){
+    public List<ParticipantDetails> getParticipantDetailsListByEmail(String email){
         SimpleFilter filter = new SimpleFilter();
         filter.addCondition(FieldKey.fromParts("Email"), email);
         return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getArrayList(ParticipantDetails.class);
     }
 
-    public AuthInfo saveAuthInfo(Container container, Integer userId){
+    public AuthInfo saveAuthInfo(Integer userId){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         ParticipantDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -135,7 +135,7 @@ public class FdahpUserRegWSManager
         transaction.commit();
         return authInfo;
     }
-    public boolean validatedAuthKey(Container container,String authKey,Integer participantId){
+    public boolean validatedAuthKey(String authKey,Integer participantId){
         boolean isAuthenticated = false;
         try{
             AuthInfo authInfo = null;
@@ -153,7 +153,7 @@ public class FdahpUserRegWSManager
         return isAuthenticated;
     }
 
-    public ParticipantForm signingParticipant(Container container, String email, String password){
+    public ParticipantForm signingParticipant(String email, String password){
         ParticipantForm participantForm = null;
         ParticipantDetails participantDetails = null;
         try{
@@ -163,7 +163,7 @@ public class FdahpUserRegWSManager
             participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
             if(null != participantDetails){
                 participantForm = new ParticipantForm();
-                AuthInfo authInfo = saveAuthInfo(container,participantDetails.getId());
+                AuthInfo authInfo = saveAuthInfo(participantDetails.getId());
                 if(authInfo != null){
                     participantForm.setAuth(authInfo.getAuthKey());
                 }
@@ -204,7 +204,7 @@ public class FdahpUserRegWSManager
                     .append("SET AuthKey = 0, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
                     .append(" WHERE ParticipantId = "+userId);
             int execute = executor.execute(sqlUpdateVisitDates);
-            if (execute >= 0){
+            if (execute > 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
         }catch (Exception e){
@@ -213,11 +213,11 @@ public class FdahpUserRegWSManager
         return message;
     }
 
-    public ApiSimpleResponse getParticipantDetails(Integer userId){
+    public ApiSimpleResponse getParticipantInfoDetails(Integer userId){
         JSONObject jsonObject  = new JSONObject();
         ApiSimpleResponse response  = new ApiSimpleResponse();
         try{
-            ParticipantDetails participantDetails = getParticipantDetails(null,userId);
+            ParticipantDetails participantDetails = getParticipantDetails(userId);
             if(participantDetails != null){
                 ProfileBean profileBean = new ProfileBean();
                 if(participantDetails.getFirstName()!=null)
@@ -236,6 +236,10 @@ public class FdahpUserRegWSManager
                     settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
                 if(participantDetails.getTouchId() != null)
                     settingsBean.setTouchId(participantDetails.getTouchId());
+                if(participantDetails.getReminderFlag() != null)
+                    settingsBean.setReminderFlag(participantDetails.getReminderFlag());
+                if(participantDetails.getReminderTime() != null)
+                    settingsBean.setRemindersTime(participantDetails.getReminderTime());
                 response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(),settingsBean);
                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
             }
@@ -411,21 +415,39 @@ public class FdahpUserRegWSManager
     public String withDrawStudy(Integer studyId,Integer userId){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         try{
-            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+            /*TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
             filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
             int count = Table.delete(table,filter);
             if(count >0)
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();*/
+
+
+            DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+
+            SqlExecutor executor = new SqlExecutor(schema);
+            SQLFragment sqlUpdateVisitDates = new SQLFragment();
+
+            sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
+                    .append("SET Status = 'Withdrawn', AppToken = NULL")
+                    .append(" WHERE UserId = "+userId)
+                    .append(" and StudyId = "+studyId);
+            int execute = executor.execute(sqlUpdateVisitDates);
+            if (execute > 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            }
+
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager withDrawStudy()",e);
         }
         return message;
     }
 
-    public AuthInfo getAuthInfo(Container container,String authKey,Integer participantId){
+    public AuthInfo getAuthInfo(String authKey,Integer participantId){
         AuthInfo authInfo = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -456,7 +478,17 @@ public class FdahpUserRegWSManager
         transaction.commit();
         return authInfo;
     }
-
+    public ParticipantDetails getParticipantDetailsByToken(String token){
+        ParticipantDetails participantDetails = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("SecurityToken"), token);
+            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(ParticipantDetails.class);
+        }catch (Exception e){
+            _log.error("getParticipantDetailsByToken Error",e);
+        }
+        return participantDetails;
+    }
 }
 
 

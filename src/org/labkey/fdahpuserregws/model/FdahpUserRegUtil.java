@@ -35,6 +35,7 @@ public class FdahpUserRegUtil
         SESSION_EXPIRED_MSG("Session expired."),
         INVALID_AUTH_CODE("INVALID_AUTH_CODE"),
         ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated"),
+        INVALID_USERNAME_PASSWORD_MSG("Invalid username and password"),
         EMAIL_EXISTS("the email already exists"),
         INVALID_INPUT_ERROR_MSG("Invalid input."),
         INACTIVE("INACTIVE"),
@@ -50,7 +51,10 @@ public class FdahpUserRegUtil
         PARTICIPANTINFO("participantInfo"),
         STUDIES("studies"),
         ACTIVITIES("activities"),
-        CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime");
+        NO_DATA_AVAILABLE("No data available"),
+        CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
+        EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
+        USER_NOT_EXISTS("USER DOESN'T EXISTS");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;

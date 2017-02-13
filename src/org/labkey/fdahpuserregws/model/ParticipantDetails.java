@@ -20,6 +20,8 @@ public class ParticipantDetails extends Entity
     private Boolean _ReminderFlag=false;
     private Integer Status;
     private String _Password;
+    private String _ReminderTime;
+    private String _SecurityToken;
 
     public Integer getId()
     {
@@ -129,6 +131,26 @@ public class ParticipantDetails extends Entity
     public void setPassword(String password)
     {
         _Password = password;
+    }
+
+    public String getReminderTime()
+    {
+        return _ReminderTime;
+    }
+
+    public void setReminderTime(String reminderTime)
+    {
+        _ReminderTime = reminderTime;
+    }
+
+    public String getSecurityToken()
+    {
+        return _SecurityToken;
+    }
+
+    public void setSecurityToken(String securityToken)
+    {
+        _SecurityToken = securityToken;
     }
 
     @Nullable

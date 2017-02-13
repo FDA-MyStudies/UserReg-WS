@@ -9,6 +9,8 @@ public class SettingsBean
     private Boolean _localNotifications=false;
     private Boolean _touchId=false;
     private Boolean _passcode=false;
+    private Boolean _reminderFlag=false;
+    private String _remindersTime="";
 
     public Boolean getRemoteNotifications()
     {
@@ -48,5 +50,25 @@ public class SettingsBean
     public void setPasscode(Boolean passcode)
     {
         _passcode = passcode;
+    }
+
+    public Boolean getReminderFlag()
+    {
+        return _reminderFlag;
+    }
+
+    public void setReminderFlag(Boolean reminderFlag)
+    {
+        _reminderFlag = reminderFlag;
+    }
+
+    public String getRemindersTime()
+    {
+        return _remindersTime;
+    }
+
+    public void setRemindersTime(String remindersTime)
+    {
+        _remindersTime = remindersTime;
     }
 }
