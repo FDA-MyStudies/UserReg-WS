@@ -51,8 +51,10 @@ public class FdahpUserRegUtil
         PARTICIPANTINFO("participantInfo"),
         STUDIES("studies"),
         ACTIVITIES("activities"),
+        WITHDRAWN("Withdrawn"),
         NO_DATA_AVAILABLE("No data available"),
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
+        WITHDRAWN_STUDY("You are already Withdrawn from study"),
         EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
         USER_NOT_EXISTS("USER DOESN'T EXISTS");
         private final String value;

@@ -111,7 +111,6 @@ public class FdahpUserRegWSManager
             authKey = RandomStringUtils.randomNumeric(9);
             TableInfo table = FdahpUserRegWSSchema.getInstance().getAuthInfo();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
-            System.out.println("table:"+table.getAuditBehavior());
             if(null !=authInfo){
                 authInfo.setAuthKey(authKey);
                 authInfo.setDeviceToken("");
@@ -126,9 +125,7 @@ public class FdahpUserRegWSManager
                 authInfo.setParticipantId(userId);
                 authInfo.setCreatedOn(new Date());
                 Table.insert(null,table, authInfo);
-
             }
-
         }catch (Exception e){
             _log.error("saveAuthInfo:",e);
         }
@@ -390,7 +387,7 @@ public class FdahpUserRegWSManager
         ParticipantStudies participantStudies = null;
         try{
             SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            filter.addCondition(FieldKey.fromParts("UserId"), userId);
             filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
             participantStudies =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantStudies(),filter,null).getObject(ParticipantStudies.class);
         }catch (Exception e){
@@ -407,7 +404,7 @@ public class FdahpUserRegWSManager
             filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
             participantActivitiesList = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantActivities(),filter,null).getArrayList(ParticipantActivities.class);
         }catch (Exception e){
-            _log.error("HealthStudiesGatewayManager getParticipantStudies()",e);
+            _log.error("HealthStudiesGatewayManager getParticipantActivitiesList()",e);
         }
         return participantActivitiesList;
     }
