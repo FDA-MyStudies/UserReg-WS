@@ -220,8 +220,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                 response.put("verified", true);
                         }
                     }else{
-                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(), getViewContext().getResponse());
-                        getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.toString());
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                        getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
                         return null;
                     }
 
@@ -462,9 +462,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                         errors.rejectValue("oldPassword",ERROR_MSG,"old password not exists");
                                         //return null;
                                     }
-                                }else{
-                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(), getViewContext().getResponse());
-                                    getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.toString());
+                                }
+                                else{
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                                    getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
                                     return null;
                                 }
                             }else{
@@ -737,8 +738,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 }
                             }else{
-                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.getValue(),FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.getValue(), getViewContext().getResponse());
-                                getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.toString());
+                                /*FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.getValue(),FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.getValue(), getViewContext().getResponse());
+                                getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.USER_NOT_EXISTS.toString());*/
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                                getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
                                 return null;
                             }
                         }
@@ -1379,8 +1382,9 @@ public class FdahpUserRegWSController extends SpringActionController
                                if(participantStudies != null){
                                     if(participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue())){
                                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(),FdahpUserRegUtil.ErrorCodes.WITHDRAWN_STUDY.getValue(), getViewContext().getResponse());
-                                        getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.WITHDRAWN_STUDY.getValue());
-                                        return null;
+                                       // getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.WITHDRAWN_STUDY.getValue());
+                                        response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.WITHDRAWN_STUDY.getValue());
+                                        //return response;
                                         //response.put("error",FdahpUserRegUtil.ErrorCodes.WITHDRAWN_STUDY.getValue());
                                     }else{
                                         message = FdahpUserRegWSManager.get().withDrawStudy(Integer.valueOf(studyId),Integer.valueOf(userId));
@@ -1458,8 +1462,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                     response.put("consent",participantStudies.getConsent());
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
-                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(), getViewContext().getResponse());
-                                getViewContext().getResponse().sendError(HttpServletResponse.SC_NO_CONTENT, FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue());
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                                getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
                                 return  null;
                             }
                        }else{
@@ -1543,4 +1547,46 @@ public class FdahpUserRegWSController extends SpringActionController
        }
    }
 
+   @RequiresPermission(ReadPermission.class)
+    public class DeleteAccountAction extends ApiAction{
+
+       @Override
+       public Object execute(Object o, BindException errors) throws Exception
+       {
+           ApiSimpleResponse response = new ApiSimpleResponse();
+           boolean isAuthenticated = false;
+           try{
+               String userId = getViewContext().getRequest().getHeader("userId");
+               String auth = getViewContext().getRequest().getHeader("auth");
+               if((userId != null && StringUtils.isNotEmpty(userId)) && (auth != null && StringUtils.isNotEmpty(auth))){
+                   isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth,Integer.valueOf(userId));
+                   if(isAuthenticated){
+                        String message = FdahpUserRegWSManager.get().deleteAccount(Integer.valueOf(userId));
+                        if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
+                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                        }else{
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                            getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+                            return null;
+                        }
+                   }else{
+                       FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                       getViewContext().getResponse().sendError(HttpServletResponse.SC_UNAUTHORIZED, FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue());
+                       return null;
+                   }
+               }else{
+                   FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), getViewContext().getResponse());
+                   getViewContext().getResponse().sendError(HttpServletResponse.SC_BAD_REQUEST, FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.toString());
+                   return null;
+               }
+
+           }catch (Exception e){
+               _log.error("Delete Account Action:",e);
+               FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+               getViewContext().getResponse().sendError(HttpServletResponse.SC_NOT_FOUND, FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue());
+               return null;
+           }
+           return response;
+       }
+   }
 }

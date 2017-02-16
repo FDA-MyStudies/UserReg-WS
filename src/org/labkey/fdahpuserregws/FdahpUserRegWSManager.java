@@ -486,6 +486,36 @@ public class FdahpUserRegWSManager
         }
         return participantDetails;
     }
+
+    public String deleteAccount(Integer userId){
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        try{
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("UserId"), userId);
+            Table.delete(table,filter);
+
+            TableInfo participantActivitiesInfo = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
+            participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter filterActivities = new SimpleFilter();
+            filterActivities.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            Table.delete(participantActivitiesInfo,filterActivities);
+
+            TableInfo participantInfo = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
+            participantInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter participantFilter = new SimpleFilter();
+            participantFilter.addCondition(FieldKey.fromParts("Id"), userId);
+            int count = Table.delete(participantInfo,participantFilter);
+
+            if(count > 0)
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+
+        }catch (Exception e){
+            _log.error("deleteAccount error:",e);
+        }
+        return message;
+    }
 }
 
 
