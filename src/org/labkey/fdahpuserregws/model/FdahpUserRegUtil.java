@@ -3,6 +3,8 @@ package org.labkey.fdahpuserregws.model;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.log4j.spi.ErrorCode;
+import org.labkey.api.mbean.ErrorsMXBean;
 import org.labkey.api.util.StringUtilsLabKey;
 
 import javax.servlet.http.HttpServletResponse;
@@ -56,7 +58,8 @@ public class FdahpUserRegUtil
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
         WITHDRAWN_STUDY("You are already Withdrawn from study"),
         EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
-        USER_NOT_EXISTS("USER DOESN'T EXISTS");
+        USER_NOT_EXISTS("USER DOESN'T EXISTS"),
+        FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
@@ -71,6 +74,16 @@ public class FdahpUserRegUtil
             response.setHeader("status", status);
             response.setHeader("title", title);
             response.setHeader("StatusMessage", message);
+            if(status.equalsIgnoreCase(ErrorCodes.STATUS_104.getValue()))
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+            if(status.equalsIgnoreCase(ErrorCodes.STATUS_102.getValue()))
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+            if(status.equalsIgnoreCase(ErrorCodes.STATUS_101.getValue()))
+                if(message.equalsIgnoreCase(ErrorCodes.SESSION_EXPIRED_MSG.getValue()))
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorCodes.INVALID_AUTH_CODE.getValue());
+                else
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
+
         } catch (Exception e) {
             _log.info("FdahpUserRegUtil - getFailureResponse() :: ERROR " , e);
         }
