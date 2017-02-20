@@ -124,7 +124,6 @@ public class FdahpUserRegWSController extends SpringActionController
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.EMAIL_EXISTS.getValue(), getViewContext().getResponse());
                         errors.rejectValue("email",ERROR_MSG,FdahpUserRegUtil.ErrorCodes.EMAIL_EXISTS.getValue());
                     }else{
-
                         addParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(getParticipant(participantForm));
                         if(addParticipantDetails != null){
                             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -146,7 +145,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "<p><a href='http://localhost:8080/labkey/fdahpUserRegWS/home/confirmRegistration.api?token="+addParticipantDetails.getSecurityToken()+"'>Confirm Account</a></p>"+
                                     " <BR>Thanks,<BR>"+
                                     "<BR>"+"</body></html>";
-                            boolean isMailSent = sendemail(addParticipantDetails.getEmail(),"Verification Email",message);
+                            boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Verification Email",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
@@ -160,9 +159,9 @@ public class FdahpUserRegWSController extends SpringActionController
                     }
                 }else{
                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
-                    if (StringUtils.trimToNull(participantForm.getLastName()) == null)
-                        errors.rejectValue("firstName",ERROR_MSG,"First Name is required.");
                     if (StringUtils.trimToNull(participantForm.getFirstName()) == null)
+                        errors.rejectValue("firstName",ERROR_MSG,"First Name is required.");
+                    if (StringUtils.trimToNull(participantForm.getLastName()) == null)
                         errors.rejectValue("lastName",ERROR_MSG,  "Last Name is required.");
                     if (StringUtils.trimToNull(participantForm.getEmail()) == null)
                         errors.rejectValue("email",ERROR_MSG,"email is required.");
@@ -342,7 +341,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "Dear "+participantDetails.getFirstName()+" "+participantDetails.getLastName()+",<BR><p> Your new password is '<b>" + tempPassword + "</b>'</p>" +
                                     "<BR>Thanks,<BR>"+
                                     "<BR>"+"</body></html>";
-                            boolean isMailSent = sendemail(participantDetails.getEmail(),"ForgotPasswordLink",message);
+                            boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"ForgotPasswordLink",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
@@ -356,7 +355,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
                     }else{
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue(), FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue(), getViewContext().getResponse());
-                        errors.rejectValue("email",ERROR_MSG,"email doesn't exists.");
+                        errors.rejectValue("email",ERROR_MSG,FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue());
                     }
                 }else{
                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
@@ -370,7 +369,7 @@ public class FdahpUserRegWSController extends SpringActionController
             return response;
         }
     }
-    public boolean sendemail(String email, String subject, String messageBody) throws Exception{
+    /*public boolean sendemail(String email, String subject, String messageBody) throws Exception{
 
         boolean sentMail = false;
         try {
@@ -399,7 +398,7 @@ public class FdahpUserRegWSController extends SpringActionController
         }
 
         return sentMail;
-    }
+    }*/
 
     @RequiresPermission(ReadPermission.class)
     public class ChangePasswordAction extends ApiAction<ChangePasswordForm>{
@@ -435,8 +434,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                         }
                                     }else{
-                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
-                                        errors.rejectValue("oldPassword",ERROR_MSG,"old password not exists");
+                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.OLD_PASSWORD_NOT_EXISTS.getValue(), getViewContext().getResponse());
+                                        errors.rejectValue("oldPassword",ERROR_MSG,FdahpUserRegUtil.ErrorCodes.OLD_PASSWORD_NOT_EXISTS.getValue());
                                    }
                                 }
                                 else{
@@ -444,8 +443,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                     return null;
                                 }
                             }else{
-                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
-                                errors.rejectValue("oldPassword",ERROR_MSG,"old password and new password not same");
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME.getValue(), getViewContext().getResponse());
+                                errors.rejectValue("oldPassword",ERROR_MSG,FdahpUserRegUtil.ErrorCodes.OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME.getValue());
                             }
                         }else{
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());

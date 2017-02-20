@@ -7,10 +7,18 @@ import org.apache.log4j.spi.ErrorCode;
 import org.labkey.api.mbean.ErrorsMXBean;
 import org.labkey.api.util.StringUtilsLabKey;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
 
@@ -59,7 +67,9 @@ public class FdahpUserRegUtil
         WITHDRAWN_STUDY("You are already Withdrawn from study"),
         EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
         USER_NOT_EXISTS("USER DOESN'T EXISTS"),
-        FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email");
+        FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email"),
+        OLD_PASSWORD_NOT_EXISTS("old password not exists"),
+        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("old password and new password not same");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
@@ -130,5 +140,36 @@ public class FdahpUserRegUtil
     public static String getDecodeString(String values){
         byte[] decodedBytes = Base64.decodeBase64(values);
         return new String(decodedBytes, DEFAULT_CHARSET);
+    }
+
+    public static boolean sendemail(String email, String subject, String messageBody) throws Exception{
+
+        boolean sentMail = false;
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "587");
+            Session session = Session.getInstance(props,
+                    new javax.mail.Authenticator() {
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication("apps@boston-technology.com", "password789");
+                        }
+                    });
+            Message message = new MimeMessage(session);
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+            message.setSubject(subject);
+            message.setContent(messageBody, "text/html");
+            Transport.send(message);
+            sentMail = true;
+        } catch (MessagingException e) {
+            _log.error("ERROR:  sendemail() - ",e);
+            sentMail = false;
+        } catch (Exception e) {
+            _log.error("ERROR:  sendemail() - ",e);
+        }
+
+        return sentMail;
     }
 }

@@ -342,7 +342,7 @@ public class FdahpUserRegWSManager
             if(null!=participantStudiesList && participantStudiesList.size() >0){
                 List<StudiesBean> studiesBeenList = new ArrayList<StudiesBean>();
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                    if(participantStudies.getAppToken() == null){
+                    if(participantStudies.getAppToken() == null && !participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue())){
                         StudiesBean studiesBean = new StudiesBean();
                         if(participantStudies.getStudyId() != null)
                             studiesBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
