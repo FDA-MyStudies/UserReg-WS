@@ -29,6 +29,7 @@ import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.view.JspView;
@@ -87,7 +88,7 @@ public class FdahpUserRegWSController extends SpringActionController
         }
     }
 
-    @RequiresPermission(ReadPermission.class)
+    @RequiresNoPermission
     public class PingAction extends ApiAction<Object>
     {
 

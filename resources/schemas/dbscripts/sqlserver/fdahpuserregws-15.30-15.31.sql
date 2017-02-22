@@ -19,61 +19,111 @@
 CREATE SCHEMA fdahpuserregws;
 GO
 
-
-
-CREATE TABLE fdahpuserregws.AuthInfo
+/****** Object:  Table [fdahpuserregws].[AuthInfo]    Script Date: 2/16/2017 12:46:06 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [fdahpuserregws].[AuthInfo](
+	[_ts] [timestamp] NOT NULL,
+	[AuthId] [int] IDENTITY(1,1) NOT NULL,
+	[ParticipantId] [int] NULL,
+	[DeviceToken] [nvarchar](1000) NULL,
+	[DeviceType] [nchar](10) NULL,
+	[CreatedOn] [datetime] NULL,
+	[ModifiedOn] [datetime] NULL,
+	[AuthKey] [nvarchar](50) NULL,
+	[IosAppVersion] [nvarchar](50) NULL,
+	[AndroidAppVersion] [nvarchar](50) NULL,
+ CONSTRAINT [PK_AuthInfo] PRIMARY KEY CLUSTERED
 (
-    -- standard fields
-    _ts TIMESTAMP,
-    AuthId INT IDENTITY(1,1) NOT NULL,
-	ParticipantId INT NULL,
-	DeviceToken NVARCHAR(1000) NULL,
-	DeviceType CHAR(1) NULL,
-	CreatedOn DATETIME NULL,
-	ModifiedOn DATETIME NULL,
-	AuthKey NVARCHAR(50) NULL,
-    CONSTRAINT PK_AuthInfo PRIMARY KEY (AuthId)
+	[AuthId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
 
-);
+GO
+/****** Object:  Table [fdahpuserregws].[ParticipantActivities]    Script Date: 2/16/2017 12:46:06 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [fdahpuserregws].[ParticipantActivities](
+	[_ts] [timestamp] NOT NULL,
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ParticipantId] [int] NULL,
+	[StudyId] [int] NULL,
+	[ActivityId] [int] NULL,
+	[ActivityCompleteId] [int] NULL,
+	[ActivityType] [nvarchar](50) NULL,
+	[Bookmark] [tinyint] NULL,
+	[Status] [nvarchar](50) NULL,
+	[ActivityVersion] [varchar](max) NULL,
+	[ActivityState] [nvarchar](50) NULL,
+ CONSTRAINT [PK_ParticipantActivities] PRIMARY KEY CLUSTERED
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
-CREATE TABLE fdahpuserregws.ParticipantDetails
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [fdahpuserregws].[ParticipantDetails]    Script Date: 2/16/2017 12:46:06 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [fdahpuserregws].[ParticipantDetails](
+	[_ts] [timestamp] NOT NULL,
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[FirstName] [nvarchar](100) NULL,
+	[LastName] [nvarchar](100) NULL,
+	[Email] [nvarchar](100) NULL,
+	[UsePasscode] [tinyint] NULL,
+	[TouchId] [tinyint] NULL,
+	[LocalNotificationFlag] [tinyint] NULL,
+	[RemoteNotificationFlag] [tinyint] NULL,
+	[ReminderFlag] [tinyint] NULL,
+	[Status] [int] NULL,
+	[Password] [nvarchar](50) NOT NULL,
+	[Container] [dbo].[ENTITYID] NULL,
+	[EntityId] [dbo].[ENTITYID] NULL,
+	[ReminderTime] [nvarchar](50) NULL,
+	[SecurityToken] [nvarchar](50) NULL,
+ CONSTRAINT [PK_ParticipantDetails] PRIMARY KEY CLUSTERED
 (
-    -- standard fields
-    _ts TIMESTAMP,
-    Id INT IDENTITY(1,1) NOT NULL,
-	FirstName NVARCHAR(100) NULL,
-    LastName NVARCHAR(100) NULL,
-	Email NVARCHAR(100) NULL,
-	UsePasscode TINYINT NULL,
-	TouchId TINYINT NULL,
-	LocalNotificationFlag TINYINT NULL,
-	RemoteNotificationFlag TINYINT NULL,
-	ReminderFlag TINYINT NULL,
-	Status INT NULL,
-    CONSTRAINT PK_ParticipantDetails PRIMARY KEY (Id)
-	
-  
-);
-CREATE TABLE fdahpuserregws.ParticipantStudies
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [fdahpuserregws].[ParticipantStudies]    Script Date: 2/16/2017 12:46:06 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [fdahpuserregws].[ParticipantStudies](
+	[_ts] [timestamp] NOT NULL,
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ParticipantId] [int] NULL,
+	[StudyId] [int] NULL,
+	[Status] [varchar](50) NULL,
+	[Bookmark] [tinyint] NULL,
+	[ConsentStatus] [tinyint] NULL,
+	[Consent] [nvarchar](max) NULL,
+	[Eligbibility] [tinyint] NULL,
+	[AppToken] [nvarchar](50) NULL,
+	[UserId] [int] NULL,
+ CONSTRAINT [PK_ParticipantStudies] PRIMARY KEY CLUSTERED
 (
-    -- standard fields
-    _ts TIMESTAMP,
-    Id INT IDENTITY(1,1) NOT NULL,
-	ParticipantId INT NULL,
-    StudyId INT NULL,
-    Status TINYINT NULL ,
-    Bookmark TINYINT NULL,
-	CONSTRAINT PK_ParticipantStudies PRIMARY KEY (Id)
-);
-CREATE TABLE fdahpuserregws.ParticipantActivities
-(
-    -- standard fields
-    _ts TIMESTAMP,
-    Id INT IDENTITY(1,1) NOT NULL,
-	ParticipantId INT NULL,
-    StudyId INT NULL,
-    ActivityId INT NULL ,
-    ActivityCompleteId INT NULL,
-    ActivityType NVARCHAR(50) NULL ,
-	CONSTRAINT PK_ParticipantActivities PRIMARY KEY (Id)
-);
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
