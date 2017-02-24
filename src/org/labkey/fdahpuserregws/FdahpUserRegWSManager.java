@@ -41,9 +41,8 @@ import org.labkey.fdahpuserregws.bean.StudiesBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantActivities;
-import org.labkey.fdahpuserregws.model.ParticipantDetails;
+import org.labkey.fdahpuserregws.model.UserDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
-
 
 
 import java.util.ArrayList;
@@ -66,9 +65,9 @@ public class FdahpUserRegWSManager
 
     private static final Logger _log = Logger.getLogger(FdahpUserRegWSManager.class);
 
-    public ParticipantDetails saveParticipant(ParticipantDetails participant){
+    public UserDetails saveParticipant(UserDetails participant){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
-        ParticipantDetails addParticipant = null;
+        UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try{
             TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
@@ -86,21 +85,21 @@ public class FdahpUserRegWSManager
         return addParticipant;
     }
 
-    public ParticipantDetails getParticipantDetails(int id){
+    public UserDetails getParticipantDetails(int id){
         SimpleFilter filter = new SimpleFilter();
         filter.addCondition(FieldKey.fromParts("Id"), id);
-        return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(ParticipantDetails.class);
+        return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
     }
 
-    public List<ParticipantDetails> getParticipantDetailsListByEmail(String email){
+    public List<UserDetails> getParticipantDetailsListByEmail(String email){
         SimpleFilter filter = new SimpleFilter();
         filter.addCondition(FieldKey.fromParts("Email"), email);
-        return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getArrayList(ParticipantDetails.class);
+        return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getArrayList(UserDetails.class);
     }
 
     public AuthInfo saveAuthInfo(Integer userId){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
-        ParticipantDetails addParticipant = null;
+        UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         AuthInfo authInfo = null;
         try{
@@ -152,12 +151,12 @@ public class FdahpUserRegWSManager
 
     public ParticipantForm signingParticipant(String email, String password){
         ParticipantForm participantForm = null;
-        ParticipantDetails participantDetails = null;
+        UserDetails participantDetails = null;
         try{
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("Email"), email);
             filter.addCondition(FieldKey.fromParts("Password"), FdahpUserRegUtil.getEncryptedString(password));
-            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
+            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(UserDetails.class);
             if(null != participantDetails){
                 participantForm = new ParticipantForm();
                 AuthInfo authInfo = saveAuthInfo(participantDetails.getId());
@@ -176,12 +175,12 @@ public class FdahpUserRegWSManager
         return  participantForm;
     }
 
-    public ParticipantDetails getParticipantDetailsByEmail(String email){
-        ParticipantDetails participantDetails = null;
+    public UserDetails getParticipantDetailsByEmail(String email){
+        UserDetails participantDetails = null;
         try{
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("Email"), email);
-            participantDetails =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(ParticipantDetails.class);
+            participantDetails =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(UserDetails.class);
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager getParticipantDetailsByEmail()",e);
         }
@@ -214,7 +213,7 @@ public class FdahpUserRegWSManager
         JSONObject jsonObject  = new JSONObject();
         ApiSimpleResponse response  = new ApiSimpleResponse();
         try{
-            ParticipantDetails participantDetails = getParticipantDetails(userId);
+            UserDetails participantDetails = getParticipantDetails(userId);
             if(participantDetails != null){
                 ProfileBean profileBean = new ProfileBean();
                 if(participantDetails.getFirstName()!=null)
@@ -475,12 +474,12 @@ public class FdahpUserRegWSManager
         transaction.commit();
         return authInfo;
     }
-    public ParticipantDetails getParticipantDetailsByToken(String token){
-        ParticipantDetails participantDetails = null;
+    public UserDetails getParticipantDetailsByToken(String token){
+        UserDetails participantDetails = null;
         try{
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("SecurityToken"), token);
-            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(ParticipantDetails.class);
+            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
         }catch (Exception e){
             _log.error("getParticipantDetailsByToken Error",e);
         }
@@ -489,18 +488,20 @@ public class FdahpUserRegWSManager
 
     public String deleteAccount(Integer userId){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
         try{
-            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
-            table.setAuditBehavior(AuditBehaviorType.DETAILED);
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("UserId"), userId);
-            Table.delete(table,filter);
-
             TableInfo participantActivitiesInfo = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
             participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
             SimpleFilter filterActivities = new SimpleFilter();
             filterActivities.addCondition(FieldKey.fromParts("ParticipantId"), userId);
             Table.delete(participantActivitiesInfo,filterActivities);
+
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("UserId"), userId);
+            Table.delete(table,filter);
 
             TableInfo participantInfo = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
             participantInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
@@ -510,6 +511,8 @@ public class FdahpUserRegWSManager
 
             if(count > 0)
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+
+            transaction.commit();
 
         }catch (Exception e){
             _log.error("deleteAccount error:",e);

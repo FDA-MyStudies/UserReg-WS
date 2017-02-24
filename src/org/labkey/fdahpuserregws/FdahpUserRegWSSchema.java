@@ -49,7 +49,7 @@ public class FdahpUserRegWSSchema
     }
 
     public TableInfo getParticipantDetails(){
-        return getSchema().getTable("ParticipantDetails");
+        return getSchema().getTable("UserDetails");
     }
 
     public TableInfo getAuthInfo(){     return getSchema().getTable("AuthInfo"); }

@@ -18,7 +18,6 @@ package org.labkey.fdahpuserregws;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.util.SystemOutLogger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
@@ -44,22 +43,15 @@ import org.labkey.fdahpuserregws.bean.StudiesBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantActivities;
-import org.labkey.fdahpuserregws.model.ParticipantDetails;
+import org.labkey.fdahpuserregws.model.UserDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
 
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 public class FdahpUserRegWSController extends SpringActionController
@@ -95,7 +87,7 @@ public class FdahpUserRegWSController extends SpringActionController
         @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
         {
-            ParticipantDetails participantDetails = new ParticipantDetails();
+            UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
             apiSimpleResponse.put("reponse", "FdahpUserResWebServices Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
@@ -116,11 +108,11 @@ public class FdahpUserRegWSController extends SpringActionController
         public Object execute(ParticipantForm participantForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
-            ParticipantDetails addParticipantDetails=null;
+            UserDetails addParticipantDetails=null;
             try{
                 if((participantForm.getFirstName() != null && StringUtils.isNotEmpty(participantForm.getFirstName())) && (participantForm.getLastName()!= null && StringUtils.isNotEmpty(participantForm.getLastName()))
                         && (participantForm.getEmail() != null && StringUtils.isNotEmpty(participantForm.getEmail())) && (participantForm.getPassword() != null && StringUtils.isNotEmpty(participantForm.getPassword()))){
-                    List<ParticipantDetails> participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsListByEmail(participantForm.getEmail());
+                    List<UserDetails> participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsListByEmail(participantForm.getEmail());
                     if(participantDetails != null && participantDetails.size() > 0){
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.EMAIL_EXISTS.getValue(), getViewContext().getResponse());
                         errors.rejectValue("email",ERROR_MSG,FdahpUserRegUtil.ErrorCodes.EMAIL_EXISTS.getValue());
@@ -191,7 +183,7 @@ public class FdahpUserRegWSController extends SpringActionController
                 String securityToken = getViewContext().getRequest().getParameter("token");
                // String auth = getViewContext().getRequest().getHeader("auth");
                 if((userId != null && StringUtils.isNotEmpty(userId)) || (securityToken != null && StringUtils.isNotEmpty(securityToken))){
-                    ParticipantDetails participantDetails = null;
+                    UserDetails participantDetails = null;
                     if(userId != null && StringUtils.isNotEmpty(userId)){
                         participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(Integer.valueOf(userId));
                     }else if(securityToken != null && StringUtils.isNotEmpty(securityToken)){
@@ -199,7 +191,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     }if(null != participantDetails){
                         participantDetails.setStatus(1);
                         participantDetails.setSecurityToken(null);
-                        ParticipantDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                        UserDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                         if(null != updateParticipantDetails){
                             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             response.put("userId", updateParticipantDetails.getId());
@@ -275,13 +267,13 @@ public class FdahpUserRegWSController extends SpringActionController
             return response;
         }
     }
-    private ParticipantDetails getParticipant(ParticipantForm form){
-        ParticipantDetails participantDetails = null;
+    private UserDetails getParticipant(ParticipantForm form){
+        UserDetails participantDetails = null;
         if(null != form.getUserId()){
             participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(form.getUserId());
         }
         if (participantDetails == null){
-            participantDetails = new ParticipantDetails();
+            participantDetails = new UserDetails();
             participantDetails.setStatus(2);
             String token = UUID.randomUUID().toString();
             participantDetails.setSecurityToken(token);
@@ -317,7 +309,7 @@ public class FdahpUserRegWSController extends SpringActionController
             try{
                 String emailId = getViewContext().getRequest().getHeader("emailId");
                 if(emailId != null && StringUtils.isNotEmpty(emailId)){
-                    ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(emailId);
+                    UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(emailId);
                     if(participantDetails != null){
                        /* String password =  RandomStringUtils.randomAlphanumeric(6);
                         participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(password));
@@ -331,7 +323,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         System.out.println("tempPassword:"+tempPassword);
                         participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
 
-                        ParticipantDetails upParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                        UserDetails upParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                         if(upParticipantDetails != null){
                             /*String message = "<html> <body>" +
                                     "Dear "+participantDetails.getFirstName()+" "+participantDetails.getLastName()+",<BR><p> Please click the below link to reset the password</p>" +
@@ -426,11 +418,11 @@ public class FdahpUserRegWSController extends SpringActionController
                         String newPassword = form.getNewPassword();
                         if((oldPassword != null && StringUtils.isNotEmpty(oldPassword)) && (newPassword != null && StringUtils.isNotEmpty(newPassword))){
                             if(!oldPassword.equalsIgnoreCase(newPassword)){
-                                ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(Integer.valueOf(userId));
+                                UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(Integer.valueOf(userId));
                                 if(participantDetails != null ){
                                    if(participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))){
                                         participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(newPassword));
-                                        ParticipantDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                                        UserDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                                         if(updParticipantDetails != null){
                                             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                         }
@@ -598,7 +590,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     {
                         if (profileForm != null)
                         {
-                            ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(Integer.valueOf(userId));
+                            UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(Integer.valueOf(userId));
                             if (participantDetails != null)
                             {
                                 if (profileForm.getProfile() != null)
@@ -688,7 +680,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     }
                                     message = FdahpUserRegWSManager.get().saveParticipantStudies(addParticipantStudiesList);
                                 }
-                                ParticipantDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                                UserDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                                 if (updateParticipantDetails != null || message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()) || updaAuthInfo != null)
                                 {
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -1408,13 +1400,13 @@ public class FdahpUserRegWSController extends SpringActionController
            try{
                String token = getViewContext().getRequest().getParameter("token");
                if(StringUtils.isNoneBlank(token)){
-                    ParticipantDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByToken(token);
+                    UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByToken(token);
                     if(participantDetails != null){
                         String newPassword = changePasswordForm.getNewPassword();
                         if(StringUtils.isNotBlank(newPassword)){
                             participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(newPassword));
                             participantDetails.setSecurityToken(null);
-                            ParticipantDetails updatParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                            UserDetails updatParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                             if(updatParticipantDetails != null){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
