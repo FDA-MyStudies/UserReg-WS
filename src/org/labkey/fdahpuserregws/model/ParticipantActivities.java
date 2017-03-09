@@ -17,6 +17,7 @@ public class ParticipantActivities extends Entity
     private String _Status;
     private String _ActivityVersion;
     private String _ActivityState;
+    private String __ActivityRunId;
 
     public Integer getId()
     {
@@ -116,5 +117,15 @@ public class ParticipantActivities extends Entity
     public void setActivityVersion(String activityVersion)
     {
         _ActivityVersion = activityVersion;
+    }
+
+    public String getActivityRunId()
+    {
+        return __ActivityRunId;
+    }
+
+    public void setActivityRunId(String _ActivityRunId)
+    {
+        __ActivityRunId = _ActivityRunId;
     }
 }

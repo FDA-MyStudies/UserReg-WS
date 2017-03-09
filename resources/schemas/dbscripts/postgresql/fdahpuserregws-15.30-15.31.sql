@@ -48,13 +48,13 @@ CREATE TABLE fdahpuserregws.ParticipantActivities
     Status  VARCHAR(50) NULL
     ActivityVersion  VARCHAR(50) NULL,
     ActivityState  VARCHAR(50) NULL,
-
+    ActivityRunId VARCHAR(50) NULL,
 
     CONSTRAINT PK_ParticipantActivities PRIMARY KEY (Id)
 
 );
 
-CREATE TABLE fdahpuserregws.ParticipantDetails
+CREATE TABLE fdahpuserregws.UserDetails
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL ,

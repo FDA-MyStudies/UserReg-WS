@@ -61,6 +61,7 @@ CREATE TABLE [fdahpuserregws].[ParticipantActivities](
 	[Status] [nvarchar](50) NULL,
 	[ActivityVersion] [varchar](max) NULL,
 	[ActivityState] [nvarchar](50) NULL,
+	[ActivityRunId] [nvarchar](50) NULL,
  CONSTRAINT [PK_ParticipantActivities] PRIMARY KEY CLUSTERED
 (
 	[Id] ASC
@@ -70,12 +71,12 @@ CREATE TABLE [fdahpuserregws].[ParticipantActivities](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [fdahpuserregws].[ParticipantDetails]    Script Date: 2/16/2017 12:46:06 PM ******/
+/****** Object:  Table [fdahpuserregws].[UserDetails]    Script Date: 2/16/2017 12:46:06 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [fdahpuserregws].[ParticipantDetails](
+CREATE TABLE [fdahpuserregws].[UserDetails](
 	[_ts] [timestamp] NOT NULL,
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[FirstName] [nvarchar](100) NULL,

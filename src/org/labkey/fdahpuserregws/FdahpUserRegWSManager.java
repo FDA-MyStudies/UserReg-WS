@@ -131,13 +131,30 @@ public class FdahpUserRegWSManager
         transaction.commit();
         return authInfo;
     }
-    public boolean validatedAuthKey(String authKey,Integer participantId){
+    /*public boolean validatedAuthKey(String authKey,Integer participantId){
         boolean isAuthenticated = false;
         try{
             AuthInfo authInfo = null;
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("AuthKey"), authKey);
             filter.addCondition(FieldKey.fromParts("ParticipantId"), participantId);
+            authInfo  = new TableSelector(FdahpUserRegWSSchema.getInstance().getAuthInfo(),filter,null).getObject(AuthInfo.class);
+            if(authInfo != null){
+                isAuthenticated = true;
+            }
+        }catch (Exception e){
+            _log.error("FdahpUserRegWSManger validatedAuthKey ()",e);
+        }
+
+        return isAuthenticated;
+    }*/
+
+    public boolean validatedAuthKey(String authKey){
+        boolean isAuthenticated = false;
+        try{
+            AuthInfo authInfo = null;
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("AuthKey"), authKey);
             authInfo  = new TableSelector(FdahpUserRegWSSchema.getInstance().getAuthInfo(),filter,null).getObject(AuthInfo.class);
             if(authInfo != null){
                 isAuthenticated = true;

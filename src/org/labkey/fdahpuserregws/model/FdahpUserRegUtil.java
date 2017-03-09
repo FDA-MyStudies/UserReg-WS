@@ -68,8 +68,8 @@ public class FdahpUserRegUtil
         EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
         USER_NOT_EXISTS("USER DOESN'T EXISTS"),
         FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email"),
-        OLD_PASSWORD_NOT_EXISTS("old password not exists"),
-        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("old password and new password not same");
+        OLD_PASSWORD_NOT_EXISTS("old password is wrong"),
+        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
@@ -85,7 +85,7 @@ public class FdahpUserRegUtil
             response.setHeader("title", title);
             response.setHeader("StatusMessage", message);
             if(status.equalsIgnoreCase(ErrorCodes.STATUS_104.getValue()))
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             if(status.equalsIgnoreCase(ErrorCodes.STATUS_102.getValue()))
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             if(status.equalsIgnoreCase(ErrorCodes.STATUS_101.getValue()))
