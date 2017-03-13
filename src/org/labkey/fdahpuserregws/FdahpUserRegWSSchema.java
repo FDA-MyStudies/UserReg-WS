@@ -61,4 +61,8 @@ public class FdahpUserRegWSSchema
     public TableInfo getParticipantActivities(){
         return getSchema().getTable("ParticipantActivities");
     }
+
+    public TableInfo getStudyConsent(){
+        return getSchema().getTable("StudyConsent");
+    }
 }

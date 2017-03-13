@@ -16,6 +16,7 @@
 
 package org.labkey.fdahpuserregws;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 
 import org.json.JSONObject;
@@ -41,6 +42,7 @@ import org.labkey.fdahpuserregws.bean.StudiesBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantActivities;
+import org.labkey.fdahpuserregws.model.StudyConsent;
 import org.labkey.fdahpuserregws.model.UserDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
 
@@ -184,7 +186,7 @@ public class FdahpUserRegWSManager
                 participantForm.setFirstName(participantDetails.getFirstName());
                 participantForm.setStatus(participantDetails.getStatus());
                 participantForm.setLastName(participantDetails.getLastName());
-                participantForm.setEmail(participantDetails.getEmail());
+                participantForm.setEmailId(participantDetails.getEmail());
             }
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager signingParticipant()",e);
@@ -249,8 +251,6 @@ public class FdahpUserRegWSManager
                     settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
                 if(participantDetails.getTouchId() != null)
                     settingsBean.setTouchId(participantDetails.getTouchId());
-                if(participantDetails.getReminderFlag() != null)
-                    settingsBean.setReminderFlag(participantDetails.getReminderFlag());
                 if(participantDetails.getReminderTime() != null)
                     settingsBean.setRemindersTime(participantDetails.getReminderTime());
                 response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(),settingsBean);
@@ -366,6 +366,8 @@ public class FdahpUserRegWSManager
                             studiesBean.setBookmarked(participantStudies.getBookmark());
                         if(participantStudies.getStatus() != null)
                             studiesBean.setStatus(participantStudies.getStatus());
+                        if(participantStudies.getEnrolledDate() != null)
+                            studiesBean.setEnrolledDate(participantStudies.getEnrolledDate());
                         studiesBeenList.add(studiesBean);
                     }
                 }
@@ -388,6 +390,8 @@ public class FdahpUserRegWSManager
                         activitiesBean.setActivityVersion(participantActivities.getActivityVersion());
                     if(participantActivities.getBookmark()!=null)
                         activitiesBean.setBookmarked(participantActivities.getBookmark());
+                    if(participantActivities.getActivityRunId() != null)
+                        activitiesBean.setActivityRunId(participantActivities.getActivityRunId());
                     activitiesBeanList.add(activitiesBean);
                 }
                 response.put(FdahpUserRegUtil.ErrorCodes.ACTIVITIES.getValue(),activitiesBeanList);
@@ -490,6 +494,45 @@ public class FdahpUserRegWSManager
         }
         transaction.commit();
         return authInfo;
+    }
+
+    public StudyConsent saveStudyConsent(StudyConsent studyConsent){
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        try{
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getStudyConsent();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            if(null != studyConsent){
+                if(studyConsent.getId() != null){
+                    Table.update(null,table, studyConsent,studyConsent.getId());
+                }else{
+                    Table.insert(null,table,studyConsent);
+                }
+            }
+
+        }catch (Exception e){
+            _log.error("saveStudyConsent:",e);
+        }
+        transaction.commit();
+        return studyConsent;
+    }
+
+    public StudyConsent getStudyConsent(Integer userId,Integer studyId,String consentVersion){
+        StudyConsent studyConsent = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("UserId"), userId);
+            filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
+            filter.addCondition(FieldKey.fromParts("Version"), consentVersion);
+            System.out.println("userId:"+userId);
+            System.out.println("StudyId:"+studyId);
+            System.out.println("Version:"+consentVersion);
+            studyConsent = new TableSelector(FdahpUserRegWSSchema.getInstance().getStudyConsent(), filter, null).getObject(StudyConsent.class);
+            System.out.println(studyConsent);
+        }catch (Exception e){
+            _log.error("getStudyConsent Error",e);
+        }
+        return studyConsent;
     }
     public UserDetails getParticipantDetailsByToken(String token){
         UserDetails participantDetails = null;

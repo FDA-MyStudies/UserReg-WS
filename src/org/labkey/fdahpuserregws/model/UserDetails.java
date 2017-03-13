@@ -17,7 +17,6 @@ public class UserDetails extends Entity
     private Boolean _TouchId=false;
     private Boolean _LocalNotificationFlag=false;
     private Boolean _RemoteNotificationFlag=false;
-    private Boolean _ReminderFlag=false;
     private Integer Status;
     private String _Password;
     private String _ReminderTime;
@@ -101,16 +100,6 @@ public class UserDetails extends Entity
     public void setRemoteNotificationFlag(Boolean remoteNotificationFlag)
     {
         _RemoteNotificationFlag = remoteNotificationFlag;
-    }
-
-    public Boolean getReminderFlag()
-    {
-        return _ReminderFlag;
-    }
-
-    public void setReminderFlag(Boolean reminderFlag)
-    {
-        _ReminderFlag = reminderFlag;
     }
 
     public Integer getStatus()

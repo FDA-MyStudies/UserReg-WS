@@ -8,6 +8,7 @@ public class StudiesBean
     private String _studyId="";
     private String _status="";
     private Boolean bookmarked=false;
+    private String _enrolledDate="";
 
     public String getStudyId()
     {
@@ -37,5 +38,15 @@ public class StudiesBean
     public void setBookmarked(Boolean bookmarked)
     {
         this.bookmarked = bookmarked;
+    }
+
+    public String getEnrolledDate()
+    {
+        return _enrolledDate;
+    }
+
+    public void setEnrolledDate(String enrolledDate)
+    {
+        _enrolledDate = enrolledDate;
     }
 }

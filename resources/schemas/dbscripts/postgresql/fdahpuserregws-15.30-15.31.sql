@@ -87,6 +87,20 @@ CREATE TABLE fdahpuserregws.ParticipantStudies
     AppToken  VARCHAR(50) NULL,
     Consent TEXT,
     UserId INT NULL,
+    EnrolledDate VARCHAR(50) NULL,
+    CONSTRAINT PK_ParticipantStudies PRIMARY KEY (Id)
+
+);
+
+CREATE TABLE fdahpuserregws.StudyConsent
+(
+    _ts TIMESTAMP NOT NULL,
+    Id SERIAL,
+    UserId Integer NULL,
+    StudyId Integer NULL,
+    Version  VARCHAR(50) NULL,
+    Status  VARCHAR(50) NULL,
+    Pdf  Text NULL,
     CONSTRAINT PK_ParticipantStudies PRIMARY KEY (Id)
 
 );

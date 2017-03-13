@@ -119,6 +119,7 @@ CREATE TABLE [fdahpuserregws].[ParticipantStudies](
 	[Eligbibility] [tinyint] NULL,
 	[AppToken] [nvarchar](50) NULL,
 	[UserId] [int] NULL,
+	[EnrolledDate] [nvarchar](50) NULL,
  CONSTRAINT [PK_ParticipantStudies] PRIMARY KEY CLUSTERED
 (
 	[Id] ASC
@@ -128,3 +129,24 @@ CREATE TABLE [fdahpuserregws].[ParticipantStudies](
 GO
 SET ANSI_PADDING OFF
 GO
+
+CREATE TABLE [fdahpuserregws].[StudyConsent]
+(
+    [_ts] TIMESTAMP NOT NULL,
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [UserId] [int] NULL,
+    [StudyId] [int] NULL,
+    [Version] [nvarchar](50) NULL,
+    [Status] [nvarchar](50) NULL,
+    [Pdf]  [nvarchar](max) NULL,
+    CONSTRAINT PK_ParticipantStudies PRIMARY KEY CLUSTERED
+    (
+    [Id] ASC
+    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+     ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+     GO
+     SET ANSI_PADDING OFF
+     GO
+
+);

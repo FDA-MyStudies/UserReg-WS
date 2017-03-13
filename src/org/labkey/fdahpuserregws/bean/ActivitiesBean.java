@@ -10,6 +10,7 @@ public class ActivitiesBean
     private String _activityVersion="";
     private String _status="";
     private Boolean _bookmarked=false;
+    private String _activityRunId="";
 
     public String getActivityId()
     {
@@ -59,5 +60,15 @@ public class ActivitiesBean
     public void setBookmarked(Boolean bookmarked)
     {
         _bookmarked = bookmarked;
+    }
+
+    public String getActivityRunId()
+    {
+        return _activityRunId;
+    }
+
+    public void setActivityRunId(String activityRunId)
+    {
+        _activityRunId = activityRunId;
     }
 }

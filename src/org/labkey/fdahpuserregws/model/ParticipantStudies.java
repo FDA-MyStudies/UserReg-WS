@@ -14,7 +14,7 @@ public class ParticipantStudies extends Entity
     private Boolean _Bookmark=false;
     private Boolean _Eligbibility=false;
     private Boolean _ConsentStatus=false;
-    private String _Consent;
+    private String _EnrolledDate;
     private String _AppToken;
     private Integer _UserId;
 
@@ -88,14 +88,14 @@ public class ParticipantStudies extends Entity
         _ConsentStatus = consentStatus;
     }
 
-    public String getConsent()
+    public String getEnrolledDate()
     {
-        return _Consent;
+        return _EnrolledDate;
     }
 
-    public void setConsent(String consent)
+    public void setEnrolledDate(String enrolledDate)
     {
-        _Consent = consent;
+        _EnrolledDate = enrolledDate;
     }
 
     public String getAppToken()

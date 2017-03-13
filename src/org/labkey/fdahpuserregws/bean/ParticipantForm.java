@@ -10,7 +10,7 @@ public class ParticipantForm extends ReturnUrlForm
     private Integer _userId;
     private String _firstName;
     private String _lastName;
-    private String _email;
+    private String _emailId;
     private String _password;
     private Boolean _usePassCode;
     private Boolean _touchId;
@@ -50,14 +50,14 @@ public class ParticipantForm extends ReturnUrlForm
         _lastName = lastName;
     }
 
-    public String getEmail()
+    public String getEmailId()
     {
-        return _email;
+        return _emailId;
     }
 
-    public void setEmail(String email)
+    public void setEmailId(String emailId)
     {
-        _email = email;
+        _emailId = emailId;
     }
 
     public String getPassword()
