@@ -8,7 +8,7 @@ public class StudyConsent extends Entity
 {
     private Integer _Id;
     private Integer _UserId;
-    private Integer _StudyId;
+    private String _StudyId;
     private String _Status;
     private String _Version;
     private String _Pdf;
@@ -33,12 +33,12 @@ public class StudyConsent extends Entity
         _UserId = userId;
     }
 
-    public Integer getStudyId()
+    public String getStudyId()
     {
         return _StudyId;
     }
 
-    public void setStudyId(Integer studyId)
+    public void setStudyId(String studyId)
     {
         _StudyId = studyId;
     }

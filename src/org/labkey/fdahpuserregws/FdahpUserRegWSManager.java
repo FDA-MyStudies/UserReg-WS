@@ -87,9 +87,10 @@ public class FdahpUserRegWSManager
         return addParticipant;
     }
 
-    public UserDetails getParticipantDetails(int id){
+    public UserDetails getParticipantDetails(String id){
         SimpleFilter filter = new SimpleFilter();
-        filter.addCondition(FieldKey.fromParts("Id"), id);
+        //filter.addCondition(FieldKey.fromParts("Id"), id);
+        filter.addCondition(FieldKey.fromParts("UserId"), id);
         return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
     }
 
@@ -99,7 +100,7 @@ public class FdahpUserRegWSManager
         return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getArrayList(UserDetails.class);
     }
 
-    public AuthInfo saveAuthInfo(Integer userId){
+    public AuthInfo saveAuthInfo(String userId){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -178,11 +179,12 @@ public class FdahpUserRegWSManager
             participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(UserDetails.class);
             if(null != participantDetails){
                 participantForm = new ParticipantForm();
-                AuthInfo authInfo = saveAuthInfo(participantDetails.getId());
+                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId());
                 if(authInfo != null){
                     participantForm.setAuth(authInfo.getAuthKey());
                 }
-                participantForm.setUserId(participantDetails.getId());
+                System.out.println("participantDetails.getUserId():"+participantDetails.getUserId());
+                participantForm.setUserId(participantDetails.getUserId());
                 participantForm.setFirstName(participantDetails.getFirstName());
                 participantForm.setStatus(participantDetails.getStatus());
                 participantForm.setLastName(participantDetails.getLastName());
@@ -206,7 +208,7 @@ public class FdahpUserRegWSManager
         return  participantDetails;
     }
 
-    public String signout(Integer userId){
+    public String signout(String userId){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         try{
             DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
@@ -217,7 +219,7 @@ public class FdahpUserRegWSManager
 
             sqlUpdateVisitDates.append("UPDATE ").append(authInfo.getSelectName()).append("\n")
                     .append("SET AuthKey = 0, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
-                    .append(" WHERE ParticipantId = "+userId);
+                    .append(" WHERE ParticipantId = '"+userId+"'");
             int execute = executor.execute(sqlUpdateVisitDates);
             if (execute > 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
@@ -228,7 +230,7 @@ public class FdahpUserRegWSManager
         return message;
     }
 
-    public ApiSimpleResponse getParticipantInfoDetails(Integer userId){
+    public ApiSimpleResponse getParticipantInfoDetails(String userId){
         JSONObject jsonObject  = new JSONObject();
         ApiSimpleResponse response  = new ApiSimpleResponse();
         try{
@@ -264,9 +266,9 @@ public class FdahpUserRegWSManager
                     {
                         ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
                         if(participantStudies.getParticipantId() != null)
-                            participantInfoBean.setParticipantId(String.valueOf(participantStudies.getParticipantId()));
+                            participantInfoBean.setParticipantId(participantStudies.getParticipantId());
                         if(participantStudies.getStudyId() != null)
-                            participantInfoBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                            participantInfoBean.setStudyId(participantStudies.getStudyId());
                         if(participantStudies.getAppToken() != null)
                             participantInfoBean.setAppToken(participantStudies.getAppToken());
                         participantInfoBeanList.add(participantInfoBean);
@@ -280,7 +282,7 @@ public class FdahpUserRegWSManager
         return  response;
     }
 
-    public List<ParticipantStudies> getParticipantStudiesList(Integer userId){
+    public List<ParticipantStudies> getParticipantStudiesList(String userId){
         List<ParticipantStudies> participantStudiesList = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -292,7 +294,7 @@ public class FdahpUserRegWSManager
         return  participantStudiesList;
     }
 
-    public List<ParticipantActivities> getParticipantActivitiesList(Integer userId){
+    public List<ParticipantActivities> getParticipantActivitiesList(String userId){
         List<ParticipantActivities> participantActivitiesList = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -351,7 +353,7 @@ public class FdahpUserRegWSManager
         return message;
     }
 
-    public ApiSimpleResponse getPreferences(Integer userId){
+    public ApiSimpleResponse getPreferences(String userId){
         ApiSimpleResponse response = new ApiSimpleResponse();
         try{
             List<ParticipantStudies> participantStudiesList = getParticipantStudiesList(userId);
@@ -361,7 +363,7 @@ public class FdahpUserRegWSManager
                     if(participantStudies.getAppToken() == null && !participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue())){
                         StudiesBean studiesBean = new StudiesBean();
                         if(participantStudies.getStudyId() != null)
-                            studiesBean.setStudyId(String.valueOf(participantStudies.getStudyId()));
+                            studiesBean.setStudyId(participantStudies.getStudyId());
                         if(participantStudies.getBookmark() != null)
                             studiesBean.setBookmarked(participantStudies.getBookmark());
                         if(participantStudies.getStatus() != null)
@@ -381,7 +383,7 @@ public class FdahpUserRegWSManager
 
                     ActivitiesBean activitiesBean = new ActivitiesBean();
                     if(participantActivities.getStudyId()!=null)
-                        activitiesBean.setStudyId(String.valueOf(participantActivities.getStudyId()));
+                        activitiesBean.setStudyId(participantActivities.getStudyId());
                     if(participantActivities.getActivityId()!=null)
                         activitiesBean.setActivityId(String.valueOf(participantActivities.getActivityId()));
                     if(participantActivities.getStatus() != null)
@@ -403,7 +405,7 @@ public class FdahpUserRegWSManager
         return response;
     }
 
-    public ParticipantStudies getParticipantStudies(Integer studyId,Integer userId){
+    public ParticipantStudies getParticipantStudies(String studyId,String userId){
         ParticipantStudies participantStudies = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -416,7 +418,7 @@ public class FdahpUserRegWSManager
         return  participantStudies;
     }
 
-    public List<ParticipantActivities> getParticipantActivitiesList(Integer studyId,Integer userId){
+    public List<ParticipantActivities> getParticipantActivitiesList(String studyId,String userId){
         List<ParticipantActivities> participantActivitiesList = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -429,7 +431,7 @@ public class FdahpUserRegWSManager
         return participantActivitiesList;
     }
 
-    public String withDrawStudy(Integer studyId,Integer userId){
+    public String withDrawStudy(String studyId,Integer userId){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         try{
             /*TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
@@ -451,8 +453,8 @@ public class FdahpUserRegWSManager
 
             sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
                     .append("SET Status = 'Withdrawn', AppToken = NULL")
-                    .append(" WHERE UserId = "+userId)
-                    .append(" and StudyId = "+studyId);
+                    .append(" WHERE UserId = '"+userId+"'")
+                    .append(" and StudyId = '"+studyId+"'");
             int execute = executor.execute(sqlUpdateVisitDates);
             if (execute > 0){
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
@@ -464,7 +466,7 @@ public class FdahpUserRegWSManager
         return message;
     }
 
-    public AuthInfo getAuthInfo(String authKey,Integer participantId){
+    public AuthInfo getAuthInfo(String authKey,String participantId){
         AuthInfo authInfo = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -517,7 +519,7 @@ public class FdahpUserRegWSManager
         return studyConsent;
     }
 
-    public StudyConsent getStudyConsent(Integer userId,Integer studyId,String consentVersion){
+    public StudyConsent getStudyConsent(String userId,String studyId,String consentVersion){
         StudyConsent studyConsent = null;
         try{
             SimpleFilter filter = new SimpleFilter();
@@ -546,7 +548,7 @@ public class FdahpUserRegWSManager
         return participantDetails;
     }
 
-    public String deleteAccount(Integer userId){
+    public String deleteAccount(String userId){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -566,7 +568,7 @@ public class FdahpUserRegWSManager
             TableInfo participantInfo = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
             participantInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
             SimpleFilter participantFilter = new SimpleFilter();
-            participantFilter.addCondition(FieldKey.fromParts("Id"), userId);
+            participantFilter.addCondition(FieldKey.fromParts("UserId"), userId);
             int count = Table.delete(participantInfo,participantFilter);
 
             if(count > 0)

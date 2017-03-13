@@ -8,15 +8,15 @@ import org.labkey.api.data.Entity;
 public class ParticipantStudies extends Entity
 {
     private Integer _Id;
-    private Integer _ParticipantId;
-    private Integer _StudyId;
+    private String _ParticipantId;
+    private String _StudyId;
     private String _Status;
     private Boolean _Bookmark=false;
     private Boolean _Eligbibility=false;
     private Boolean _ConsentStatus=false;
     private String _EnrolledDate;
     private String _AppToken;
-    private Integer _UserId;
+    private String _UserId;
 
     public Integer getId()
     {
@@ -28,22 +28,22 @@ public class ParticipantStudies extends Entity
         _Id = id;
     }
 
-    public Integer getParticipantId()
+    public String getParticipantId()
     {
         return _ParticipantId;
     }
 
-    public void setParticipantId(Integer participantId)
+    public void setParticipantId(String participantId)
     {
         _ParticipantId = participantId;
     }
 
-    public Integer getStudyId()
+    public String getStudyId()
     {
         return _StudyId;
     }
 
-    public void setStudyId(Integer studyId)
+    public void setStudyId(String studyId)
     {
         _StudyId = studyId;
     }
@@ -108,12 +108,12 @@ public class ParticipantStudies extends Entity
         _AppToken = appToken;
     }
 
-    public Integer getUserId()
+    public String getUserId()
     {
         return _UserId;
     }
 
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         _UserId = userId;
     }

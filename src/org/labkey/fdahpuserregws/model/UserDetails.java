@@ -3,6 +3,7 @@ package org.labkey.fdahpuserregws.model;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Entity;
+import org.labkey.api.util.GUID;
 
 /**
  * Created by Ravinder on 1/31/2017.
@@ -21,6 +22,7 @@ public class UserDetails extends Entity
     private String _Password;
     private String _ReminderTime;
     private String _SecurityToken;
+    private String _UserId;
 
     public Integer getId()
     {
@@ -142,11 +144,13 @@ public class UserDetails extends Entity
         _SecurityToken = securityToken;
     }
 
-    @Nullable
-    @Override
-    public String getEntityId()
+    public String getUserId()
     {
-        return super.getEntityId();
+        return _UserId;
     }
 
+    public void setUserId(String userId)
+    {
+        _UserId = userId;
+    }
 }

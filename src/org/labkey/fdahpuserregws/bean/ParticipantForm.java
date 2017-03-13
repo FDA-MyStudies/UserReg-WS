@@ -7,7 +7,7 @@ import org.labkey.api.action.ReturnUrlForm;
  */
 public class ParticipantForm extends ReturnUrlForm
 {
-    private Integer _userId;
+    private String _userId;
     private String _firstName;
     private String _lastName;
     private String _emailId;
@@ -20,12 +20,13 @@ public class ParticipantForm extends ReturnUrlForm
     private String _auth;
     private Integer _status;
 
-    public Integer getUserId()
+
+    public String getUserId()
     {
         return _userId;
     }
 
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         _userId = userId;
     }

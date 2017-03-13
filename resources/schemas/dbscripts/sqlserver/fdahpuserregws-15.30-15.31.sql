@@ -53,7 +53,7 @@ CREATE TABLE [fdahpuserregws].[ParticipantActivities](
 	[_ts] [timestamp] NOT NULL,
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[ParticipantId] [int] NULL,
-	[StudyId] [int] NULL,
+	[StudyId] [nvarchar](50) NULL,
 	[ActivityId] [int] NULL,
 	[ActivityCompleteId] [int] NULL,
 	[ActivityType] [nvarchar](50) NULL,
@@ -93,6 +93,7 @@ CREATE TABLE [fdahpuserregws].[UserDetails](
 	[EntityId] [dbo].[ENTITYID] NULL,
 	[ReminderTime] [nvarchar](50) NULL,
 	[SecurityToken] [nvarchar](50) NULL,
+	[UserId] [nvarchar](50) NULL,
  CONSTRAINT [PK_ParticipantDetails] PRIMARY KEY CLUSTERED
 (
 	[Id] ASC
@@ -111,7 +112,7 @@ CREATE TABLE [fdahpuserregws].[ParticipantStudies](
 	[_ts] [timestamp] NOT NULL,
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[ParticipantId] [int] NULL,
-	[StudyId] [int] NULL,
+	[StudyId] [nvarchar](50) NULL,
 	[Status] [varchar](50) NULL,
 	[Bookmark] [tinyint] NULL,
 	[ConsentStatus] [tinyint] NULL,
@@ -135,7 +136,7 @@ CREATE TABLE [fdahpuserregws].[StudyConsent]
     [_ts] TIMESTAMP NOT NULL,
     [Id] [int] IDENTITY(1,1) NOT NULL,
     [UserId] [int] NULL,
-    [StudyId] [int] NULL,
+    [StudyId] [nvarchar](50) NULL,
     [Version] [nvarchar](50) NULL,
     [Status] [nvarchar](50) NULL,
     [Pdf]  [nvarchar](max) NULL,

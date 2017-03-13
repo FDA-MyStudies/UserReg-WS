@@ -8,8 +8,8 @@ import org.labkey.api.data.Entity;
 public class ParticipantActivities extends Entity
 {
     private Integer _Id;
-    private Integer _ParticipantId;
-    private Integer _StudyId;
+    private String _ParticipantId;
+    private String _StudyId;
     private Integer _ActivityId;
     private Integer _ActivityCompleteId;
     private String _ActivityType;
@@ -17,7 +17,7 @@ public class ParticipantActivities extends Entity
     private String _Status;
     private String _ActivityVersion;
     private String _ActivityState;
-    private String __ActivityRunId;
+    private String _ActivityRunId;
 
     public Integer getId()
     {
@@ -29,24 +29,14 @@ public class ParticipantActivities extends Entity
         _Id = id;
     }
 
-    public Integer getParticipantId()
+    public String getParticipantId()
     {
         return _ParticipantId;
     }
 
-    public void setParticipantId(Integer participantId)
+    public void setParticipantId(String participantId)
     {
         _ParticipantId = participantId;
-    }
-
-    public Integer getStudyId()
-    {
-        return _StudyId;
-    }
-
-    public void setStudyId(Integer studyId)
-    {
-        _StudyId = studyId;
     }
 
     public Integer getActivityId()
@@ -119,13 +109,23 @@ public class ParticipantActivities extends Entity
         _ActivityVersion = activityVersion;
     }
 
-    public String getActivityRunId()
+    public String getStudyId()
     {
-        return __ActivityRunId;
+        return _StudyId;
     }
 
-    public void setActivityRunId(String _ActivityRunId)
+    public void setStudyId(String studyId)
     {
-        __ActivityRunId = _ActivityRunId;
+        _StudyId = studyId;
+    }
+
+    public String getActivityRunId()
+    {
+        return _ActivityRunId;
+    }
+
+    public void setActivityRunId(String activityRunId)
+    {
+        _ActivityRunId = activityRunId;
     }
 }

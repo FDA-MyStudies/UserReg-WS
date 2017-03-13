@@ -10,7 +10,7 @@ import java.util.Date;
 public class AuthInfo extends Entity
 {
     private int _AuthId;
-    private  int _ParticipantId;
+    private String _ParticipantId;
     private String _DeviceToken;
     private String _DeviceType;
     private Date _CreatedOn;
@@ -28,12 +28,12 @@ public class AuthInfo extends Entity
         _AuthId = authId;
     }
 
-    public int getParticipantId()
+    public String getParticipantId()
     {
         return _ParticipantId;
     }
 
-    public void setParticipantId(int participantId)
+    public void setParticipantId(String participantId)
     {
         _ParticipantId = participantId;
     }
