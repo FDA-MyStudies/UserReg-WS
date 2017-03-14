@@ -8,7 +8,6 @@ import org.labkey.api.data.Entity;
 public class ParticipantStudies extends Entity
 {
     private Integer _Id;
-    private String _ParticipantId;
     private String _StudyId;
     private String _Status;
     private Boolean _Bookmark=false;
@@ -26,16 +25,6 @@ public class ParticipantStudies extends Entity
     public void setId(Integer id)
     {
         _Id = id;
-    }
-
-    public String getParticipantId()
-    {
-        return _ParticipantId;
-    }
-
-    public void setParticipantId(String participantId)
-    {
-        _ParticipantId = participantId;
     }
 
     public String getStudyId()

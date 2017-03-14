@@ -7,7 +7,7 @@ import org.labkey.api.data.Entity;
 public class StudyConsent extends Entity
 {
     private Integer _Id;
-    private Integer _UserId;
+    private String _UserId;
     private String _StudyId;
     private String _Status;
     private String _Version;
@@ -23,12 +23,12 @@ public class StudyConsent extends Entity
         _Id = id;
     }
 
-    public Integer getUserId()
+    public String getUserId()
     {
         return _UserId;
     }
 
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         _UserId = userId;
     }

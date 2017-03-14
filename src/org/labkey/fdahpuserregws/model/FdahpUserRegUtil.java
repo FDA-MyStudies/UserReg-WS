@@ -66,10 +66,12 @@ public class FdahpUserRegUtil
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
         WITHDRAWN_STUDY("You are already Withdrawn from study"),
         EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
+        RESEND_EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS OR EMAIL ALREADY VERIFIED"),
         USER_NOT_EXISTS("USER DOESN'T EXISTS"),
         FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email"),
         OLD_PASSWORD_NOT_EXISTS("old password is wrong"),
-        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same");
+        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
+        USER_ALREADY_VERIFIED("user already verified");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;

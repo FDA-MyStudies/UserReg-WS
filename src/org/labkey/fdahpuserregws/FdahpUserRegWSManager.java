@@ -265,8 +265,6 @@ public class FdahpUserRegWSManager
                     if(participantStudies.getAppToken() != null)
                     {
                         ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
-                        if(participantStudies.getParticipantId() != null)
-                            participantInfoBean.setParticipantId(participantStudies.getParticipantId());
                         if(participantStudies.getStudyId() != null)
                             participantInfoBean.setStudyId(participantStudies.getStudyId());
                         if(participantStudies.getAppToken() != null)
@@ -411,6 +409,8 @@ public class FdahpUserRegWSManager
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("UserId"), userId);
             filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
+            System.out.println("userId:"+userId);
+            System.out.println("studyId:"+studyId);
             participantStudies =  new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantStudies(),filter,null).getObject(ParticipantStudies.class);
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager getParticipantStudies()",e);
@@ -431,7 +431,7 @@ public class FdahpUserRegWSManager
         return participantActivitiesList;
     }
 
-    public String withDrawStudy(String studyId,Integer userId){
+    public String withDrawStudy(String studyId,String userId){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         try{
             /*TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
