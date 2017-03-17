@@ -39,7 +39,7 @@ CREATE TABLE fdahpuserregws.ParticipantActivities
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL PRIMARY KEY,
-    ParticipantId Integer NULL,
+    ParticipantId VARCHAR(50) NULL,
     StudyId VARCHAR(50) NULL,
     ActivityId Integer NULL,
     ActivityCompleteId Integer NULL,
@@ -72,6 +72,7 @@ CREATE TABLE fdahpuserregws.UserDetails
     ReminderTime VARCHAR(50) NULL,
     SecurityToken VARCHAR(100) NULL,
     UserId VARCHAR(50) NULL,
+    TempPassword BOOLEAN NULL,
  CONSTRAINT PK_ParticipantDetails PRIMARY KEY (Id)
 
 );
@@ -79,7 +80,6 @@ CREATE TABLE fdahpuserregws.ParticipantStudies
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL,
-    ParticipantId Integer NULL,
     StudyId VARCHAR(50) NULL,
     ConsentStatus  BOOLEAN  NULL,
     Status  VARCHAR(50) NULL,
@@ -87,7 +87,7 @@ CREATE TABLE fdahpuserregws.ParticipantStudies
     Eligbibility  BOOLEAN  NULL,
     AppToken  VARCHAR(50) NULL,
     Consent TEXT,
-    UserId INT NULL,
+    UserId VARCHAR(50) NULL,
     EnrolledDate VARCHAR(50) NULL,
     CONSTRAINT PK_ParticipantStudies PRIMARY KEY (Id)
 
@@ -97,11 +97,22 @@ CREATE TABLE fdahpuserregws.StudyConsent
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL,
-    UserId Integer NULL,
+    UserId VARCHAR(50) NULL,
     StudyId VARCHAR(50) NULL,
     Version  VARCHAR(50) NULL,
     Status  VARCHAR(50) NULL,
     Pdf  Text NULL,
     CONSTRAINT PK_StudyConsent PRIMARY KEY (Id)
+
+);
+
+CREATE TABLE fdahpuserregws.PasswordHistory
+(
+    _ts TIMESTAMP NOT NULL,
+    Id SERIAL,
+    UserId  VARCHAR(50) NULL,
+    Password VARCHAR(50) NULL,
+    Created DATETIME,
+    CONSTRAINT PK_PasswordHistory PRIMARY KEY (Id)
 
 );

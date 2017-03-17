@@ -19,6 +19,7 @@ public class ParticipantForm extends ReturnUrlForm
     private Boolean _reminderFlag;
     private String _auth;
     private Integer _status;
+    private Boolean _tempPassword;
 
 
     public String getUserId()
@@ -140,5 +141,15 @@ public class ParticipantForm extends ReturnUrlForm
     public void setStatus(Integer status)
     {
         _status = status;
+    }
+
+    public Boolean getTempPassword()
+    {
+        return _tempPassword;
+    }
+
+    public void setTempPassword(Boolean tempPassword)
+    {
+        _tempPassword = tempPassword;
     }
 }

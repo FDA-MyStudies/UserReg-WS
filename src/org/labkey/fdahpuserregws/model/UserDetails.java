@@ -23,6 +23,7 @@ public class UserDetails extends Entity
     private String _ReminderTime;
     private String _SecurityToken;
     private String _UserId;
+    private Boolean _TempPassword=false;
 
     public Integer getId()
     {
@@ -152,5 +153,15 @@ public class UserDetails extends Entity
     public void setUserId(String userId)
     {
         _UserId = userId;
+    }
+
+    public Boolean getTempPassword()
+    {
+        return _TempPassword;
+    }
+
+    public void setTempPassword(Boolean tempPassword)
+    {
+        _TempPassword = tempPassword;
     }
 }

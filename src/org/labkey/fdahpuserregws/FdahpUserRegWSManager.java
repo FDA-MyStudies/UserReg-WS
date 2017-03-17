@@ -26,6 +26,7 @@ import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
@@ -42,6 +43,7 @@ import org.labkey.fdahpuserregws.bean.StudiesBean;
 import org.labkey.fdahpuserregws.model.AuthInfo;
 import org.labkey.fdahpuserregws.model.FdahpUserRegUtil;
 import org.labkey.fdahpuserregws.model.ParticipantActivities;
+import org.labkey.fdahpuserregws.model.PasswordHistory;
 import org.labkey.fdahpuserregws.model.StudyConsent;
 import org.labkey.fdahpuserregws.model.UserDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
@@ -189,6 +191,7 @@ public class FdahpUserRegWSManager
                 participantForm.setStatus(participantDetails.getStatus());
                 participantForm.setLastName(participantDetails.getLastName());
                 participantForm.setEmailId(participantDetails.getEmail());
+                participantForm.setTempPassword(participantDetails.getTempPassword());
             }
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager signingParticipant()",e);
@@ -431,8 +434,10 @@ public class FdahpUserRegWSManager
         return participantActivitiesList;
     }
 
-    public String withDrawStudy(String studyId,String userId){
+    public String withDrawStudy(String studyId,String userId,Boolean deleteData){
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
         try{
             /*TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
@@ -451,14 +456,33 @@ public class FdahpUserRegWSManager
             SqlExecutor executor = new SqlExecutor(schema);
             SQLFragment sqlUpdateVisitDates = new SQLFragment();
 
-            sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
-                    .append("SET Status = 'Withdrawn', AppToken = NULL")
-                    .append(" WHERE UserId = '"+userId+"'")
-                    .append(" and StudyId = '"+studyId+"'");
-            int execute = executor.execute(sqlUpdateVisitDates);
-            if (execute > 0){
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            if(deleteData){
+                TableInfo participantActivitiesInfo = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
+                participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+                SimpleFilter filterActivities = new SimpleFilter();
+                filterActivities.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+                Table.delete(participantActivitiesInfo,filterActivities);
+
+                sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
+                        .append("SET Status = 'Withdrawn', AppToken = NULL")
+                        .append(" WHERE UserId = '"+userId+"'")
+                        .append(" and StudyId = '"+studyId+"'");
+                int execute = executor.execute(sqlUpdateVisitDates);
+                if (execute > 0){
+                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                }
+
+            }else{
+                sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
+                        .append("SET Status = 'Withdrawn'")
+                        .append(" WHERE UserId = '"+userId+"'")
+                        .append(" and StudyId = '"+studyId+"'");
+                int execute = executor.execute(sqlUpdateVisitDates);
+                if (execute > 0){
+                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                }
             }
+            transaction.commit();
 
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager withDrawStudy()",e);
@@ -571,6 +595,12 @@ public class FdahpUserRegWSManager
             participantFilter.addCondition(FieldKey.fromParts("UserId"), userId);
             int count = Table.delete(participantInfo,participantFilter);
 
+            TableInfo authInfo = FdahpUserRegWSSchema.getInstance().getAuthInfo();
+            authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter authInfoFilter = new SimpleFilter();
+            authInfoFilter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+            Table.delete(participantInfo,participantFilter);
+
             if(count > 0)
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
 
@@ -578,6 +608,51 @@ public class FdahpUserRegWSManager
 
         }catch (Exception e){
             _log.error("deleteAccount error:",e);
+        }
+        return message;
+    }
+
+    public List<PasswordHistory> getPasswordHistoryList(String userId){
+        List<PasswordHistory> passwordHistoryList = null;
+        try{
+            TableInfo passwordHistoryInfo = FdahpUserRegWSSchema.getInstance().getPasswordHistory();
+            SQLFragment sql = new SQLFragment("SELECT * FROM " + passwordHistoryInfo.getSelectName() + " WHERE userId ='"+userId+"' ORDER BY created");
+            passwordHistoryList = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getArrayList(PasswordHistory.class);
+        }catch (Exception e){
+            _log.error("getPasswordHistoryList error:",e);
+        }
+        return passwordHistoryList;
+    }
+
+    public String savePasswordHistory(String userId,String password){
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        int passwordHistoryCount = 10;
+        List<PasswordHistory> passwordHistories = null;
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        try{
+            passwordHistories = getPasswordHistoryList(userId);
+
+            TableInfo table = FdahpUserRegWSSchema.getInstance().getPasswordHistory();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+
+            if(passwordHistories != null && passwordHistories.size() > (passwordHistoryCount - 1)){
+                for (int i=0;i<((passwordHistories.size() - passwordHistoryCount) + 1);i++){
+                    SimpleFilter filter = new SimpleFilter();
+                    filter.addCondition(FieldKey.fromParts("Id"), passwordHistories.get(i).getId());
+                    Table.delete(table,filter);
+                }
+            }
+
+            PasswordHistory passwordHistory = new PasswordHistory();
+            passwordHistory.setUserId(userId);
+            passwordHistory.setPassword(password);
+            message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            Table.insert(null,table,passwordHistory);
+
+            transaction.commit();
+        }catch (Exception e){
+            _log.error("getPasswordHistoryList error:",e);
         }
         return message;
     }

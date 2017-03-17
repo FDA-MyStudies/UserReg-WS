@@ -46,7 +46,7 @@ public class FdahpUserRegUtil
         INVALID_AUTH_CODE("INVALID_AUTH_CODE"),
         ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated"),
         INVALID_USERNAME_PASSWORD_MSG("Invalid username and password"),
-        EMAIL_EXISTS("the email already exists"),
+        EMAIL_EXISTS("This email already exists"),
         INVALID_INPUT_ERROR_MSG("Invalid input."),
         INACTIVE("INACTIVE"),
         SUCCESS("SUCCESS"),
@@ -65,13 +65,15 @@ public class FdahpUserRegUtil
         NO_DATA_AVAILABLE("No data available"),
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
         WITHDRAWN_STUDY("You are already Withdrawn from study"),
-        EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS"),
-        RESEND_EMAIL_NOT_EXISTS("EMAIL DOESN'T EXISTS OR EMAIL ALREADY VERIFIED"),
+        EMAIL_NOT_EXISTS("Email Doesn't Exists"),
+        RESEND_EMAIL_NOT_EXISTS("Email Doesn't Exists OR Email Already Verified"),
         USER_NOT_EXISTS("USER DOESN'T EXISTS"),
         FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email"),
-        OLD_PASSWORD_NOT_EXISTS("old password is wrong"),
+        OLD_PASSWORD_NOT_EXISTS("Old password is invalid"),
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
-        USER_ALREADY_VERIFIED("user already verified");
+        NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
+        USER_ALREADY_VERIFIED("user already verified"),
+        EMAIL_NOT_VERIFIED("Email not verified.Please confirm email for first to reset password");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;

@@ -65,4 +65,8 @@ public class FdahpUserRegWSSchema
     public TableInfo getStudyConsent(){
         return getSchema().getTable("StudyConsent");
     }
+
+    public TableInfo getPasswordHistory(){
+        return getSchema().getTable("PasswordHistory");
+    }
 }
