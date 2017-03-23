@@ -6,7 +6,8 @@ package org.labkey.fdahpuserregws.bean;
 public class ParticipantInfoBean
 {
     private String _studyId="";
-    private String _appToken="";
+    private String _participantId="";
+    private String _enrolledDate="";
 
     public String getStudyId()
     {
@@ -18,13 +19,23 @@ public class ParticipantInfoBean
         _studyId = studyId;
     }
 
-    public String getAppToken()
+    public String getParticipantId()
     {
-        return _appToken;
+        return _participantId;
     }
 
-    public void setAppToken(String appToken)
+    public void setParticipantId(String participantId)
     {
-        _appToken = appToken;
+        _participantId = participantId;
+    }
+
+    public String getEnrolledDate()
+    {
+        return _enrolledDate;
+    }
+
+    public void setEnrolledDate(String enrolledDate)
+    {
+        _enrolledDate = enrolledDate;
     }
 }

@@ -10,6 +10,7 @@ public class SettingsBean
     private Boolean _touchId=false;
     private Boolean _passcode=false;
     private String _remindersTime="";
+    private String _locale="";
 
     public Boolean getRemoteNotifications()
     {
@@ -59,5 +60,15 @@ public class SettingsBean
     public void setRemindersTime(String remindersTime)
     {
         _remindersTime = remindersTime;
+    }
+
+    public String getLocale()
+    {
+        return _locale;
+    }
+
+    public void setLocale(String locale)
+    {
+        _locale = locale;
     }
 }

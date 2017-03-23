@@ -50,9 +50,15 @@ import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.labkey.api.util.GUID;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
+import org.labkey.api.module.Module;
+
+import org.labkey.api.module.ModuleLoader;
 
 public class FdahpUserRegWSController extends SpringActionController
 {
@@ -65,6 +71,8 @@ public class FdahpUserRegWSController extends SpringActionController
     }
 
     private static final Logger _log = Logger.getLogger(FdahpUserRegWSController.class);
+
+    Properties configProp = FdahpUserRegUtil.getProperties();
 
     @RequiresNoPermission
     public class BeginAction extends SimpleViewAction
@@ -134,8 +142,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                             }
                             String message = "<html> <body>" +
-                                    "Dear "+addParticipantDetails.getFirstName()+" "+addParticipantDetails.getLastName()+",<BR><p> Please click the below link to confirm the Account</p>" +
-                                    "<p><a href='http://192.168.0.6:8081/labkey/fdahpUserRegWS/home/verify.api?token="+addParticipantDetails.getSecurityToken()+"'>Confirm Account</a></p>"+
+                                    "Dear User,<BR><p> Please click the below link to confirm the Account</p>" +
+                                    "<p><a href="+configProp.get("labkey_home")+"/labkey/fdahpUserRegWS/verify.api?token="+addParticipantDetails.getSecurityToken()+">Confirm Account</a></p>"+
                                     " <BR>Thanks,<BR>"+
                                     "<BR>"+"</body></html>";
                             boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Verification Email",message);
@@ -423,7 +431,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     " <BR>Thanks,<BR>"+
                                     "<BR>"+"</body></html>";*/
                             String message = "<html> <body>" +
-                                    "Dear "+participantDetails.getFirstName()+" "+participantDetails.getLastName()+",<BR><p> Your new password is '<b>" + tempPassword + "</b>'</p>" +
+                                    "Dear User,<BR><p> Your new password is '<b>" + tempPassword + "</b>'</p>" +
                                     "<BR>Thanks,<BR>"+
                                     "<BR>"+"</body></html>";
                             boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"ForgotPasswordLink",message);
@@ -482,8 +490,8 @@ public class FdahpUserRegWSController extends SpringActionController
                             System.out.println(participantDetails.getStatus());
                             if(participantDetails != null && participantDetails.getStatus() == 2){
                                 String message = "<html> <body>" +
-                                        "Dear "+participantDetails.getFirstName()+" "+participantDetails.getLastName()+",<BR><p> Please click the below link to confirm the Account</p>" +
-                                        "<p><a href='http://192.168.0.6:8081/labkey/fdahpUserRegWS/home/verify.api?token="+participantDetails.getSecurityToken()+"'>Confirm Account</a></p>"+
+                                        "Dear User,<BR><p> Please click the below link to confirm the Account</p>" +
+                                        "<p><a href="+configProp.get("labkey_home")+"/labkey/fdahpUserRegWS/verify.api?token="+participantDetails.getSecurityToken()+">Confirm Account</a></p>"+
                                         " <BR>Thanks,<BR>"+
                                         "<BR>"+"</body></html>";
                                 boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Verification Email",message);
@@ -792,15 +800,6 @@ public class FdahpUserRegWSController extends SpringActionController
                             UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId);
                             if (participantDetails != null)
                             {
-                                if (profileForm.getProfile() != null)
-                                {
-                                    if (profileForm.getProfile().getFirstName() != null && StringUtils.isNotEmpty(profileForm.getProfile().getFirstName()))
-                                        participantDetails.setFirstName(profileForm.getProfile().getFirstName());
-                                    if (profileForm.getProfile().getLastName() != null && StringUtils.isNotEmpty(profileForm.getProfile().getLastName()))
-                                        participantDetails.setLastName(profileForm.getProfile().getLastName());
-                                    if (profileForm.getProfile().getEmailId() != null && StringUtils.isNotEmpty(profileForm.getProfile().getEmailId()))
-                                        participantDetails.setEmail(profileForm.getProfile().getEmailId());
-                                }
                                 if (profileForm.getSettings() != null)
                                 {
                                     if (profileForm.getSettings().getRemoteNotifications() != null)
@@ -813,6 +812,9 @@ public class FdahpUserRegWSController extends SpringActionController
                                         participantDetails.setTouchId(profileForm.getSettings().getTouchId());
                                     if(profileForm.getSettings().getRemindersTime() != null && StringUtils.isNotEmpty(profileForm.getSettings().getRemindersTime()))
                                         participantDetails.setReminderTime(profileForm.getSettings().getRemindersTime());
+                                    System.out.println(profileForm.getSettings().getLocale());
+                                    if(profileForm.getSettings().getLocale() != null && StringUtils.isNotEmpty(profileForm.getSettings().getLocale()))
+                                        participantDetails.setLocale(profileForm.getSettings().getLocale());
                                 }
                                 if (profileForm.getInfo() != null)
                                 {
@@ -852,8 +854,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 if (participantInfoBean.getStudyId().equals(participantStudies.getStudyId()))
                                                 {
                                                     isExists = true;
-                                                    if (participantInfoBean.getAppToken() != null && StringUtils.isNotEmpty(participantInfoBean.getAppToken()))
-                                                        participantStudies.setAppToken(participantInfoBean.getAppToken());
+                                                    if (participantInfoBean.getParticipantId() != null && StringUtils.isNotEmpty(participantInfoBean.getParticipantId()))
+                                                        participantStudies.setParticipantId(participantInfoBean.getParticipantId());
+                                                    if(participantInfoBean.getEnrolledDate() != null && StringUtils.isNotEmpty(participantInfoBean.getEnrolledDate()))
+                                                        participantStudies.setEnrolledDate(participantInfoBean.getEnrolledDate());
                                                      participantStudies.setStatus(FdahpUserRegUtil.ErrorCodes.JOINED.getValue());
                                                     addParticipantStudiesList.add(participantStudies);
                                                 }
@@ -862,10 +866,12 @@ public class FdahpUserRegWSController extends SpringActionController
                                         if (!isExists)
                                         {
                                             ParticipantStudies participantStudies = new ParticipantStudies();
-                                            if (participantInfoBean.getAppToken() != null && StringUtils.isNotEmpty(participantInfoBean.getAppToken()))
-                                                participantStudies.setAppToken(participantInfoBean.getAppToken());
+                                            if (participantInfoBean.getParticipantId() != null && StringUtils.isNotEmpty(participantInfoBean.getParticipantId()))
+                                                participantStudies.setParticipantId(participantInfoBean.getParticipantId());
                                             if (participantInfoBean.getStudyId() != null && StringUtils.isNotEmpty(participantInfoBean.getStudyId()))
                                                 participantStudies.setStudyId(participantInfoBean.getStudyId());
+                                            if(participantInfoBean.getEnrolledDate() != null && StringUtils.isNotEmpty(participantInfoBean.getEnrolledDate()))
+                                                participantStudies.setEnrolledDate(participantInfoBean.getEnrolledDate());
                                             participantStudies.setStatus(FdahpUserRegUtil.ErrorCodes.JOINED.getValue());
                                             participantStudies.setUserId(userId);
                                             addParticipantStudiesList.add(participantStudies);
@@ -1282,7 +1288,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                     }
                                 }else{
                                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(),FdahpUserRegUtil.ErrorCodes.NO_DATA_AVAILABLE.getValue(), getViewContext().getResponse());
-                                    errors.rejectValue("studyId",ERROR_MSG,"No Data available with the studyId");
+                                    //errors.rejectValue("studyId",ERROR_MSG,"No Data available with the studyId");
+                                    return null;
                                 }
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
@@ -1313,6 +1320,7 @@ public class FdahpUserRegWSController extends SpringActionController
        public String _userId;
        public String _studyId;
        public String _consentVersion;
+       public ActivityStateForm _activity;
 
        public String getUserId()
        {
@@ -1342,6 +1350,16 @@ public class FdahpUserRegWSController extends SpringActionController
        public void setConsentVersion(String consentVersion)
        {
            _consentVersion = consentVersion;
+       }
+
+       public ActivityStateForm getActivity()
+       {
+           return _activity;
+       }
+
+       public void setActivity(ActivityStateForm activity)
+       {
+           _activity = activity;
        }
    }
 
@@ -1373,7 +1391,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                    if(participantActivities.getActivityVersion() != null)
                                        jsonObject.put("activityVersion",participantActivities.getActivityVersion());
                                    if(participantActivities.getActivityState() != null)
-                                       jsonObject.put("activityState",participantActivities.getActivityState());
+                                       jsonObject.put("state",participantActivities.getActivityState());
                                    if(participantActivities.getActivityRunId() != null)
                                        jsonObject.put("activityRunId",participantActivities.getActivityRunId());
                                    jsonArray.put(jsonObject);
@@ -1405,21 +1423,12 @@ public class FdahpUserRegWSController extends SpringActionController
 
    public static class ActivityStateForm {
 
-       private String _studyId;
+
        private String _activityId;
        private String _activityVersion;
        private String _activityState;
        private String _activityRunId;
 
-       public String getStudyId()
-       {
-           return _studyId;
-       }
-
-       public void setStudyId(String studyId)
-       {
-           _studyId = studyId;
-       }
 
        public String getActivityId()
        {
@@ -1461,8 +1470,10 @@ public class FdahpUserRegWSController extends SpringActionController
            _activityRunId = activityRunId;
        }
    }
+
+   @Marshal(Marshaller.Jackson)
    @RequiresNoPermission
-    public class UpdateActivityStateAction extends  ApiAction<ActivityStateForm>{
+    public class UpdateActivityStateAction extends  ApiAction<ActivityForm>{
 
        @Override
        protected ModelAndView handleGet() throws Exception
@@ -1472,7 +1483,7 @@ public class FdahpUserRegWSController extends SpringActionController
        }
 
        @Override
-       public ApiResponse execute(ActivityStateForm activityStateForm, BindException errors) throws Exception
+       public ApiResponse execute(ActivityForm activityForm, BindException errors) throws Exception
        {
            ApiSimpleResponse response =  new ApiSimpleResponse();
            boolean isAuthenticated = false;
@@ -1483,23 +1494,24 @@ public class FdahpUserRegWSController extends SpringActionController
                if(auth != null && StringUtils.isNotEmpty(auth)){
                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
                    if(isAuthenticated){
-                       if(activityStateForm != null && userId != null && StringUtils.isNotEmpty(userId)){
-                           if((activityStateForm.getStudyId() != null && StringUtils.isNotEmpty(activityStateForm.getStudyId())) && (activityStateForm.getActivityId() != null && StringUtils.isNotEmpty(activityStateForm.getActivityId()))){
+                       if(activityForm != null && userId != null && StringUtils.isNotEmpty(userId)){
+                           if((activityForm.getStudyId() != null && StringUtils.isNotEmpty(activityForm.getStudyId())) &&
+                                   (activityForm.getActivity() != null && activityForm.getActivity().getActivityId() != null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityId()))){
                                List<ParticipantActivities> participantActivitiesList;
-                               participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(activityStateForm.getStudyId(),userId);
+                               participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(activityForm.getStudyId(),userId);
                                boolean isExist = false;
                                if(participantActivitiesList != null && participantActivitiesList.size()>0){
                                    for (ParticipantActivities participantActivities : participantActivitiesList)
                                    {
-                                       if (participantActivities.getActivityId().equals(Integer.valueOf(activityStateForm.getActivityId())))
+                                       if (participantActivities.getActivityId().equals(Integer.valueOf(activityForm.getActivity().getActivityId())))
                                        {
                                            isExist = true;
-                                           if(activityStateForm.getActivityVersion()!=null && StringUtils.isNotEmpty(activityStateForm.getActivityVersion()))
-                                               participantActivities.setActivityVersion(activityStateForm.getActivityVersion());
-                                           if(activityStateForm.getActivityState()!= null && StringUtils.isNotEmpty(activityStateForm.getActivityState()))
-                                               participantActivities.setActivityState(activityStateForm.getActivityState());
-                                           if(activityStateForm.getActivityRunId() != null && StringUtils.isNotEmpty(activityStateForm.getActivityRunId()))
-                                               participantActivities.setActivityRunId(activityStateForm.getActivityRunId());
+                                           if(activityForm.getActivity().getActivityVersion()!=null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityVersion()))
+                                               participantActivities.setActivityVersion(activityForm.getActivity().getActivityVersion());
+                                           if(activityForm.getActivity().getActivityState()!= null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityState()))
+                                               participantActivities.setActivityState(activityForm.getActivity().getActivityState());
+                                           if(activityForm.getActivity().getActivityRunId() != null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityRunId()))
+                                               participantActivities.setActivityRunId(activityForm.getActivity().getActivityRunId());
                                            addParticipantActivitiesList.add(participantActivities);
                                        }
                                    }
@@ -1507,16 +1519,16 @@ public class FdahpUserRegWSController extends SpringActionController
                                }
                                if(!isExist){
                                    ParticipantActivities addParticipantActivities = new ParticipantActivities();
-                                   if(activityStateForm.getActivityState()!= null && StringUtils.isNotEmpty(activityStateForm.getActivityState()))
-                                       addParticipantActivities.setActivityState(activityStateForm.getActivityState());
-                                   if(activityStateForm.getActivityVersion()!=null && StringUtils.isNotEmpty(activityStateForm.getActivityVersion()))
-                                       addParticipantActivities.setActivityVersion(activityStateForm.getActivityVersion());
-                                   if(activityStateForm.getActivityId() != null && StringUtils.isNotEmpty(activityStateForm.getActivityId()))
-                                       addParticipantActivities.setActivityId(Integer.valueOf(activityStateForm.getActivityId()));
-                                   if(activityStateForm.getActivityRunId() != null && StringUtils.isNotEmpty(activityStateForm.getActivityRunId()))
-                                       addParticipantActivities.setActivityRunId(activityStateForm.getActivityRunId());
-                                   if(activityStateForm.getStudyId()!=null && StringUtils.isNotEmpty(activityStateForm.getStudyId()))
-                                       addParticipantActivities.setStudyId(activityStateForm.getStudyId());
+                                   if(activityForm.getActivity().getActivityState()!= null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityState()))
+                                       addParticipantActivities.setActivityState(activityForm.getActivity().getActivityState());
+                                   if(activityForm.getActivity().getActivityVersion()!=null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityVersion()))
+                                       addParticipantActivities.setActivityVersion(activityForm.getActivity().getActivityVersion());
+                                   if(activityForm.getActivity().getActivityId() != null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityId()))
+                                       addParticipantActivities.setActivityId(Integer.valueOf(activityForm.getActivity().getActivityId()));
+                                   if(activityForm.getActivity().getActivityRunId() != null && StringUtils.isNotEmpty(activityForm.getActivity().getActivityRunId()))
+                                       addParticipantActivities.setActivityRunId(activityForm.getActivity().getActivityRunId());
+                                   if(activityForm.getStudyId()!=null && StringUtils.isNotEmpty(activityForm.getStudyId()))
+                                       addParticipantActivities.setStudyId(activityForm.getStudyId());
                                    if(userId!= null && StringUtils.isNotEmpty(userId))
                                        addParticipantActivities.setParticipantId(userId);
                                    addParticipantActivitiesList.add(addParticipantActivities);
@@ -1667,7 +1679,7 @@ public class FdahpUserRegWSController extends SpringActionController
                if(auth != null && StringUtils.isNotEmpty(auth)){
                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
                    if(isAuthenticated){
-                       if(studyId != null && StringUtils.isNoneBlank(studyId) && userId != null && StringUtils.isNotEmpty(userId) && consentVersion != null && StringUtils.isNoneBlank(consentVersion)){
+                       if(studyId != null && StringUtils.isNoneBlank(studyId) && userId != null && StringUtils.isNotEmpty(userId)){
                            // ParticipantStudies participantStudies = FdahpUserRegWSManager.get().getParticipantStudies(Integer.valueOf(studyId),Integer.valueOf(userId));
                            StudyConsent studyConsent = FdahpUserRegWSManager.get().getStudyConsent(userId,studyId,consentVersion);
                            if(studyConsent != null){
@@ -1791,4 +1803,71 @@ public class FdahpUserRegWSController extends SpringActionController
            return response;
        }
    }
+   public static class DeactivateForm {
+
+        public List<String> _deleteData;
+
+       public List<String> getDeleteData()
+       {
+           return _deleteData;
+       }
+
+       public void setDeleteData(List<String> deleteData)
+       {
+           _deleteData = deleteData;
+       }
+   }
+    @Marshal(Marshaller.Jackson)
+    @RequiresNoPermission
+    public class DeactivateAction extends ApiAction<DeactivateForm>{
+
+        @Override
+        public Object execute(DeactivateForm deactivateForm, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            boolean isAuthenticated = false;
+            String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+            try
+            {
+                if(isDelete()){
+                    String auth = getViewContext().getRequest().getHeader("auth");
+                    String userId = getViewContext().getRequest().getHeader("userId");
+
+                    if(auth != null && StringUtils.isNotEmpty(auth)){
+                        isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
+                        if(isAuthenticated){
+                            if(null != userId && StringUtils.isNotEmpty(userId)){
+                                message = FdahpUserRegWSManager.get().deActivate(userId,deactivateForm);
+                                if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
+                                    response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                }else{
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(), getViewContext().getResponse());
+                                    return null;
+                                }
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                return null;
+                            }
+                        }else{
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+                            return null;
+                        }
+
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        return null;
+                    }
+                }else{
+                    getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the DELETE method when calling this action.");
+                    return null;
+                }
+
+            }catch (Exception e){
+                _log.error("Logout Action Error:",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                return null;
+            }
+            return response;
+        }
+    }
 }

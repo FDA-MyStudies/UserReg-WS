@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.spi.ErrorCode;
 import org.labkey.api.mbean.ErrorsMXBean;
 import org.labkey.api.util.StringUtilsLabKey;
+import org.labkey.fdahpuserregws.FdahpUserRegWSModule;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -15,10 +16,14 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
+import org.labkey.api.module.Module;
+import org.labkey.api.module.ModuleLoader;
 
 import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
 
@@ -73,7 +78,8 @@ public class FdahpUserRegUtil
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
         USER_ALREADY_VERIFIED("user already verified"),
-        EMAIL_NOT_VERIFIED("Email not verified.Please confirm email for first to reset password");
+        EMAIL_NOT_VERIFIED("Email not verified.Please confirm email for first to reset password"),
+        LABKEY_HOME("http://192.168.0.6:8081");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
@@ -81,7 +87,18 @@ public class FdahpUserRegUtil
         public String getValue() { return value; }
     }
 
-
+    public static String commaSeparatedString(List<String> studyIds){
+        if (studyIds.size() > 0) {
+            StringBuilder studyBuilder = new StringBuilder();
+            for (String n : studyIds) {
+                studyBuilder.append("'").append(n.replace("'", "\\'")).append("',");
+            }
+            studyBuilder.deleteCharAt(studyBuilder.length() - 1);
+            return studyBuilder.toString();
+        } else {
+            return "";
+        }
+    }
 
     public static void getFailureResponse(String status, String title, String message ,HttpServletResponse response){
         try {
@@ -149,6 +166,8 @@ public class FdahpUserRegUtil
     public static boolean sendemail(String email, String subject, String messageBody) throws Exception{
 
         boolean sentMail = false;
+
+        Properties configProp = FdahpUserRegUtil.getProperties();
         try {
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
@@ -175,5 +194,19 @@ public class FdahpUserRegUtil
         }
 
         return sentMail;
+    }
+    public static Properties getProperties(){
+        Properties prop = new Properties();
+        InputStream input = null;
+        try{
+
+            Module m =  ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+            InputStream is = m.getResourceStream("constants/message.properties");
+            prop.load(is);
+
+        }catch (Exception e){
+            _log.error("ERROR:  sendemail() - ",e);
+        }
+        return prop;
     }
 }

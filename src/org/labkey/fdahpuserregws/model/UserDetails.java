@@ -24,6 +24,7 @@ public class UserDetails extends Entity
     private String _SecurityToken;
     private String _UserId;
     private Boolean _TempPassword=false;
+    private String _Locale;
 
     public Integer getId()
     {
@@ -163,5 +164,15 @@ public class UserDetails extends Entity
     public void setTempPassword(Boolean tempPassword)
     {
         _TempPassword = tempPassword;
+    }
+
+    public String getLocale()
+    {
+        return _Locale;
+    }
+
+    public void setLocale(String locale)
+    {
+        _Locale = locale;
     }
 }

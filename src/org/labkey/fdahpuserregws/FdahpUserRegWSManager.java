@@ -16,6 +16,7 @@
 
 package org.labkey.fdahpuserregws;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Logger;
 
@@ -47,7 +48,7 @@ import org.labkey.fdahpuserregws.model.PasswordHistory;
 import org.labkey.fdahpuserregws.model.StudyConsent;
 import org.labkey.fdahpuserregws.model.UserDetails;
 import org.labkey.fdahpuserregws.model.ParticipantStudies;
-
+import org.labkey.fdahpuserregws.FdahpUserRegWSController.DeactivateForm;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -240,10 +241,6 @@ public class FdahpUserRegWSManager
             UserDetails participantDetails = getParticipantDetails(userId);
             if(participantDetails != null){
                 ProfileBean profileBean = new ProfileBean();
-                if(participantDetails.getFirstName()!=null)
-                    profileBean.setFirstName(participantDetails.getFirstName());
-                if(participantDetails.getLastName() != null)
-                    profileBean.setLastName(participantDetails.getLastName());
                 if(participantDetails.getEmail() != null)
                     profileBean.setEmailId(participantDetails.getEmail());
                 response.put(FdahpUserRegUtil.ErrorCodes.PROFILE.getValue(),profileBean);
@@ -258,6 +255,8 @@ public class FdahpUserRegWSManager
                     settingsBean.setTouchId(participantDetails.getTouchId());
                 if(participantDetails.getReminderTime() != null)
                     settingsBean.setRemindersTime(participantDetails.getReminderTime());
+                if(participantDetails.getLocale() != null)
+                    settingsBean.setLocale(participantDetails.getLocale());
                 response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(),settingsBean);
                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
             }
@@ -265,13 +264,15 @@ public class FdahpUserRegWSManager
             if(participantStudiesList != null && participantStudiesList.size() > 0){
                 List<ParticipantInfoBean> participantInfoBeanList = new ArrayList<ParticipantInfoBean>();
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                    if(participantStudies.getAppToken() != null)
+                    if(participantStudies.getParticipantId() != null)
                     {
                         ParticipantInfoBean participantInfoBean = new ParticipantInfoBean();
                         if(participantStudies.getStudyId() != null)
                             participantInfoBean.setStudyId(participantStudies.getStudyId());
-                        if(participantStudies.getAppToken() != null)
-                            participantInfoBean.setAppToken(participantStudies.getAppToken());
+                        if(participantStudies.getParticipantId() != null)
+                            participantInfoBean.setParticipantId(participantStudies.getParticipantId());
+                        if(participantStudies.getEnrolledDate() != null)
+                            participantInfoBean.setEnrolledDate(participantStudies.getEnrolledDate());
                         participantInfoBeanList.add(participantInfoBean);
                     }
                 }
@@ -361,7 +362,7 @@ public class FdahpUserRegWSManager
             if(null!=participantStudiesList && participantStudiesList.size() >0){
                 List<StudiesBean> studiesBeenList = new ArrayList<StudiesBean>();
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                    if(participantStudies.getAppToken() == null && !participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue())){
+                    if(participantStudies.getParticipantId() == null && !participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue())){
                         StudiesBean studiesBean = new StudiesBean();
                         if(participantStudies.getStudyId() != null)
                             studiesBean.setStudyId(participantStudies.getStudyId());
@@ -482,11 +483,12 @@ public class FdahpUserRegWSManager
                     message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
                 }
             }
-            transaction.commit();
+
 
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager withDrawStudy()",e);
         }
+        transaction.commit();
         return message;
     }
 
@@ -546,15 +548,15 @@ public class FdahpUserRegWSManager
     public StudyConsent getStudyConsent(String userId,String studyId,String consentVersion){
         StudyConsent studyConsent = null;
         try{
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("UserId"), userId);
-            filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
-            filter.addCondition(FieldKey.fromParts("Version"), consentVersion);
-            System.out.println("userId:"+userId);
-            System.out.println("StudyId:"+studyId);
-            System.out.println("Version:"+consentVersion);
-            studyConsent = new TableSelector(FdahpUserRegWSSchema.getInstance().getStudyConsent(), filter, null).getObject(StudyConsent.class);
-            System.out.println(studyConsent);
+            TableInfo studyConsentInfo = FdahpUserRegWSSchema.getInstance().getStudyConsent();
+            SQLFragment sql=null;
+            if(consentVersion != null && StringUtils.isNotEmpty(consentVersion)){
+                sql =  new SQLFragment("SELECT * FROM " + studyConsentInfo.getSelectName() + " WHERE userid ='"+userId+"' and studyid ='"+studyId+"' and version ='"+consentVersion+"'");
+            }else{
+                sql =  new SQLFragment("SELECT * FROM " + studyConsentInfo.getSelectName() + " WHERE userid ='"+userId+"' and studyid ='"+studyId+"' order by _ts desc limit 1");
+            }
+            studyConsent = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getObject(StudyConsent.class);
+
         }catch (Exception e){
             _log.error("getStudyConsent Error",e);
         }
@@ -599,16 +601,74 @@ public class FdahpUserRegWSManager
             authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
             SimpleFilter authInfoFilter = new SimpleFilter();
             authInfoFilter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
-            Table.delete(participantInfo,participantFilter);
+            Table.delete(authInfo,authInfoFilter);
 
             if(count > 0)
                 message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
 
-            transaction.commit();
+
 
         }catch (Exception e){
             _log.error("deleteAccount error:",e);
         }
+        transaction.commit();
+        return message;
+    }
+
+    public String deActivate(String userId, DeactivateForm deactivateForm){
+
+
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        int count = 0;
+        try{
+
+            DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
+
+            SqlExecutor executor = new SqlExecutor(schema);
+            SQLFragment sqlUpdateVisitDates = new SQLFragment();
+            if(userId != null && !userId.isEmpty()){
+
+                if(deactivateForm != null && deactivateForm.getDeleteData() != null && deactivateForm.getDeleteData().size() > 0)
+                {
+
+                    TableInfo table = FdahpUserRegWSSchema.getInstance().getParticipantStudies();
+                    table.setAuditBehavior(AuditBehaviorType.DETAILED);
+                    sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
+                            .append("SET Status = 'Withdrawn', AppToken = NULL")
+                            .append(" WHERE UserId = '" + userId + "'")
+                            .append(" and StudyId IN (" + FdahpUserRegUtil.commaSeparatedString(deactivateForm.getDeleteData()) + ")");
+                    int execute = executor.execute(sqlUpdateVisitDates);
+                }
+
+                TableInfo participantActivitiesInfo = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
+                participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+                SimpleFilter filterActivities = new SimpleFilter();
+                filterActivities.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+                Table.delete(participantActivitiesInfo,filterActivities);
+
+                TableInfo authInfo = FdahpUserRegWSSchema.getInstance().getAuthInfo();
+                authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+                SimpleFilter authInfoFilter = new SimpleFilter();
+                authInfoFilter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+                Table.delete(authInfo,authInfoFilter);
+
+                TableInfo participantInfo = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
+                participantInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+                SimpleFilter participantFilter = new SimpleFilter();
+                participantFilter.addCondition(FieldKey.fromParts("UserId"), userId);
+                count = Table.delete(participantInfo,participantFilter);
+
+                if(count > 0)
+                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            }
+
+
+        }catch (Exception e){
+            _log.error("deActivate error:",e);
+        }
+        transaction.commit();
         return message;
     }
 
@@ -650,10 +710,11 @@ public class FdahpUserRegWSManager
             message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             Table.insert(null,table,passwordHistory);
 
-            transaction.commit();
+
         }catch (Exception e){
             _log.error("getPasswordHistoryList error:",e);
         }
+        transaction.commit();
         return message;
     }
 }

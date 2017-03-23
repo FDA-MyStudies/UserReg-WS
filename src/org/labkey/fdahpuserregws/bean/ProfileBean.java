@@ -5,11 +5,11 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class ProfileBean
 {
-    private String _firstName="";
-    private String _lastName="";
+   // private String _firstName="";
+   // private String _lastName="";
     private String _emailId="";
 
-    public String getFirstName()
+   /* public String getFirstName()
     {
         return _firstName;
     }
@@ -27,7 +27,7 @@ public class ProfileBean
     public void setLastName(String lastName)
     {
         _lastName = lastName;
-    }
+    }*/
 
     public String getEmailId()
     {

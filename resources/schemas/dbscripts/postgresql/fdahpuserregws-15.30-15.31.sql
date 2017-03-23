@@ -16,9 +16,9 @@
 
 -- Create schema, tables, indexes, and constraints used for FdahpUserRegWS module here
 -- All SQL VIEW definitions should be created in fdahpuserregws-create.sql and dropped in fdahpuserregws-drop.sql
-CREATE SCHEMA fdahpuserregws;
+CREATE SCHEMA healthstudiesgateway;
 
-CREATE TABLE fdahpuserregws.AuthInfo
+CREATE TABLE healthstudiesgateway.AuthInfo
 (
     _ts TIMESTAMP NOT NULL,
     AuthId SERIAL ,
@@ -35,7 +35,7 @@ CREATE TABLE fdahpuserregws.AuthInfo
 
 );
 
-CREATE TABLE fdahpuserregws.ParticipantActivities
+CREATE TABLE healthstudiesgateway.ParticipantActivities
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL PRIMARY KEY,
@@ -54,7 +54,7 @@ CREATE TABLE fdahpuserregws.ParticipantActivities
 
 );
 
-CREATE TABLE fdahpuserregws.UserDetails
+CREATE TABLE healthstudiesgateway.UserDetails
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL ,
@@ -76,7 +76,7 @@ CREATE TABLE fdahpuserregws.UserDetails
  CONSTRAINT PK_ParticipantDetails PRIMARY KEY (Id)
 
 );
-CREATE TABLE fdahpuserregws.ParticipantStudies
+CREATE TABLE healthstudiesgateway.ParticipantStudies
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL,
@@ -93,7 +93,7 @@ CREATE TABLE fdahpuserregws.ParticipantStudies
 
 );
 
-CREATE TABLE fdahpuserregws.StudyConsent
+CREATE TABLE healthstudiesgateway.StudyConsent
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL,
@@ -106,7 +106,7 @@ CREATE TABLE fdahpuserregws.StudyConsent
 
 );
 
-CREATE TABLE fdahpuserregws.PasswordHistory
+CREATE TABLE healthstudiesgateway.PasswordHistory
 (
     _ts TIMESTAMP NOT NULL,
     Id SERIAL,
