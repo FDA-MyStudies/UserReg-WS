@@ -50,7 +50,7 @@ public class FdahpUserRegUtil
         SESSION_EXPIRED_MSG("Session expired."),
         INVALID_AUTH_CODE("INVALID_AUTH_CODE"),
         ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated"),
-        INVALID_USERNAME_PASSWORD_MSG("Invalid username and password"),
+        INVALID_USERNAME_PASSWORD_MSG("Invalid username or password"),
         EMAIL_EXISTS("This email already exists"),
         INVALID_INPUT_ERROR_MSG("Invalid input."),
         INACTIVE("INACTIVE"),
@@ -68,6 +68,7 @@ public class FdahpUserRegUtil
         ACTIVITIES("activities"),
         WITHDRAWN("Withdrawn"),
         NO_DATA_AVAILABLE("No data available"),
+        CONSENT_VERSION_REQUIRED("consent version is required"),
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
         WITHDRAWN_STUDY("You are already Withdrawn from study"),
         EMAIL_NOT_EXISTS("Email Doesn't Exists"),
@@ -78,7 +79,8 @@ public class FdahpUserRegUtil
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
         USER_ALREADY_VERIFIED("user already verified"),
-        EMAIL_NOT_VERIFIED("Email not verified.Please confirm email for first to reset password"),
+        INVALID_TOKEN("Invalid token"),
+        EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link."),
         LABKEY_HOME("http://192.168.0.6:8081");
         private final String value;
         ErrorCodes(final String newValue){
@@ -114,6 +116,9 @@ public class FdahpUserRegUtil
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorCodes.INVALID_AUTH_CODE.getValue());
                 else
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
+
+            if(status.equalsIgnoreCase(ErrorCodes.STATUS_103.getValue()))
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, message);
 
         } catch (Exception e) {
             _log.info("FdahpUserRegUtil - getFailureResponse() :: ERROR " , e);
@@ -172,12 +177,14 @@ public class FdahpUserRegUtil
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
+            props.put("mail.smtp.host", (String) configProp.get("hostname"));
+            props.put("mail.smtp.port", (String) configProp.get("port"));
+            final String username = (String) configProp.get("from.email.address");
+            final String password = (String) configProp.get("from.email.password");
             Session session = Session.getInstance(props,
                     new javax.mail.Authenticator() {
                         protected PasswordAuthentication getPasswordAuthentication() {
-                            return new PasswordAuthentication("apps@boston-technology.com", "password789");
+                            return new PasswordAuthentication(username, password);
                         }
                     });
             Message message = new MimeMessage(session);
@@ -205,7 +212,7 @@ public class FdahpUserRegUtil
             prop.load(is);
 
         }catch (Exception e){
-            _log.error("ERROR:  sendemail() - ",e);
+            _log.error("ERROR:  getProperties() - ",e);
         }
         return prop;
     }

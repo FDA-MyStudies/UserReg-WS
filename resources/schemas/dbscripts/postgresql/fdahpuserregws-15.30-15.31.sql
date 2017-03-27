@@ -73,6 +73,7 @@ CREATE TABLE healthstudiesgateway.UserDetails
     SecurityToken VARCHAR(100) NULL,
     UserId VARCHAR(50) NULL,
     TempPassword BOOLEAN NULL,
+    Locale VARCHAR(100) NULL,
  CONSTRAINT PK_ParticipantDetails PRIMARY KEY (Id)
 
 );
@@ -89,6 +90,7 @@ CREATE TABLE healthstudiesgateway.ParticipantStudies
     Consent TEXT,
     UserId VARCHAR(50) NULL,
     EnrolledDate VARCHAR(50) NULL,
+    Sharing TEXT NULL,
     CONSTRAINT PK_ParticipantStudies PRIMARY KEY (Id)
 
 );

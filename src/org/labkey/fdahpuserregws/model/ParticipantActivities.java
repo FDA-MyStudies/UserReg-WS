@@ -10,7 +10,7 @@ public class ParticipantActivities extends Entity
     private Integer _Id;
     private String _ParticipantId;
     private String _StudyId;
-    private Integer _ActivityId;
+    private String _ActivityId;
     private Integer _ActivityCompleteId;
     private String _ActivityType;
     private Boolean _Bookmark=false;
@@ -39,12 +39,12 @@ public class ParticipantActivities extends Entity
         _ParticipantId = participantId;
     }
 
-    public Integer getActivityId()
+    public String getActivityId()
     {
         return _ActivityId;
     }
 
-    public void setActivityId(Integer activityId)
+    public void setActivityId(String activityId)
     {
         _ActivityId = activityId;
     }
