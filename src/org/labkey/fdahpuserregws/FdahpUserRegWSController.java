@@ -55,6 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -143,12 +144,23 @@ public class FdahpUserRegWSController extends SpringActionController
                                     response.put("auth", authInfo.getAuthKey());
                                 }
                             }
-                            String message = "<html> <body>" +
-                                    "Dear User,<BR><p> Please click the below link to confirm the Account</p>" +
-                                    "<p><a href="+configProp.get("labkey_home")+"/labkey/fdahpUserRegWS/verify.api?token="+addParticipantDetails.getSecurityToken()+">Confirm Account</a></p>"+
-                                    " <BR>Thanks,<BR>"+
-                                    "<BR>"+"</body></html>";
-                            boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Verification Email",message);
+                            String message = "<html>" +
+                                    "<head>" +
+                                    "<body>" +
+                                    "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
+                                    "<span>Hi,</span><br/><br/>" +
+                                    "<span>Thanks for registering with us! We look forward to having you on board and actively taking part in<br/>Health Studies being conducted by the FDA and its partners.</span><br/><br/>" +
+                                    "<span>Your sign-up process is almost complete. Please use the Verification Code provided below to<br/>verify your email in the mobile app. </span><br/><br/>" +
+                                    "<span><strong>Verification Code:</strong>" +addParticipantDetails.getSecurityToken()+ "</span><br/><br/>" +
+                                    "<span>Please note that this code can be used only once and is valid for a period of 48 hours only. </span><br/><br/>" +
+                                    "<span>For any questions or assistance, please write to <a>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
+                                    "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA Health Studies Gateway Team</span>" +
+                                    "<br/><span>----------------------------------------------------</span><br/>" +
+                                    "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
+                                    "</div>" +
+                                    "</body>" +
+                                    "</html>";
+                            boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Welcome to the FDA Health Studies Gateway!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
@@ -252,46 +264,90 @@ public class FdahpUserRegWSController extends SpringActionController
             return response;
         }
     }
+    public static class VerificationForm {
 
+        public String _emailId;
+        public String _code;
+
+        public String getEmailId()
+        {
+            return _emailId;
+        }
+
+        public void setEmailId(String emailId)
+        {
+            _emailId = emailId;
+        }
+
+        public String getCode()
+        {
+            return _code;
+        }
+
+        public void setCode(String code)
+        {
+            _code = code;
+        }
+    }
     @RequiresNoPermission
-    public class VerifyAction extends ApiAction<UserForm>{
+    public class VerifyAction extends ApiAction<VerificationForm>{
 
         @Override
-        public Object execute(UserForm userForm, BindException errors) throws Exception
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
+        public Object execute(VerificationForm verificationForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
             try{
-                String securityToken = getViewContext().getRequest().getParameter("token");
-                if((securityToken != null && StringUtils.isNotEmpty(securityToken))){
-                    UserDetails participantDetails = participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByToken(securityToken);
-                    if(null != participantDetails){
-                        if(participantDetails.getStatus() == 2){
-                            participantDetails.setStatus(1);
-                            //participantDetails.setSecurityToken(null);
-                            UserDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
-                            if(null != updateParticipantDetails){
-                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                //response.put("userId", updateParticipantDetails.getId());
-                                if(updateParticipantDetails.getStatus() != null)
-                                    if(updateParticipantDetails.getStatus() == 2)
-                                        response.put("verified", false);
-                                if(updateParticipantDetails.getStatus() == 1)
-                                    response.put("verified", true);
+               // String securityToken = getViewContext().getRequest().getParameter("token");
+                if(verificationForm != null){
+                    if((verificationForm.getEmailId() != null && StringUtils.isNotEmpty(verificationForm.getEmailId())) &&
+                            (verificationForm.getCode() != null && StringUtils.isNotEmpty(verificationForm.getCode()))){
+                        //UserDetails participantDetails = participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByToken(verificationForm.getEmailId(),verificationForm.getCode());
+                        UserDetails participantDetails = participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(verificationForm.getEmailId());
+                        if(null != participantDetails){
+                            if(participantDetails.getStatus() == 2){
+                                if(participantDetails.getSecurityToken() != null && participantDetails.getSecurityToken().equalsIgnoreCase(verificationForm.getCode())){
+                                    Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),48);
+                                    if(FdahpUserRegUtil.getCurrentUtilDateTime().before(validateDate) || FdahpUserRegUtil.getCurrentUtilDateTime().equals(validateDate)){
+                                        participantDetails.setStatus(1);
+                                        participantDetails.setSecurityToken(null);
+                                        participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                                        UserDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                                        if(null != updateParticipantDetails){
+                                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                        }else{
+                                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                            return null;
+                                        }
+                                    }else{
+                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(), getViewContext().getResponse());
+                                        return null;
+                                    }
+                                }else{
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_CODE.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_CODE.getValue(), getViewContext().getResponse());
+                                    return null;
+                                }
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue(),FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue(), getViewContext().getResponse());
+                                return null;
                             }
+
+
+
                         }else{
-                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE.getValue().toLowerCase());
-                            response.put("status",FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue());
+                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue(),FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue(), getViewContext().getResponse());
+                             return null;
                         }
-
                     }else{
-                       /* FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
-                        return null;*/
-                        response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE.getValue().toLowerCase());
-                        response.put("status",FdahpUserRegUtil.ErrorCodes.INVALID_TOKEN.getValue());
-                       // FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
-                       // errors.rejectValue("token",ERROR_MSG,"token expires");
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        return null;
                     }
-
                 }else{
                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
                     return null;
@@ -319,34 +375,75 @@ public class FdahpUserRegWSController extends SpringActionController
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
-            ParticipantForm participantForm = null;
+            //ParticipantForm participantForm = null;
+            UserDetails participantDetails = null;
             try{
                 if(loginForm != null){
-                    String email = getViewContext().getRequest().getHeader("emailId");
-                    String password = getViewContext().getRequest().getHeader("password");
+                   // String email = getViewContext().getRequest().getHeader("emailId");
+                   // String password = getViewContext().getRequest().getHeader("password");
                     if((loginForm.getEmailId() != null && StringUtils.isNotEmpty(loginForm.getEmailId())) && (loginForm.getPassword() != null && StringUtils.isNotEmpty(loginForm.getPassword()))){
-                        participantForm= FdahpUserRegWSManager.get().signingParticipant(loginForm.getEmailId(),loginForm.getPassword());
+                        //participantForm= FdahpUserRegWSManager.get().signingParticipant(loginForm.getEmailId(),loginForm.getPassword());
+                        participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId());
+                        if(null != participantDetails){
+                            if(participantDetails.getPassword() != null && participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(loginForm.getPassword()))){
+                                if(participantDetails.getTempPassword()){
+                                    participantDetails.setResetPassword(null);
+                                    participantDetails.setTempPassword(false);
+                                    participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                                    FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                                }
+                                AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
+                                if(authInfo != null){
+                                    response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                    response.put("userId",participantDetails.getUserId());
+                                    response.put("auth",authInfo.getAuthKey());
+                                    if(participantDetails.getStatus() == 2)
+                                    {
+                                        response.put("verified", false);
+                                    }
+                                    if(participantDetails.getStatus() == 1){
+                                        response.put("verified", true);
+                                    }
+                                }  else{
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                    return null;
+                                }
 
-                        if(null!=participantForm){
-                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                            }else if(participantDetails.getResetPassword() != null && participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(loginForm.getPassword()))){
+                                if(participantDetails.getTempPassword()){
+                                    Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),48);
+                                    if(participantDetails.getTempPasswordDate().before(validateDate) || participantDetails.getTempPasswordDate().equals(validateDate)){
+                                        AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
+                                        if(authInfo != null){
+                                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                            response.put("userId",participantDetails.getUserId());
+                                            response.put("auth",authInfo.getAuthKey());
+                                            if(participantDetails.getStatus() == 2)
+                                            {
+                                                response.put("verified", false);
+                                            }
+                                            if(participantDetails.getStatus() == 1){
+                                                response.put("verified", true);
+                                            }
+                                            response.put("resetPassword", participantDetails.getTempPassword());
+                                        } else{
+                                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                                            return null;
+                                        }
+                                    }else{
+                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(), getViewContext().getResponse());
+                                        return null;
+                                    }
+                                }
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.name(), FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.getValue(), getViewContext().getResponse());
+                                errors.rejectValue("emailId",ERROR_MSG,  "emailId is wrong.");
+                                errors.rejectValue("password",ERROR_MSG,  "password is wrong.");
+                            }
 
-                            response.put("userId",participantForm.getUserId());
-                            response.put("auth",participantForm.getAuth());
-                            if(participantForm.getStatus() == 2)
-                            {
-                                response.put("verified", false);
-                            }
-                            if(participantForm.getStatus() == 1){
-                                response.put("verified", true);
-                            }
-                           // response.put("resetPassword", participantForm.getTempPassword());
-                            if(participantForm.getTempPassword()){
-                                response.put("resetPassword", participantForm.getTempPassword());
-                            }
                         }else{
-                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.name(), FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.getValue(), getViewContext().getResponse());
-                            errors.rejectValue("emailId",ERROR_MSG,  "emailId is wrong.");
-                            errors.rejectValue("password",ERROR_MSG,  "password is wrong.");
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_EMAIL.name(), FdahpUserRegUtil.ErrorCodes.INVALID_EMAIL.getValue(), getViewContext().getResponse());
+                            return null;
                         }
                     }else{
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
@@ -378,8 +475,10 @@ public class FdahpUserRegWSController extends SpringActionController
         if (participantDetails == null){
             participantDetails = new UserDetails();
             participantDetails.setStatus(2);
-            String token = UUID.randomUUID().toString();
+            String token = RandomStringUtils.randomAlphanumeric(6);
             participantDetails.setSecurityToken(token);
+            participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+            System.out.println("verification date:"+participantDetails.getVerificationDate());
             String userId = UUID.randomUUID().toString();
             participantDetails.setUserId(userId);
         }
@@ -422,15 +521,28 @@ public class FdahpUserRegWSController extends SpringActionController
                     if(participantDetails != null){
                         if(participantDetails.getStatus() == 1){
                             String tempPassword = RandomStringUtils.randomAlphanumeric(6);
-                            participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
+                            //participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
                             participantDetails.setTempPassword(true);
+                            participantDetails.setResetPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
+                            participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
                             UserDetails upParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                             if(upParticipantDetails != null){
-                                String message = "<html> <body>" +
-                                        "Dear User,<BR><p> Your new password is '<b>" + tempPassword + "</b>'</p>" +
-                                        "<BR>Thanks,<BR>"+
-                                        "<BR>"+"</body></html>";
-                                boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"ForgotPasswordLink",message);
+                                String message="<html>" +
+                                        "<body>" +
+                                        "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
+                                        "<span>Hi,</span><br/><br/>" +
+                                        "<span>Thanks for reaching out for password help.</span><br/><br/>" +
+                                        "<span>Given below is a temporary password which you can use to sign in to the FDA Health Studies<br/> Gateway App. You will be required to set up a new password after signing in.</span><br/><br/>" +
+                                        "<span><strong>Temporary Password:</strong> " + tempPassword + "</span><br/><br/>" +
+                                        "<span>Please note that this temporary password can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
+                                        "<span>For any questions or assistance, please write to <a href='mailto:info@fdagateway.com' target='_blank'>info@fdagateway.com</a> </span><br/><br/>" +
+                                        "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA Health Studies Gateway Team</span>" +
+                                        "<br/><span>----------------------------------------------------</span><br/>" +
+                                        "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.. In case you did not request for password help, please ignore this mail.</span>" +
+                                        "</div>" +
+                                        "</body>" +
+                                        "</html>";
+                                boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA Health Studies Gateway App",message);
                                 if (isMailSent){
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 }else{
@@ -479,45 +591,58 @@ public class FdahpUserRegWSController extends SpringActionController
             ApiSimpleResponse response = new ApiSimpleResponse();
             String auth = getViewContext().getRequest().getHeader("auth");
             boolean isAuthenticated = false;
+            String code ="";
             try
             {
-                /*if(auth != null && StringUtils.isNotEmpty(auth))
-                {
-                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
-                    if (isAuthenticated)
-                    {*/
-                        if(loginForm != null && loginForm.getEmailId() != null && StringUtils.isNotEmpty(loginForm.getEmailId())){
-                            UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId());
-
-                            if(participantDetails != null && participantDetails.getStatus() == 2){
-                                String message = "<html> <body>" +
-                                        "Dear User,<BR><p> Please click the below link to confirm the Account</p>" +
-                                        "<p><a href="+configProp.get("labkey_home")+"/labkey/fdahpUserRegWS/verify.api?token="+participantDetails.getSecurityToken()+">Confirm Account</a></p>"+
-                                        " <BR>Thanks,<BR>"+
-                                        "<BR>"+"</body></html>";
-                                boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Verification Email",message);
-                                if (isMailSent){
-                                    response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                }else{
-                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
-                                    return null;
-                                }
+                if(loginForm != null && loginForm.getEmailId() != null && StringUtils.isNotEmpty(loginForm.getEmailId())){
+                    UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId());
+                    if(participantDetails != null ){
+                        if(participantDetails.getStatus() == 2){
+                            Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),48);
+                            if(FdahpUserRegUtil.getCurrentUtilDateTime().before(validateDate) || FdahpUserRegUtil.getCurrentUtilDateTime().equals(validateDate)){
+                                code = participantDetails.getSecurityToken();
                             }else{
-                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.RESEND_EMAIL_NOT_EXISTS.getValue(), FdahpUserRegUtil.ErrorCodes.RESEND_EMAIL_NOT_EXISTS.getValue(), getViewContext().getResponse());
+                                code = RandomStringUtils.randomAlphanumeric(6);
+                                participantDetails.setSecurityToken(code);
+                                participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                                FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                            }
+                            String message = "<html>" +
+                                    "<head>" +
+                                    "<body>" +
+                                    "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
+                                    "<span>Hi,</span><br/><br/>" +
+                                    "<span>Thanks for registering with us! We look forward to having you on board and actively taking part in<br/>Health Studies being conducted by the FDA and its partners.</span><br/><br/>" +
+                                    "<span>Your sign-up process is almost complete. Please use the Verification Code provided below to<br/>verify your email in the mobile app. </span><br/><br/>" +
+                                    "<span><strong>Verification Code:</strong>" +code+ "</span><br/><br/>" +
+                                    "<span>Please note that this code can be used only once and is valid for a period of 48 hours only. </span><br/><br/>" +
+                                    "<span>For any questions or assistance, please write to <a href='mailto:info@fdagateway.com' target='_blank'>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
+                                    "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA Health Studies Gateway Team</span>" +
+                                    "<br/><span>----------------------------------------------------</span><br/>" +
+                                    "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
+                                    "</div>" +
+                                    "</body>" +
+                                    "</html>";
+                            boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Welcome to the FDA Health Studies Gateway!",message);
+                            if (isMailSent){
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                            }else{
+                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                 return null;
                             }
                         }else{
-                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue(), FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue(), getViewContext().getResponse());
                             return null;
                         }
-                    /*}else{
-                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_AUTH_CODE.getValue(), FdahpUserRegUtil.ErrorCodes.SESSION_EXPIRED_MSG.getValue(), getViewContext().getResponse());
+
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue(), FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_EXISTS.getValue(), getViewContext().getResponse());
                         return null;
-                    }*/
-                /*}else{
-                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
                     return null;
-                }*/
+                }
 
             }catch (Exception e){
                 _log.error("ResendConfirmationAction Action Error:",e);
@@ -597,10 +722,12 @@ public class FdahpUserRegWSController extends SpringActionController
                                 if(isValidPassword){
                                     UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId);
                                     if(participantDetails != null ){
-                                        if(participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))){
+                                        if(participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword)) || participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))){
                                             participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(newPassword));
                                             if(participantDetails.getTempPassword())
                                                 participantDetails.setTempPassword(false);
+                                                participantDetails.setResetPassword(null);
+                                                participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
                                             UserDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                                             if(updParticipantDetails != null && !participantDetails.getTempPassword()){
                                                 String message = FdahpUserRegWSManager.get().savePasswordHistory(userId,FdahpUserRegUtil.getEncryptedString(newPassword));
@@ -1743,15 +1870,15 @@ public class FdahpUserRegWSController extends SpringActionController
        }
    }
 
-   @RequiresNoPermission
+   /*@RequiresNoPermission
     public class CreatePasswordAction extends ApiAction<ChangePasswordForm>{
 
-       /*@Override
+       *//*@Override
        protected ModelAndView handleGet() throws Exception
        {
            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
            return null;
-       }*/
+       }*//*
 
        @Override
        public ApiResponse execute(ChangePasswordForm changePasswordForm, BindException errors) throws Exception
@@ -1792,7 +1919,7 @@ public class FdahpUserRegWSController extends SpringActionController
            }
            return response;
        }
-   }
+   }*/
 
    @RequiresNoPermission
     public class DeleteAccountAction extends ApiAction{

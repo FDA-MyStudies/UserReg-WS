@@ -192,6 +192,7 @@ public class FdahpUserRegWSManager
                 participantForm.setLastName(participantDetails.getLastName());
                 participantForm.setEmailId(participantDetails.getEmail());
                 participantForm.setTempPassword(participantDetails.getTempPassword());
+                participantForm.setTempPasswordDate(participantDetails.getTempPasswordDate());
             }
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager signingParticipant()",e);
@@ -566,10 +567,23 @@ public class FdahpUserRegWSManager
         }
         return studyConsent;
     }
-    public UserDetails getParticipantDetailsByToken(String token){
+    /*public UserDetails getParticipantDetailsByToken(String token){
         UserDetails participantDetails = null;
         try{
             SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("SecurityToken"), token);
+            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+        }catch (Exception e){
+            _log.error("getParticipantDetailsByToken Error",e);
+        }
+        return participantDetails;
+    }*/
+
+    public UserDetails getParticipantDetailsByToken(String emailId,String token){
+        UserDetails participantDetails = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("Email"), emailId);
             filter.addCondition(FieldKey.fromParts("SecurityToken"), token);
             participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
         }catch (Exception e){

@@ -2,6 +2,8 @@ package org.labkey.fdahpuserregws.bean;
 
 import org.labkey.api.action.ReturnUrlForm;
 
+import java.util.Date;
+
 /**
  * Created by Ravinder on 2/2/2017.
  */
@@ -20,6 +22,7 @@ public class ParticipantForm extends ReturnUrlForm
     private String _auth;
     private Integer _status;
     private Boolean _tempPassword;
+    private Date _tempPasswordDate;
 
 
     public String getUserId()
@@ -151,5 +154,15 @@ public class ParticipantForm extends ReturnUrlForm
     public void setTempPassword(Boolean tempPassword)
     {
         _tempPassword = tempPassword;
+    }
+
+    public Date getTempPasswordDate()
+    {
+        return _tempPasswordDate;
+    }
+
+    public void setTempPasswordDate(Date tempPasswordDate)
+    {
+        _tempPasswordDate = tempPasswordDate;
     }
 }

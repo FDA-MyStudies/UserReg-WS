@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -49,6 +50,7 @@ public class FdahpUserRegUtil
         STATUS_107("107"), // Failed to complete transaction.
         SESSION_EXPIRED_MSG("Session expired."),
         INVALID_AUTH_CODE("INVALID_AUTH_CODE"),
+        INVALID_EMAIL("Invalid Email"),
         ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated"),
         INVALID_USERNAME_PASSWORD_MSG("Invalid username or password"),
         EMAIL_EXISTS("This email already exists"),
@@ -79,7 +81,9 @@ public class FdahpUserRegUtil
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
         USER_ALREADY_VERIFIED("user already verified"),
-        INVALID_TOKEN("Invalid token"),
+        INVALID_CODE("Invalid code"),
+        CODE_EXPIRED("Code Expired"),
+        EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
         EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link."),
         LABKEY_HOME("http://192.168.0.6:8081");
         private final String value;
@@ -215,5 +219,33 @@ public class FdahpUserRegUtil
             _log.error("ERROR:  getProperties() - ",e);
         }
         return prop;
+    }
+
+    public static Date getCurrentUtilDateTime() {
+        Date date = new Date();
+        Calendar currentDate = Calendar.getInstance();
+        String dateNow = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentDate.getTime());
+        try {
+            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateNow);
+        } catch (Exception e) {
+            _log.error("FdahpUserRegUtil - getCurrentUtilDateTime() : ",e);
+
+        }
+        return date;
+    }
+
+    public static Date addHours(String currentDate, int hours){
+        Date futureDate = null;
+        try {
+            Date dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(currentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(dt);
+            cal.add(Calendar.HOUR, hours);
+            Date newDate = cal.getTime();
+            futureDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(newDate));
+        } catch (Exception e) {
+            _log.error("FdahpUserRegUtil - addHours() : ",e);
+        }
+        return futureDate;
     }
 }

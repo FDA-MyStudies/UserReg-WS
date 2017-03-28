@@ -5,6 +5,8 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.Entity;
 import org.labkey.api.util.GUID;
 
+import java.util.Date;
+
 /**
  * Created by Ravinder on 1/31/2017.
  */
@@ -25,6 +27,10 @@ public class UserDetails extends Entity
     private String _UserId;
     private Boolean _TempPassword=false;
     private String _Locale;
+    private String _ResetPassword;
+
+    private Date _VerificationDate;
+    private Date _TempPasswordDate;
 
     public Integer getId()
     {
@@ -174,5 +180,35 @@ public class UserDetails extends Entity
     public void setLocale(String locale)
     {
         _Locale = locale;
+    }
+
+    public Date getVerificationDate()
+    {
+        return _VerificationDate;
+    }
+
+    public void setVerificationDate(Date verificationDate)
+    {
+        _VerificationDate = verificationDate;
+    }
+
+    public Date getTempPasswordDate()
+    {
+        return _TempPasswordDate;
+    }
+
+    public void setTempPasswordDate(Date tempPasswordDate)
+    {
+        _TempPasswordDate = tempPasswordDate;
+    }
+
+    public String getResetPassword()
+    {
+        return _ResetPassword;
+    }
+
+    public void setResetPassword(String resetPassword)
+    {
+        _ResetPassword = resetPassword;
     }
 }
