@@ -38,14 +38,14 @@ CREATE TABLE fdahpUserRegWS.AuthInfo
 CREATE TABLE fdahpUserRegWS.ParticipantActivities
 (
     _ts TIMESTAMP NOT NULL,
-    Id SERIAL PRIMARY KEY,
+    Id SERIAL,
     ParticipantId VARCHAR(50) NULL,
     StudyId VARCHAR(50) NULL,
     ActivityId VARCHAR(50) NULL,
     ActivityCompleteId Integer NULL,
     ActivityType  VARCHAR(1000) NULL,
     Bookmark  BOOLEAN  NULL,
-    Status  VARCHAR(50) NULL
+    Status  VARCHAR(50) NULL,
     ActivityVersion  VARCHAR(50) NULL,
     ActivityState  VARCHAR(50) NULL,
     ActivityRunId VARCHAR(50) NULL,
@@ -68,14 +68,15 @@ CREATE TABLE fdahpUserRegWS.UserDetails
     Status INT NULL,
     Password VARCHAR(100) NULL,
     EntityId ENTITYID NOT NULL,
-    ReminderTime VARCHAR(50) NULL,
+    ReminderLeadTime VARCHAR(50) NULL,
     SecurityToken VARCHAR(100) NULL,
     UserId VARCHAR(50) NULL,
     TempPassword BOOLEAN NULL,
     Locale VARCHAR(100) NULL,
-    VerificationDate DATETIME,
-    TempPasswordDate DATETIME,
- CONSTRAINT PK_ParticipantDetails PRIMARY KEY (Id)
+    ResetPassword VARCHAR(100) NULL,
+    VerificationDate TIMESTAMP WITHOUT TIME ZONE,
+    TempPasswordDate TIMESTAMP WITHOUT TIME ZONE,
+ CONSTRAINT PK_UserDetails PRIMARY KEY (Id)
 
 );
 CREATE TABLE fdahpUserRegWS.ParticipantStudies
@@ -103,7 +104,7 @@ CREATE TABLE fdahpUserRegWS.StudyConsent
     StudyId VARCHAR(50) NULL,
     Version  VARCHAR(50) NULL,
     Status  VARCHAR(50) NULL,
-    Pdf  Text NULL,
+    Pdf  TEXT NULL,
     CONSTRAINT PK_StudyConsent PRIMARY KEY (Id)
 
 );
@@ -114,7 +115,7 @@ CREATE TABLE fdahpUserRegWS.PasswordHistory
     Id SERIAL,
     UserId  VARCHAR(50) NULL,
     Password VARCHAR(50) NULL,
-    Created DATETIME,
+    Created TIMESTAMP WITHOUT TIME ZONE,
     CONSTRAINT PK_PasswordHistory PRIMARY KEY (Id)
 
 );

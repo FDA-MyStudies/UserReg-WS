@@ -22,7 +22,7 @@ public class UserDetails extends Entity
     private Boolean _RemoteNotificationFlag=false;
     private Integer Status;
     private String _Password;
-    private String _ReminderTime;
+    private String _ReminderLeadTime;
     private String _SecurityToken;
     private String _UserId;
     private Boolean _TempPassword=false;
@@ -132,14 +132,14 @@ public class UserDetails extends Entity
         _Password = password;
     }
 
-    public String getReminderTime()
+    public String getReminderLeadTime()
     {
-        return _ReminderTime;
+        return _ReminderLeadTime;
     }
 
-    public void setReminderTime(String reminderTime)
+    public void setReminderLeadTime(String reminderLeadTime)
     {
-        _ReminderTime = reminderTime;
+        _ReminderLeadTime = reminderLeadTime;
     }
 
     public String getSecurityToken()

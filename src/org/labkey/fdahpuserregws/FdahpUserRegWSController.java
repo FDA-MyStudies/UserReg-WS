@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import org.labkey.api.module.Module;
-
+import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.module.ModuleLoader;
 
 public class FdahpUserRegWSController extends SpringActionController
@@ -101,6 +101,8 @@ public class FdahpUserRegWSController extends SpringActionController
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
             apiSimpleResponse.put("reponse", "FdahpUserResWebServices Works!");
+            /*String email = LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress();
+            apiSimpleResponse.put("email", email);*/
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -145,14 +147,14 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                             }
                             String message = "<html>" +
-                                    "<head>" +
                                     "<body>" +
                                     "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
                                     "<span>Hi,</span><br/><br/>" +
                                     "<span>Thanks for registering with us! We look forward to having you on board and actively taking part in<br/>Health Studies being conducted by the FDA and its partners.</span><br/><br/>" +
                                     "<span>Your sign-up process is almost complete. Please use the Verification Code provided below to<br/>verify your email in the mobile app. </span><br/><br/>" +
                                     "<span><strong>Verification Code:</strong>" +addParticipantDetails.getSecurityToken()+ "</span><br/><br/>" +
-                                    "<span>Please note that this code can be used only once and is valid for a period of 48 hours only. </span><br/><br/>" +
+                                    "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
+                                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study(ies) housed in the app. Each study has its own consent process <br/> and your data for the study will not be collected without you providing your informed consent prior<br/> to joining the study. </span><br/><br/>"+
                                     "<span>For any questions or assistance, please write to <a>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
                                     "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA Health Studies Gateway Team</span>" +
                                     "<br/><span>----------------------------------------------------</span><br/>" +
@@ -160,6 +162,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
+                           //FdahpUserRegUtil.sendMessage("Welcome to the FDA Health Studies Gateway!",message,addParticipantDetails.getEmail());
                             boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Welcome to the FDA Health Studies Gateway!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -167,6 +170,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                 return null;
                             }
+                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                         }else{
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(), getViewContext().getResponse());
                             return null;
@@ -478,7 +482,7 @@ public class FdahpUserRegWSController extends SpringActionController
             String token = RandomStringUtils.randomAlphanumeric(6);
             participantDetails.setSecurityToken(token);
             participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
-            System.out.println("verification date:"+participantDetails.getVerificationDate());
+
             String userId = UUID.randomUUID().toString();
             participantDetails.setUserId(userId);
         }
@@ -542,6 +546,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                         "</div>" +
                                         "</body>" +
                                         "</html>";
+                                /*FdahpUserRegUtil.sendMessage("Password Help - FDA Health Studies Gateway App!",message,participantDetails.getEmail());
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());*/
                                 boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA Health Studies Gateway App",message);
                                 if (isMailSent){
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -598,31 +604,37 @@ public class FdahpUserRegWSController extends SpringActionController
                     UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId());
                     if(participantDetails != null ){
                         if(participantDetails.getStatus() == 2){
-                            Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),48);
-                            if(FdahpUserRegUtil.getCurrentUtilDateTime().before(validateDate) || FdahpUserRegUtil.getCurrentUtilDateTime().equals(validateDate)){
+                           // Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),48);
+                            code = RandomStringUtils.randomAlphanumeric(6);
+                            participantDetails.setSecurityToken(code);
+                            participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                            FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                            /*if(FdahpUserRegUtil.getCurrentUtilDateTime().before(validateDate) || FdahpUserRegUtil.getCurrentUtilDateTime().equals(validateDate)){
                                 code = participantDetails.getSecurityToken();
                             }else{
                                 code = RandomStringUtils.randomAlphanumeric(6);
                                 participantDetails.setSecurityToken(code);
                                 participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
                                 FdahpUserRegWSManager.get().saveParticipant(participantDetails);
-                            }
+                            }*/
                             String message = "<html>" +
-                                    "<head>" +
                                     "<body>" +
                                     "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
                                     "<span>Hi,</span><br/><br/>" +
                                     "<span>Thanks for registering with us! We look forward to having you on board and actively taking part in<br/>Health Studies being conducted by the FDA and its partners.</span><br/><br/>" +
                                     "<span>Your sign-up process is almost complete. Please use the Verification Code provided below to<br/>verify your email in the mobile app. </span><br/><br/>" +
-                                    "<span><strong>Verification Code:</strong>" +code+ "</span><br/><br/>" +
-                                    "<span>Please note that this code can be used only once and is valid for a period of 48 hours only. </span><br/><br/>" +
-                                    "<span>For any questions or assistance, please write to <a href='mailto:info@fdagateway.com' target='_blank'>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
+                                    "<span><strong>Verification Code:</strong>" +participantDetails.getSecurityToken()+ "</span><br/><br/>" +
+                                    "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
+                                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study(ies) housed in the app. Each study has its own consent process <br/> and your data for the study will not be collected without you providing your informed consent prior<br/> to joining the study. </span><br/><br/>"+
+                                    "<span>For any questions or assistance, please write to <a>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
                                     "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA Health Studies Gateway Team</span>" +
                                     "<br/><span>----------------------------------------------------</span><br/>" +
                                     "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
+                            /*FdahpUserRegUtil.sendMessage("Welcome to the FDA Health Studies Gateway!",message,participantDetails.getEmail());
+                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());*/
                             boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Welcome to the FDA Health Studies Gateway!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -722,7 +734,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 if(isValidPassword){
                                     UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId);
                                     if(participantDetails != null ){
-                                        if(participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword)) || participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))){
+                                        if((participantDetails.getPassword() != null && participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))) || (participantDetails.getResetPassword() != null && participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword)))){
                                             participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(newPassword));
                                             if(participantDetails.getTempPassword())
                                                 participantDetails.setTempPassword(false);
@@ -938,8 +950,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                         participantDetails.setUsePassCode(profileForm.getSettings().getPasscode());
                                     if (profileForm.getSettings().getTouchId() != null)
                                         participantDetails.setTouchId(profileForm.getSettings().getTouchId());
-                                    if(profileForm.getSettings().getRemindersTime() != null && StringUtils.isNotEmpty(profileForm.getSettings().getRemindersTime()))
-                                        participantDetails.setReminderTime(profileForm.getSettings().getRemindersTime());
+                                    if(profileForm.getSettings().getReminderLeadTime() != null && StringUtils.isNotEmpty(profileForm.getSettings().getReminderLeadTime()))
+                                        participantDetails.setReminderLeadTime(profileForm.getSettings().getReminderLeadTime());
 
                                     if(profileForm.getSettings().getLocale() != null && StringUtils.isNotEmpty(profileForm.getSettings().getLocale()))
                                         participantDetails.setLocale(profileForm.getSettings().getLocale());

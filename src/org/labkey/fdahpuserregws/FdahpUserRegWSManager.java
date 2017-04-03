@@ -253,8 +253,8 @@ public class FdahpUserRegWSManager
                     settingsBean.setRemoteNotifications(participantDetails.getRemoteNotificationFlag());
                 if(participantDetails.getTouchId() != null)
                     settingsBean.setTouchId(participantDetails.getTouchId());
-                if(participantDetails.getReminderTime() != null)
-                    settingsBean.setRemindersTime(participantDetails.getReminderTime());
+                if(participantDetails.getReminderLeadTime() != null)
+                    settingsBean.setReminderLeadTime(participantDetails.getReminderLeadTime());
                 if(participantDetails.getLocale() != null)
                     settingsBean.setLocale(participantDetails.getLocale());
                 response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(),settingsBean);

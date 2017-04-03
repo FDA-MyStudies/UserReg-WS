@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Properties;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.util.MailHelper;
+
 
 import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
 
@@ -70,21 +72,21 @@ public class FdahpUserRegUtil
         ACTIVITIES("activities"),
         WITHDRAWN("Withdrawn"),
         NO_DATA_AVAILABLE("No data available"),
-        CONSENT_VERSION_REQUIRED("consent version is required"),
+        CONSENT_VERSION_REQUIRED("Consent version is required"),
         CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
         WITHDRAWN_STUDY("You are already Withdrawn from study"),
         EMAIL_NOT_EXISTS("Email Doesn't Exists"),
         RESEND_EMAIL_NOT_EXISTS("Email Doesn't Exists OR Email Already Verified"),
-        USER_NOT_EXISTS("USER DOESN'T EXISTS"),
-        FAILURE_TO_SENT_MAIL("Oops, something went wrong.Failed to sent the Email"),
+        USER_NOT_EXISTS("User Doesn't Exists"),
+        FAILURE_TO_SENT_MAIL("Oops, something went wrong. Failed to send Email"),
         OLD_PASSWORD_NOT_EXISTS("Old password is invalid"),
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
-        USER_ALREADY_VERIFIED("user already verified"),
+        USER_ALREADY_VERIFIED("User already verified"),
         INVALID_CODE("Invalid code"),
         CODE_EXPIRED("Code Expired"),
         EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
-        EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link."),
+        EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),
         LABKEY_HOME("http://192.168.0.6:8081");
         private final String value;
         ErrorCodes(final String newValue){
@@ -180,18 +182,29 @@ public class FdahpUserRegUtil
         try {
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", (String) configProp.get("hostname"));
+
+            //props.put("mail.smtp.ssl.enable", true);
+            props.put("mail.smtp.starttls.enable", true);
+            props.put("mail.smtp.socketFactory.port", (String) configProp.get("port"));
+            props.put("mail.smtp.socketFactory.class",(String) configProp.get("factory.value"));
             props.put("mail.smtp.port", (String) configProp.get("port"));
+
+            _log.info("factory - "+(String) configProp.get("factory.value"));
+            _log.info("hostName - "+(String) configProp.get("hostname"));
+            _log.info("port - "+(String) configProp.get("port"));
             final String username = (String) configProp.get("from.email.address");
             final String password = (String) configProp.get("from.email.password");
+            _log.info("username - "+username);
+            _log.info("password - "+password);
             Session session = Session.getInstance(props,
                     new javax.mail.Authenticator() {
                         protected PasswordAuthentication getPasswordAuthentication() {
-                            return new PasswordAuthentication(username, password);
+                            return new PasswordAuthentication("apps@boston-technology.com", "password789");
                         }
                     });
             Message message = new MimeMessage(session);
+            _log.info("email - "+email);
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
             message.setSubject(subject);
             message.setContent(messageBody, "text/html");
@@ -247,5 +260,24 @@ public class FdahpUserRegUtil
             _log.error("FdahpUserRegUtil - addHours() : ",e);
         }
         return futureDate;
+    }
+
+    public static void sendMessage(String subject, String bodyHtml, String recipients)
+    {
+        Properties configProp = FdahpUserRegUtil.getProperties();
+        try
+        {
+            MailHelper.MultipartMessage msg = MailHelper.createMultipartMessage();
+            final String username = (String) configProp.get("from.email.address");
+            msg.setFrom(username);
+            msg.setSubject(subject);
+            msg.setRecipients(Message.RecipientType.TO, recipients);
+            msg.setEncodedHtmlContent(bodyHtml);
+            MailHelper.send(msg,null, null);
+        }
+        catch (Exception e)
+        {
+            _log.error("Unable to send email ", e);
+        }
     }
 }
