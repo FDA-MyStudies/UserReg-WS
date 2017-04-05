@@ -7,7 +7,7 @@ public class StudiesBean
 {
     private String _studyId="";
     private String _status="";
-    private Boolean bookmarked=false;
+    private Boolean bookmarked;
     private String _enrolledDate="";
 
     public String getStudyId()

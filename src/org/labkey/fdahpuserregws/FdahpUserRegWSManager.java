@@ -365,7 +365,7 @@ public class FdahpUserRegWSManager
             if(null!=participantStudiesList && participantStudiesList.size() >0){
 
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                    if(participantStudies.getParticipantId() == null && !participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue())){
+                    if(participantStudies.getParticipantId() == null && (participantStudies.getStatus() != null && !participantStudies.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.WITHDRAWN.getValue()))){
                         StudiesBean studiesBean = new StudiesBean();
                         if(participantStudies.getStudyId() != null)
                             studiesBean.setStudyId(participantStudies.getStudyId());

@@ -40,7 +40,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 1.0;
+        return 1.01;
     }
 
     @Override

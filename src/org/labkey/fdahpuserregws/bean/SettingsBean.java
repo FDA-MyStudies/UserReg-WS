@@ -5,11 +5,11 @@ package org.labkey.fdahpuserregws.bean;
  */
 public class SettingsBean
 {
-    private Boolean _remoteNotifications=false;
-    private Boolean _localNotifications=false;
-    private Boolean _touchId=false;
-    private Boolean _passcode=false;
-    private String _reminderLeadTime="";
+    private Boolean _remoteNotifications;
+    private Boolean _localNotifications;
+    private Boolean _touchId;
+    private Boolean _passcode;
+    private String _reminderLeadTime;
     private String _locale="";
 
     public Boolean getRemoteNotifications()

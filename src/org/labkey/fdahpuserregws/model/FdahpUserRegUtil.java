@@ -55,7 +55,7 @@ public class FdahpUserRegUtil
         INVALID_EMAIL("Invalid Email"),
         ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated"),
         INVALID_USERNAME_PASSWORD_MSG("Invalid username or password"),
-        EMAIL_EXISTS("This email already exists"),
+        EMAIL_EXISTS("This email has already been used. Please try with different email address."),
         INVALID_INPUT_ERROR_MSG("Invalid input."),
         INACTIVE("INACTIVE"),
         SUCCESS("SUCCESS"),
@@ -79,12 +79,14 @@ public class FdahpUserRegUtil
         RESEND_EMAIL_NOT_EXISTS("Email Doesn't Exists OR Email Already Verified"),
         USER_NOT_EXISTS("User Doesn't Exists"),
         FAILURE_TO_SENT_MAIL("Oops, something went wrong. Failed to send Email"),
-        OLD_PASSWORD_NOT_EXISTS("Old password is invalid"),
+        OLD_PASSWORD_NOT_EXISTS("Invalid old password"),
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
         USER_ALREADY_VERIFIED("User already verified"),
         INVALID_CODE("Invalid code"),
         CODE_EXPIRED("Code Expired"),
+        YET_TO_JOIN("yetToJoin"),
+        INVALID_CREDENTIALS("Invalid credentials"),
         EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
         EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),
         LABKEY_HOME("http://192.168.0.6:8081");
@@ -150,6 +152,18 @@ public class FdahpUserRegUtil
            }
         }
         return sb.toString();
+    }
+
+    public static String getCurrentDate() {
+        String getToday = "";
+        try {
+            Date today = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            getToday = formatter.format(today.getTime());
+        } catch (Exception e) {
+            _log.error(e);
+        }
+        return getToday;
     }
 
     public static String getCurrentDateTime() {

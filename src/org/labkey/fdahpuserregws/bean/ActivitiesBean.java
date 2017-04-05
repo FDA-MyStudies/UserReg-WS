@@ -9,7 +9,7 @@ public class ActivitiesBean
     private String _studyId="";
     private String _activityVersion="";
     private String _status="";
-    private Boolean _bookmarked=false;
+    private Boolean _bookmarked;
     private String _activityRunId="";
 
     public String getActivityId()
