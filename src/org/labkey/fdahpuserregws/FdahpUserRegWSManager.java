@@ -375,13 +375,17 @@ public class FdahpUserRegWSManager
                             studiesBean.setStatus(participantStudies.getStatus());
                         if(participantStudies.getEnrolledDate() != null)
                             studiesBean.setEnrolledDate(participantStudies.getEnrolledDate());
+                        if(participantStudies.getCompletion() != null)
+                            studiesBean.setCompletion(participantStudies.getCompletion());
+                        if(participantStudies.getAdherence() != null)
+                            studiesBean.setAdherence(participantStudies.getAdherence());
                         studiesBeenList.add(studiesBean);
                     }
                 }
 
             }
             response.put(FdahpUserRegUtil.ErrorCodes.STUDIES.getValue(),studiesBeenList);
-            List<ParticipantActivities> participantActivitiesList = getParticipantActivitiesList(userId);
+            /*List<ParticipantActivities> participantActivitiesList = getParticipantActivitiesList(userId);
             List<ActivitiesBean> activitiesBeanList = new ArrayList<ActivitiesBean>();
             if(null!=participantActivitiesList && participantActivitiesList.size() > 0){
 
@@ -404,8 +408,8 @@ public class FdahpUserRegWSManager
                     activitiesBeanList.add(activitiesBean);
                 }
 
-            }
-            response.put(FdahpUserRegUtil.ErrorCodes.ACTIVITIES.getValue(),activitiesBeanList);
+            }*/
+           // response.put(FdahpUserRegUtil.ErrorCodes.ACTIVITIES.getValue(),activitiesBeanList);
             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
         }catch (Exception e){
             _log.error("HealthStudiesGatewayManager getPreferences error :",e);

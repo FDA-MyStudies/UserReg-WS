@@ -11,6 +11,8 @@ public class ActivitiesBean
     private String _status="";
     private Boolean _bookmarked;
     private String _activityRunId="";
+    private String  _activityState;
+    private ActivityRunBean _activityRun;
 
     public String getActivityId()
     {
@@ -70,5 +72,25 @@ public class ActivitiesBean
     public void setActivityRunId(String activityRunId)
     {
         _activityRunId = activityRunId;
+    }
+
+    public ActivityRunBean getActivityRun()
+    {
+        return _activityRun;
+    }
+
+    public void setActivityRun(ActivityRunBean activityRun)
+    {
+        _activityRun = activityRun;
+    }
+
+    public String getActivityState()
+    {
+        return _activityState;
+    }
+
+    public void setActivityState(String activityState)
+    {
+        _activityState = activityState;
     }
 }

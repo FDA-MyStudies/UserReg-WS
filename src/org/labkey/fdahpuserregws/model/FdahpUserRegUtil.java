@@ -80,7 +80,7 @@ public class FdahpUserRegUtil
         USER_NOT_EXISTS("User Doesn't Exists"),
         FAILURE_TO_SENT_MAIL("Oops, something went wrong. Failed to send Email"),
         OLD_PASSWORD_NOT_EXISTS("Invalid old password"),
-        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Old password and new password cannot be same"),
+        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Current Password and New Password cannot be same"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
         USER_ALREADY_VERIFIED("User already verified"),
         INVALID_CODE("Invalid code"),

@@ -19,6 +19,10 @@ public class ParticipantActivities extends Entity
     private String _ActivityState;
     private String _ActivityRunId;
 
+    private Integer _Total;
+    private Integer _Completed;
+    private Integer _Missed;
+
     public Integer getId()
     {
         return _Id;
@@ -127,5 +131,35 @@ public class ParticipantActivities extends Entity
     public void setActivityRunId(String activityRunId)
     {
         _ActivityRunId = activityRunId;
+    }
+
+    public Integer getTotal()
+    {
+        return _Total;
+    }
+
+    public void setTotal(Integer total)
+    {
+        _Total = total;
+    }
+
+    public Integer getCompleted()
+    {
+        return _Completed;
+    }
+
+    public void setCompleted(Integer completed)
+    {
+        _Completed = completed;
+    }
+
+    public Integer getMissed()
+    {
+        return _Missed;
+    }
+
+    public void setMissed(Integer missed)
+    {
+        _Missed = missed;
     }
 }

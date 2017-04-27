@@ -9,6 +9,8 @@ public class StudiesBean
     private String _status="";
     private Boolean bookmarked;
     private String _enrolledDate="";
+    private Integer _completion;
+    private Integer _adherence;
 
     public String getStudyId()
     {
@@ -48,5 +50,25 @@ public class StudiesBean
     public void setEnrolledDate(String enrolledDate)
     {
         _enrolledDate = enrolledDate;
+    }
+
+    public Integer getCompletion()
+    {
+        return _completion;
+    }
+
+    public void setCompletion(Integer completion)
+    {
+        _completion = completion;
+    }
+
+    public Integer getAdherence()
+    {
+        return _adherence;
+    }
+
+    public void setAdherence(Integer adherence)
+    {
+        _adherence = adherence;
     }
 }

@@ -69,4 +69,6 @@ public class FdahpUserRegWSSchema
     public TableInfo getPasswordHistory(){
         return getSchema().getTable("PasswordHistory");
     }
+
+
 }
