@@ -86,6 +86,8 @@ public class FdahpUserRegUtil
         INVALID_CODE("Invalid code"),
         CODE_EXPIRED("Code Expired"),
         YET_TO_JOIN("yetToJoin"),
+        STUDY_LEVEL("ST"),
+        GATEWAY_LEVEL("GT"),
         INVALID_CREDENTIALS("Invalid credentials"),
         EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
         EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),

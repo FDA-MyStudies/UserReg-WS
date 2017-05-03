@@ -11,6 +11,7 @@ public class StudiesBean
     private String _enrolledDate="";
     private Integer _completion;
     private Integer _adherence;
+    private String _participantId;
 
     public String getStudyId()
     {
@@ -70,5 +71,15 @@ public class StudiesBean
     public void setAdherence(Integer adherence)
     {
         _adherence = adherence;
+    }
+
+    public String getParticipantId()
+    {
+        return _participantId;
+    }
+
+    public void setParticipantId(String participantId)
+    {
+        _participantId = participantId;
     }
 }

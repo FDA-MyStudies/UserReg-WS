@@ -34,6 +34,7 @@ import org.labkey.api.view.NavTree;
 import org.labkey.fdahpuserregws.bean.ActivitiesBean;
 import org.labkey.fdahpuserregws.bean.ConsentBean;
 import org.labkey.fdahpuserregws.bean.InfoBean;
+import org.labkey.fdahpuserregws.bean.NotificationBean;
 import org.labkey.fdahpuserregws.bean.ParticipantForm;
 import org.labkey.fdahpuserregws.bean.ParticipantInfoBean;
 import org.labkey.fdahpuserregws.bean.ProfileBean;
@@ -54,9 +55,15 @@ import javax.activation.MimeType;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import org.labkey.api.module.Module;
@@ -103,6 +110,7 @@ public class FdahpUserRegWSController extends SpringActionController
             apiSimpleResponse.put("reponse", "FdahpUserRegWebServices Works!");
             /*String email = LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress();
             apiSimpleResponse.put("email", email);*/
+            //FdahpUserRegWSManager.get().getStudyLevelDeviceToken();
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -981,7 +989,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                         updaAuthInfo = FdahpUserRegWSManager.get().updateAuthInfo(authInfo);
                                     }
                                 }
-                                if (profileForm.getParticipantInfo() != null && profileForm.getParticipantInfo().size() > 0)
+                                /*if (profileForm.getParticipantInfo() != null && profileForm.getParticipantInfo().size() > 0)
                                 {
                                     List<ParticipantStudies> participantStudiesList = FdahpUserRegWSManager.get().getParticipantStudiesList(userId);
                                     for (int i = 0; i < profileForm.getParticipantInfo().size(); i++)
@@ -1019,7 +1027,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                         }
                                     }
                                     message = FdahpUserRegWSManager.get().saveParticipantStudies(addParticipantStudiesList);
-                                }
+                                }*/
                                 UserDetails updateParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                                 if (updateParticipantDetails != null || message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()) || updaAuthInfo != null)
                                 {
@@ -1244,7 +1252,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
 
         public List<StudiesBean>  _studies;
-        public ActivitiesBean  _activity;
+        public List<ActivitiesBean>  _activity;
         public String _studyId;
 
         public List<StudiesBean> getStudies()
@@ -1257,12 +1265,12 @@ public class FdahpUserRegWSController extends SpringActionController
             _studies = studies;
         }
 
-        public ActivitiesBean getActivity()
+        public List<ActivitiesBean> getActivity()
         {
             return _activity;
         }
 
-        public void setActivity(ActivitiesBean activity)
+        public void setActivity(List<ActivitiesBean> activity)
         {
             _activity = activity;
         }
@@ -1689,64 +1697,67 @@ public class FdahpUserRegWSController extends SpringActionController
                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
                    if(isAuthenticated){
                        if(preferencesForm != null && userId != null && StringUtils.isNotEmpty(userId)){
-                           if((preferencesForm.getStudyId() != null && StringUtils.isNotEmpty(preferencesForm.getStudyId())) &&
-                                   (preferencesForm.getActivity() != null && preferencesForm.getActivity().getActivityId() != null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityId()))){
-                               List<ParticipantActivities> participantActivitiesList;
-                               participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(preferencesForm.getStudyId(),userId);
-                               boolean isExist = false;
-                               if(participantActivitiesList != null && participantActivitiesList.size()>0){
-                                   for (ParticipantActivities participantActivities : participantActivitiesList)
-                                   {
-                                       if (participantActivities.getActivityId().equalsIgnoreCase(preferencesForm.getActivity().getActivityId()))
-                                       {
-                                           isExist = true;
-                                           if(preferencesForm.getActivity().getActivityVersion()!=null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityVersion()))
-                                               participantActivities.setActivityVersion(preferencesForm.getActivity().getActivityVersion());
-                                           if(preferencesForm.getActivity().getActivityState()!= null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityState()))
-                                               participantActivities.setActivityState(preferencesForm.getActivity().getActivityState());
-                                           if(preferencesForm.getActivity().getActivityRunId() != null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityRunId()))
-                                               participantActivities.setActivityRunId(preferencesForm.getActivity().getActivityRunId());
-                                           if(preferencesForm.getActivity().getBookmarked() != null)
-                                               participantActivities.setBookmark(preferencesForm.getActivity().getBookmarked());
-                                           if(preferencesForm.getActivity().getActivityRun() != null){
-                                               if(preferencesForm.getActivity().getActivityRun().getTotal() != null)
-                                                   participantActivities.setTotal(preferencesForm.getActivity().getActivityRun().getTotal());
-                                               if(preferencesForm.getActivity().getActivityRun().getCompleted() != null)
-                                                   participantActivities.setCompleted(preferencesForm.getActivity().getActivityRun().getCompleted());
-                                               if(preferencesForm.getActivity().getActivityRun().getMissed() != null)
-                                                   participantActivities.setMissed(preferencesForm.getActivity().getActivityRun().getMissed());
-                                           }
-                                           addParticipantActivitiesList.add(participantActivities);
-                                       }
-                                   }
+                           if((preferencesForm.getStudyId() != null && StringUtils.isNotEmpty(preferencesForm.getStudyId())) && (preferencesForm.getActivity() != null && preferencesForm.getActivity().size() > 0)){
+                                List<ActivitiesBean> activitiesBeanList = preferencesForm.getActivity();
+                                List<ParticipantActivities>   participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(preferencesForm.getStudyId(),userId);
+                                for (int i=0;i < activitiesBeanList.size() ; i++){
+                                    ActivitiesBean activitiesBean = activitiesBeanList.get(i);
+                                    boolean isExists = false;
+                                    if(participantActivitiesList != null && participantActivitiesList.size()>0){
+                                        for (ParticipantActivities participantActivities : participantActivitiesList)
+                                        {
+                                            if (participantActivities.getActivityId().equalsIgnoreCase(activitiesBean.getActivityId()))
+                                            {
+                                                isExists = true;
+                                                if(activitiesBean.getActivityVersion()!=null && StringUtils.isNotEmpty(activitiesBean.getActivityVersion()))
+                                                    participantActivities.setActivityVersion(activitiesBean.getActivityVersion());
+                                                if(activitiesBean.getActivityState()!= null && StringUtils.isNotEmpty(activitiesBean.getActivityState()))
+                                                    participantActivities.setActivityState(activitiesBean.getActivityState());
+                                                if(activitiesBean.getActivityRunId() != null && StringUtils.isNotEmpty(activitiesBean.getActivityRunId()))
+                                                    participantActivities.setActivityRunId(activitiesBean.getActivityRunId());
+                                                if(activitiesBean.getBookmarked() != null)
+                                                    participantActivities.setBookmark(activitiesBean.getBookmarked());
+                                                if(activitiesBean.getActivityRun() != null){
+                                                    if(activitiesBean.getActivityRun().getTotal() != null)
+                                                        participantActivities.setTotal(activitiesBean.getActivityRun().getTotal());
+                                                    if(activitiesBean.getActivityRun().getCompleted() != null)
+                                                        participantActivities.setCompleted(activitiesBean.getActivityRun().getCompleted());
+                                                    if(activitiesBean.getActivityRun().getMissed() != null)
+                                                        participantActivities.setMissed(activitiesBean.getActivityRun().getMissed());
+                                                }
+                                                addParticipantActivitiesList.add(participantActivities);
+                                            }
+                                        }
 
-                               }
-                               if(!isExist){
-                                   ParticipantActivities addParticipantActivities = new ParticipantActivities();
-                                   if(preferencesForm.getActivity().getActivityState()!= null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityState()))
-                                       addParticipantActivities.setActivityState(preferencesForm.getActivity().getActivityState());
-                                   if(preferencesForm.getActivity().getActivityVersion()!=null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityVersion()))
-                                       addParticipantActivities.setActivityVersion(preferencesForm.getActivity().getActivityVersion());
-                                   if(preferencesForm.getActivity().getActivityId() != null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityId()))
-                                       addParticipantActivities.setActivityId(preferencesForm.getActivity().getActivityId());
-                                   if(preferencesForm.getActivity().getActivityRunId() != null && StringUtils.isNotEmpty(preferencesForm.getActivity().getActivityRunId()))
-                                       addParticipantActivities.setActivityRunId(preferencesForm.getActivity().getActivityRunId());
-                                   if(preferencesForm.getStudyId()!=null && StringUtils.isNotEmpty(preferencesForm.getStudyId()))
-                                       addParticipantActivities.setStudyId(preferencesForm.getStudyId());
-                                   if(userId!= null && StringUtils.isNotEmpty(userId))
-                                       addParticipantActivities.setParticipantId(userId);
-                                   if(preferencesForm.getActivity().getBookmarked() != null)
-                                       addParticipantActivities.setBookmark(preferencesForm.getActivity().getBookmarked());
-                                   if(preferencesForm.getActivity().getActivityRun() != null){
-                                       if(preferencesForm.getActivity().getActivityRun().getTotal() != null)
-                                           addParticipantActivities.setTotal(preferencesForm.getActivity().getActivityRun().getTotal());
-                                       if(preferencesForm.getActivity().getActivityRun().getCompleted() != null)
-                                           addParticipantActivities.setCompleted(preferencesForm.getActivity().getActivityRun().getCompleted());
-                                       if(preferencesForm.getActivity().getActivityRun().getMissed() != null)
-                                           addParticipantActivities.setMissed(preferencesForm.getActivity().getActivityRun().getMissed());
-                                   }
-                                   addParticipantActivitiesList.add(addParticipantActivities);
-                               }
+                                    }
+                                    if(!isExists){
+                                        ParticipantActivities addParticipantActivities = new ParticipantActivities();
+                                        if(activitiesBean!= null && StringUtils.isNotEmpty(activitiesBean.getActivityState()))
+                                            addParticipantActivities.setActivityState(activitiesBean.getActivityState());
+                                        if(activitiesBean.getActivityVersion()!=null && StringUtils.isNotEmpty(activitiesBean.getActivityVersion()))
+                                            addParticipantActivities.setActivityVersion(activitiesBean.getActivityVersion());
+                                        if(activitiesBean.getActivityId() != null && StringUtils.isNotEmpty(activitiesBean.getActivityId()))
+                                            addParticipantActivities.setActivityId(activitiesBean.getActivityId());
+                                        if(activitiesBean.getActivityRunId() != null && StringUtils.isNotEmpty(activitiesBean.getActivityRunId()))
+                                            addParticipantActivities.setActivityRunId(activitiesBean.getActivityRunId());
+                                        if(preferencesForm.getStudyId()!=null && StringUtils.isNotEmpty(preferencesForm.getStudyId()))
+                                            addParticipantActivities.setStudyId(preferencesForm.getStudyId());
+                                        if(userId!= null && StringUtils.isNotEmpty(userId))
+                                            addParticipantActivities.setParticipantId(userId);
+                                        if(activitiesBean.getBookmarked() != null)
+                                            addParticipantActivities.setBookmark(activitiesBean.getBookmarked());
+                                        if(activitiesBean.getActivityRun() != null){
+                                            if(activitiesBean.getActivityRun().getTotal() != null)
+                                                addParticipantActivities.setTotal(activitiesBean.getActivityRun().getTotal());
+                                            if(activitiesBean.getActivityRun().getCompleted() != null)
+                                                addParticipantActivities.setCompleted(activitiesBean.getActivityRun().getCompleted());
+                                            if(activitiesBean.getActivityRun().getMissed() != null)
+                                                addParticipantActivities.setMissed(activitiesBean.getActivityRun().getMissed());
+                                        }
+                                        addParticipantActivitiesList.add(addParticipantActivities);
+                                    }
+                                }
+
                                String message = FdahpUserRegWSManager.get().saveParticipantActivities(addParticipantActivitiesList);
                                if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
                                    response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -2081,7 +2092,7 @@ public class FdahpUserRegWSController extends SpringActionController
                 }
 
             }catch (Exception e){
-                _log.error("Logout Action Error:",e);
+                _log.error("Deactivate  Action Error:",e);
                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                 return null;
             }
@@ -2138,6 +2149,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                                     participantStudies.setCompletion(studiesBean.getCompletion());
                                                 if (studiesBean.getAdherence() != null)
                                                     participantStudies.setAdherence(studiesBean.getAdherence());
+                                                if(studiesBean.getParticipantId() != null &&  StringUtils.isNotEmpty(studiesBean.getParticipantId()))
+                                                    participantStudies.setParticipantId(studiesBean.getParticipantId());
                                                 addParticipantStudiesList.add(participantStudies);
                                             }
                                         }
@@ -2167,6 +2180,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                             participantStudies.setCompletion(studiesBean.getCompletion());
                                         if (studiesBean.getAdherence() != null)
                                             participantStudies.setAdherence(studiesBean.getAdherence());
+                                        if(studiesBean.getParticipantId() != null &&  StringUtils.isNotEmpty(studiesBean.getParticipantId()))
+                                            participantStudies.setParticipantId(studiesBean.getParticipantId());
                                         addParticipantStudiesList.add(participantStudies);
                                     }
                                 }
@@ -2232,4 +2247,126 @@ public class FdahpUserRegWSController extends SpringActionController
             return response;
         }
     }
+
+    public static class NotificationForm {
+
+        public List<NotificationBean>  _notifications;
+
+        public List<NotificationBean> getNotifications()
+        {
+            return _notifications;
+        }
+
+        public void setNotifications(List<NotificationBean> notifications)
+        {
+            _notifications = notifications;
+        }
+    }
+
+    @Marshal(Marshaller.Jackson)
+    @RequiresNoPermission
+    public class SendNotificationAction extends ApiAction<NotificationForm>{
+
+        @Override
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
+        public ApiResponse execute(NotificationForm notificationForm, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            Map<String,JSONArray> studiesMap = null;
+            try{
+                if(notificationForm != null && notificationForm.getNotifications() != null && !notificationForm.getNotifications().isEmpty()){
+                    if(!notificationForm.getNotifications().isEmpty()){
+                        HashSet<String> studySet = new HashSet<>();
+                        studiesMap = new HashMap<>();
+                        JSONArray allDeviceTokens = FdahpUserRegWSManager.get().getDeviceTokenOfAllUsers();
+                        for (NotificationBean notificationBean : notificationForm.getNotifications()){
+                            if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.STUDY_LEVEL.getValue())){
+                                studySet.add(notificationBean.getCustomStudyId());
+                            }
+                        }
+                        if(studySet != null){
+                            System.out.println("'"+StringUtils.join(studySet,"','")+"'");
+                            studiesMap = FdahpUserRegWSManager.get().getStudyLevelDeviceToken("'"+StringUtils.join(studySet,"','")+"'");
+                        }
+                        for (NotificationBean notificationBean : notificationForm.getNotifications()){
+                            if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.GATEWAY_LEVEL.getValue())){
+                                notificationBean.setDeviceToken(allDeviceTokens);
+
+                            }else if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.STUDY_LEVEL.getValue())){
+                                if(studiesMap.get(notificationBean.getCustomStudyId()) != null){
+                                    notificationBean.setDeviceToken(studiesMap.get(notificationBean.getCustomStudyId()));
+                                }
+                            }
+
+                            if(notificationBean.getDeviceToken().length() > 0){
+                                pushFCMNotification(notificationBean);
+                            }
+                        }
+                        response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        return null;
+                    }
+
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                    return null;
+                }
+            }catch (Exception e){
+                _log.error("SendNotificationAction Action Error",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                return null;
+            }
+            return  response;
+        }
+    }
+    public void pushFCMNotification(NotificationBean notification) {
+
+       try{
+            String authKey = (String) configProp.get("AUTH_KEY_FCM");   // You FCM AUTH key
+            String FMCurl = (String) configProp.get("API_URL_FCM");
+
+           System.out.println("authKey:"+authKey);
+           System.out.println("FMCurl:"+FMCurl);
+
+
+            URL url = new URL(FMCurl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization","key="+authKey);
+            conn.setRequestProperty("Content-Type","application/json");
+
+            JSONObject json = new JSONObject();
+
+            json.put("registration_ids",notification.getDeviceToken());
+            json.put("priority","high");
+            JSONObject info = new JSONObject();
+            info.put("Title", notification.getNotificationTitle());
+            info.put("body", notification.getNotificationText());
+            json.put("notification", info);
+            JSONObject dataInfo = new JSONObject();
+            dataInfo.put("subType", notification.getNotificationSubType());
+            json.put("data", dataInfo);
+
+            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+            wr.write(json.toString());
+            wr.flush();
+            conn.getInputStream();
+        }catch (Exception e){
+            _log.error("pushFCMNotification Action Error",e);
+        }
+
+    }
+
 }
