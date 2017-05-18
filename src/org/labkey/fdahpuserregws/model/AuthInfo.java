@@ -18,6 +18,10 @@ public class AuthInfo extends Entity
     private String _AuthKey;
     private String _IosAppVersion;
     private String _AndroidAppVersion;
+
+    private Date _SessionExpiredDate;
+
+
     public int getAuthId()
     {
         return _AuthId;
@@ -107,4 +111,16 @@ public class AuthInfo extends Entity
     {
         _AndroidAppVersion = androidAppVersion;
     }
+
+    public Date getSessionExpiredDate()
+    {
+        return _SessionExpiredDate;
+    }
+
+    public void setSessionExpiredDate(Date sessionExpiredDate)
+    {
+        _SessionExpiredDate = sessionExpiredDate;
+    }
+
+
 }

@@ -13,6 +13,7 @@ public class NotificationBean
     private String _notificationTitle;
     private String _notificationType;
     private String _notificationSubType;
+    private Integer _notificationId;
 
     private JSONArray _deviceToken;
 
@@ -84,5 +85,15 @@ public class NotificationBean
     public void setDeviceToken(JSONArray deviceToken)
     {
         _deviceToken = deviceToken;
+    }
+
+    public Integer getNotificationId()
+    {
+        return _notificationId;
+    }
+
+    public void setNotificationId(Integer notificationId)
+    {
+        _notificationId = notificationId;
     }
 }

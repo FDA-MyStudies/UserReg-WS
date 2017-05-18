@@ -86,9 +86,11 @@ public class FdahpUserRegUtil
         INVALID_CODE("Invalid code"),
         CODE_EXPIRED("Code Expired"),
         YET_TO_JOIN("yetToJoin"),
+        IN_PROGRESS("inProgress"),
         STUDY_LEVEL("ST"),
         GATEWAY_LEVEL("GT"),
         INVALID_CREDENTIALS("Invalid credentials"),
+        ACCOUNT_LOCKED("Your account is locked! Please reset password"),
         EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
         EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),
         LABKEY_HOME("http://192.168.0.6:8081");
@@ -123,7 +125,7 @@ public class FdahpUserRegUtil
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             if(status.equalsIgnoreCase(ErrorCodes.STATUS_101.getValue()))
                 if(message.equalsIgnoreCase(ErrorCodes.SESSION_EXPIRED_MSG.getValue()))
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorCodes.INVALID_AUTH_CODE.getValue());
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorCodes.SESSION_EXPIRED_MSG.getValue());
                 else
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
 
@@ -174,10 +176,26 @@ public class FdahpUserRegUtil
             Date today = new Date();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             getToday = formatter.format(today.getTime());
+
         } catch (Exception e) {
             _log.error(e);
         }
         return getToday;
+    }
+
+    public static String getFormattedDateTimeZone(String input, String inputFormat, String outputFormat){
+        String output = "";
+        try{
+            if(StringUtils.isNotEmpty(input)){
+                SimpleDateFormat inputSDF = new SimpleDateFormat(inputFormat);
+                Date inputDate = inputSDF.parse(input);
+                SimpleDateFormat outputSDF = new SimpleDateFormat(outputFormat); //yyyy-MM-dd'T'hh:mm:ssZ, yyyy-MM-dd'T'HH:mm:ss.SSSZ
+               output = outputSDF.format(inputDate);
+            }
+        }catch(Exception e){
+            _log.error(e);
+        }
+        return output;
     }
 
     public static String getEncodeString(String value){
@@ -262,7 +280,20 @@ public class FdahpUserRegUtil
         }
         return date;
     }
-
+    public static Date addMinutes(String currentDate, int minutes) {
+        Date futureDate = null;
+        try {
+            Date dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(currentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(dt);
+            cal.add(Calendar.MINUTE, minutes);
+            Date newDate = cal.getTime();
+            futureDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(newDate));
+        } catch (Exception e) {
+            _log.error("FdahpUserRegUtil - addHours() : ",e);
+        }
+        return futureDate;
+    }
     public static Date addHours(String currentDate, int hours){
         Date futureDate = null;
         try {
@@ -270,6 +301,21 @@ public class FdahpUserRegUtil
             Calendar cal = Calendar.getInstance();
             cal.setTime(dt);
             cal.add(Calendar.HOUR, hours);
+            Date newDate = cal.getTime();
+            futureDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(newDate));
+        } catch (Exception e) {
+            _log.error("FdahpUserRegUtil - addHours() : ",e);
+        }
+        return futureDate;
+    }
+
+    public static Date addDays(String currentDate, int days){
+        Date futureDate = null;
+        try {
+            Date dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(currentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(dt);
+            cal.add(Calendar.DATE, days);
             Date newDate = cal.getTime();
             futureDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(newDate));
         } catch (Exception e) {

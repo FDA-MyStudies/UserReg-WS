@@ -31,6 +31,7 @@ public class UserDetails extends Entity
 
     private Date _VerificationDate;
     private Date _TempPasswordDate;
+    private Date _PasswordUpdatedDate;
 
     public Integer getId()
     {
@@ -210,5 +211,15 @@ public class UserDetails extends Entity
     public void setResetPassword(String resetPassword)
     {
         _ResetPassword = resetPassword;
+    }
+
+    public Date getPasswordUpdatedDate()
+    {
+        return _PasswordUpdatedDate;
+    }
+
+    public void setPasswordUpdatedDate(Date passwordUpdatedDate)
+    {
+        _PasswordUpdatedDate = passwordUpdatedDate;
     }
 }

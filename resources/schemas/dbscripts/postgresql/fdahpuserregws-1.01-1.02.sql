@@ -26,3 +26,15 @@ ALTER TABLE fdahpUserRegWS.participantactivities ADD Total integer;
 ALTER TABLE fdahpUserRegWS.participantactivities ADD Completed integer;
 
 ALTER TABLE fdahpUserRegWS.participantactivities ADD Missed integer;
+
+-- Create a temporary TIMESTAMP column
+ALTER TABLE fdahpUserRegWS.participantstudies ADD COLUMN EnrolledDateTemp TIMESTAMP without time zone NULL;
+
+-- Copy casted value over to the temporary column
+UPDATE fdahpUserRegWS.participantstudies SET EnrolledDateTemp = EnrolledDate::TIMESTAMP;
+
+-- Modify original column using the temporary column
+ALTER TABLE fdahpUserRegWS.participantstudies ALTER COLUMN EnrolledDate TYPE TIMESTAMP without time zone USING EnrolledDateTemp;
+
+-- Drop the temporary column (after examining altered column values)
+ALTER TABLE fdahpUserRegWS.participantstudies DROP COLUMN EnrolledDateTemp;

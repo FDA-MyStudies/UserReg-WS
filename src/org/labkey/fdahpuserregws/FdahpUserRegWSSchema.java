@@ -70,5 +70,7 @@ public class FdahpUserRegWSSchema
         return getSchema().getTable("PasswordHistory");
     }
 
+    public TableInfo getLoginAttempts(){return getSchema().getTable("LoginAttempts");}
+
 
 }

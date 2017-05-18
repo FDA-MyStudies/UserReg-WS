@@ -22,6 +22,7 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.api.audit.AuditLogService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +41,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 1.02;
+        return 1.03;
     }
 
     @Override
@@ -67,6 +68,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     {
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new FdahpUserRegWSContainerListener());
+        AuditLogService.get().registerAuditType(new FdaAuditProvider());
     }
 
     @Override

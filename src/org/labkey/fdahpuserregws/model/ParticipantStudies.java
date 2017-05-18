@@ -2,6 +2,8 @@ package org.labkey.fdahpuserregws.model;
 
 import org.labkey.api.data.Entity;
 
+import java.util.Date;
+
 /**
  * Created by Ravinder on 1/31/2017.
  */
@@ -13,7 +15,7 @@ public class ParticipantStudies extends Entity
     private Boolean _Bookmark=false;
     private Boolean _Eligbibility=false;
     private Boolean _ConsentStatus=false;
-    private String _EnrolledDate;
+    private Date _EnrolledDate;
     private String _ParticipantId;
     private String _UserId;
     private String _Sharing;
@@ -80,12 +82,12 @@ public class ParticipantStudies extends Entity
         _ConsentStatus = consentStatus;
     }
 
-    public String getEnrolledDate()
+    public Date getEnrolledDate()
     {
         return _EnrolledDate;
     }
 
-    public void setEnrolledDate(String enrolledDate)
+    public void setEnrolledDate(Date enrolledDate)
     {
         _EnrolledDate = enrolledDate;
     }
