@@ -16,16 +16,25 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Map;
+
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.util.MailHelper;
+import com.notnoop.apns.APNS;
+import com.notnoop.apns.ApnsService;
+import org.labkey.fdahpuserregws.bean.NotificationBean;
+import org.labkey.api.resource.Resource;
+import org.labkey.api.resource.FileResource;
 
 
 import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
@@ -91,9 +100,14 @@ public class FdahpUserRegUtil
         GATEWAY_LEVEL("GT"),
         INVALID_CREDENTIALS("Invalid credentials"),
         ACCOUNT_LOCKED("Your account is locked! Please reset password"),
+        ACCOUNT_TEMP_LOCKED("As a security measure, this account has been locked for 10 minutes."),
         EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
         EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),
-        LABKEY_HOME("http://192.168.0.6:8081");
+        LABKEY_HOME("http://192.168.0.6:8081"),
+        STUDY("Study"),
+        GATEWAY("Gateway"),
+        DEVICE_ANDROID("android"),
+        DEVICE_IOS("ios");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
@@ -340,6 +354,40 @@ public class FdahpUserRegUtil
         catch (Exception e)
         {
             _log.error("Unable to send email ", e);
+        }
+    }
+    public static void pushNotification(NotificationBean notificationBean){
+        Properties configProp = FdahpUserRegUtil.getProperties();
+        try{
+            _log.info("pushNotification");
+            Module m =  ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+            Resource r = m.getModuleResource("/constants/"+(String)configProp.get("certificate.name"));
+            File f = ((FileResource) r).getFile();
+            String path = f.getPath();
+            _log.info("path:"+path);
+            ApnsService service = APNS.newService()
+                    .withCert(path, (String)configProp.get("certificate.password"))
+                    .withSandboxDestination().build();
+
+            List<String> tokens = new ArrayList<String>();
+            if(notificationBean.getDeviceToken() != null){
+               for(int i=0;i<notificationBean.getDeviceToken().length();i++){
+                   String token = (String) notificationBean.getDeviceToken().get(i);
+                   _log.info("token:"+token);
+                   tokens.add(token);
+               }
+            }
+            String customPayload = APNS.newPayload().badge(1).alertTitle(notificationBean.getNotificationTitle())
+                    .alertBody(notificationBean.getNotificationText())
+                    .customField("subtype", notificationBean.getNotificationSubType())
+                    .customField("type", notificationBean.getNotificationType())
+                    .customField("studyId", notificationBean.getCustomStudyId())
+                    .sound("default")
+                    .build();
+            service.push(tokens, customPayload);
+            _log.info("pushNotification Ends");
+        }catch (Exception e){
+            _log.error("pushNotification ", e);
         }
     }
 }

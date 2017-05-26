@@ -32,6 +32,7 @@ import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.fdahpuserregws.bean.ActivitiesBean;
+
 import org.labkey.fdahpuserregws.bean.ConsentBean;
 import org.labkey.fdahpuserregws.bean.InfoBean;
 import org.labkey.fdahpuserregws.bean.NotificationBean;
@@ -108,10 +109,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.03 Works!");
-            /*String email = LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress();
-            apiSimpleResponse.put("email", email);*/
-            //FdahpUserRegWSManager.get().getStudyLevelDeviceToken();
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.05 Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -393,6 +391,7 @@ public class FdahpUserRegWSController extends SpringActionController
             ApiSimpleResponse response = new ApiSimpleResponse();
             //ParticipantForm participantForm = null;
             UserDetails participantDetails = null;
+            int maxAttemptsCount = Integer.valueOf((String)configProp.get("max.login.attempts"));
             try{
                 if(loginForm != null){
                    // String email = getViewContext().getRequest().getHeader("emailId");
@@ -402,85 +401,20 @@ public class FdahpUserRegWSController extends SpringActionController
                         participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId());
                         if(null != participantDetails){
                             LoginAttempts loginAttempts = FdahpUserRegWSManager.get().getLoginAttempts(loginForm.getEmailId());
-                            if(loginAttempts != null && loginAttempts.getAttempts() == 3){
-                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.getValue(), getViewContext().getResponse());
-                                return null;
-                            }else{
-                                if(participantDetails.getPassword() != null && participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(loginForm.getPassword()))){
-                                    if(participantDetails.getTempPassword()){
-                                        participantDetails.setResetPassword(null);
-                                        participantDetails.setTempPassword(false);
-                                        participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
-                                        FdahpUserRegWSManager.get().saveParticipant(participantDetails);
-                                    }
-                                    AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
-                                    if(authInfo != null){
-                                        response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                        response.put("userId",participantDetails.getUserId());
-                                        response.put("auth",authInfo.getAuthKey());
-                                        if(participantDetails.getStatus() == 2)
-                                        {
-                                            response.put("verified", false);
-                                        }
-                                        if(participantDetails.getStatus() == 1){
-                                            response.put("verified", true);
-                                        }
-                                        if(participantDetails.getPasswordUpdatedDate() != null){
-                                            String days = (String) configProp.get("password.expiration.in.day");
-                                            Date expiredDate = FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(), Integer.parseInt(days));
-                                            _log.info("expiredDate:"+expiredDate+"participantDetails.getPasswordUpdatedDate():"+participantDetails.getPasswordUpdatedDate());
-                                            if(expiredDate.before(participantDetails.getPasswordUpdatedDate()) || expiredDate.equals(participantDetails.getPasswordUpdatedDate())){
-                                                response.put("resetPassword", true);
-                                            }
-                                        }
-                                        FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
-                                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Success","User Login Sucessfully with "+loginForm.getEmailId(),"FdaUserAuditEvent",getViewContext().getContainer().getId());
-                                    }  else{
-                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
-                                        return null;
-                                    }
 
-                                }else if(participantDetails.getResetPassword() != null && participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(loginForm.getPassword()))){
-                                    if(participantDetails.getTempPassword()){
-                                        String hours = (String) configProp.get("verification.expiration.in.hour");
-                                        Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt(hours));
-                                        if(participantDetails.getTempPasswordDate().before(validateDate) || participantDetails.getTempPasswordDate().equals(validateDate)){
-                                            AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
-                                            if(authInfo != null){
-                                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                response.put("userId",participantDetails.getUserId());
-                                                response.put("auth",authInfo.getAuthKey());
-                                                if(participantDetails.getStatus() == 2)
-                                                {
-                                                    response.put("verified", false);
-                                                }
-                                                if(participantDetails.getStatus() == 1){
-                                                    response.put("verified", true);
-                                                }
-                                                response.put("resetPassword", participantDetails.getTempPassword());
-                                                FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
-                                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Success","User Login successfully with "+loginForm.getEmailId()+"with TempPwd","FdaUserAuditEvent",getViewContext().getContainer().getId());
-                                            } else{
-                                                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
-                                                return null;
-                                            }
-                                        }else{
-                                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(), getViewContext().getResponse());
-                                            return null;
-                                        }
-                                    }
+                            if(loginAttempts != null && loginAttempts.getAttempts() == maxAttemptsCount){
+                                Date attemptsExpireDate = FdahpUserRegUtil.addMinutes(loginAttempts.getLastModified().toString(),10);
+                                System.out.println("attemtsExipreyDate:"+attemptsExpireDate);
+                                if(attemptsExpireDate.before(FdahpUserRegUtil.getCurrentUtilDateTime()) || attemptsExpireDate.equals(FdahpUserRegUtil.getCurrentUtilDateTime())){
+                                    FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
+                                    response = getLoginInformation(participantDetails,loginForm.getEmailId(),loginForm.getPassword(),maxAttemptsCount);
                                 }else{
-                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Failure","User Login Failure  with password. Beacuse password is incorrect","FdaUserAuditEvent",getViewContext().getContainer().getId());
-                                    LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(loginForm.getEmailId());
-                                    _log.info("failAttempts:"+failAttempts);
-                                    if(failAttempts != null && failAttempts.getAttempts() == 3){
-                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.getValue(), getViewContext().getResponse());
-                                    }else{
-                                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.name(), FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.getValue(), getViewContext().getResponse());
-                                    }
-                                    errors.rejectValue("emailId",ERROR_MSG,  "emailId is wrong.");
-                                    errors.rejectValue("password",ERROR_MSG,  "password is wrong.");
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.getValue(), getViewContext().getResponse());
+                                    return null;
                                 }
+
+                            }else{
+                                response = getLoginInformation(participantDetails,loginForm.getEmailId(),loginForm.getPassword(),maxAttemptsCount);
                             }
 
 
@@ -496,9 +430,9 @@ public class FdahpUserRegWSController extends SpringActionController
                     }
                 }else{
                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
-                    errors.rejectValue("emailId",ERROR_MSG,  "emailId is required.");
-                    errors.rejectValue("password",ERROR_MSG,  "password is required.");
-                    //return null;
+                    //errors.rejectValue("emailId",ERROR_MSG,  "emailId is required.");
+                   // errors.rejectValue("password",ERROR_MSG,  "password is required.");
+                    return null;
                 }
 
 
@@ -511,6 +445,89 @@ public class FdahpUserRegWSController extends SpringActionController
         }
     }
 
+    public ApiSimpleResponse getLoginInformation(UserDetails participantDetails,String email,String password,int maxAttemptsCount){
+        ApiSimpleResponse response = new ApiSimpleResponse();
+        if(participantDetails.getPassword() != null && participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(password))){
+            if(participantDetails.getTempPassword()){
+                participantDetails.setResetPassword(null);
+                participantDetails.setTempPassword(false);
+                participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+            }
+            AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
+            if(authInfo != null){
+                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                response.put("userId",participantDetails.getUserId());
+                response.put("auth",authInfo.getAuthKey());
+                if(participantDetails.getStatus() == 2)
+                {
+                    response.put("verified", false);
+                }
+                if(participantDetails.getStatus() == 1){
+                    response.put("verified", true);
+                }
+                if(participantDetails.getPasswordUpdatedDate() != null){
+                    String days = (String) configProp.get("password.expiration.in.day");
+                    Date expiredDate = FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(), Integer.parseInt(days));
+                    _log.info("expiredDate:"+expiredDate+"participantDetails.getPasswordUpdatedDate():"+participantDetails.getPasswordUpdatedDate());
+                    if(expiredDate.before(participantDetails.getPasswordUpdatedDate()) || expiredDate.equals(participantDetails.getPasswordUpdatedDate())){
+                        response.put("resetPassword", true);
+                    }
+                }
+                FdahpUserRegWSManager.get().resetLoginAttempts(email);
+                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Success","User Login Sucessfully with "+email,"FdaUserAuditEvent",getViewContext().getContainer().getId());
+            }  else{
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                return null;
+            }
+
+        }else if(participantDetails.getResetPassword() != null && participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(password))){
+            if(participantDetails.getTempPassword()){
+                String hours = (String) configProp.get("verification.expiration.in.hour");
+                Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt(hours));
+                if(participantDetails.getTempPasswordDate().before(validateDate) || participantDetails.getTempPasswordDate().equals(validateDate)){
+                    AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
+                    if(authInfo != null){
+                        response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                        response.put("userId",participantDetails.getUserId());
+                        response.put("auth",authInfo.getAuthKey());
+                        if(participantDetails.getStatus() == 2)
+                        {
+                            response.put("verified", false);
+                        }
+                        if(participantDetails.getStatus() == 1){
+                            response.put("verified", true);
+                        }
+                        response.put("resetPassword", participantDetails.getTempPassword());
+                        FdahpUserRegWSManager.get().resetLoginAttempts(email);
+                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Success","User Login successfully with "+email+"with TempPwd","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                    } else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        return null;
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(),FdahpUserRegUtil.ErrorCodes.CODE_EXPIRED.getValue(), getViewContext().getResponse());
+                    return null;
+                }
+            }
+        }else{
+            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Failure","User Login Failure  with password. Beacuse password is incorrect","FdaUserAuditEvent",getViewContext().getContainer().getId());
+            LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email);
+            _log.info("maxAttemptsCount:"+maxAttemptsCount);
+            if(failAttempts != null && failAttempts.getAttempts() == maxAttemptsCount){
+                _log.info("failAttempts:"+failAttempts.getAttempts()+"maxAttemptsCount:"+maxAttemptsCount);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_LOCKED.getValue(), getViewContext().getResponse());
+                return null;
+            }else{
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_101.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.name(), FdahpUserRegUtil.ErrorCodes.INVALID_USERNAME_PASSWORD_MSG.getValue(), getViewContext().getResponse());
+                return null;
+            }
+           // errors.rejectValue("emailId",ERROR_MSG,  "emailId is wrong.");
+           // errors.rejectValue("password",ERROR_MSG,  "password is wrong.");
+        }
+
+        return response;
+    }
 
     private UserDetails getParticipant(ParticipantForm form){
         UserDetails participantDetails = null;
@@ -560,17 +577,36 @@ public class FdahpUserRegWSController extends SpringActionController
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
+            int maxAttemptsCount = Integer.valueOf((String)configProp.get("max.login.attempts"));
             try{
                 if(loginForm != null && loginForm.getEmailId() != null && StringUtils.isNotEmpty(loginForm.getEmailId())){
                     UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId());
                     if(participantDetails != null){
                         if(participantDetails.getStatus() == 1){
+                            boolean isValid= true;
+                            LoginAttempts loginAttempts = FdahpUserRegWSManager.get().getLoginAttempts(loginForm.getEmailId());
+                            if(loginAttempts != null && loginAttempts.getAttempts() == maxAttemptsCount)
+                            {
+                                Date attemptsExpireDate = FdahpUserRegUtil.addMinutes(loginAttempts.getLastModified().toString(), 10);
+                                if (attemptsExpireDate.before(FdahpUserRegUtil.getCurrentUtilDateTime()) || attemptsExpireDate.equals(FdahpUserRegUtil.getCurrentUtilDateTime()))
+                                {
+                                    isValid= true;
+                                }else{
+                                    isValid= false;
+                                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.ACCOUNT_TEMP_LOCKED.name(), FdahpUserRegUtil.ErrorCodes.ACCOUNT_TEMP_LOCKED.getValue(), getViewContext().getResponse());
+                                    return null;
+                                }
+                            }else{
+                                isValid= true;
+                            }
+                            UserDetails upParticipantDetails = null;
                             String tempPassword = RandomStringUtils.randomAlphanumeric(6);
-                            //participantDetails.setPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
-                            participantDetails.setTempPassword(true);
-                            participantDetails.setResetPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
-                            participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
-                            UserDetails upParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                            if(isValid){
+                                participantDetails.setTempPassword(true);
+                                participantDetails.setResetPassword(FdahpUserRegUtil.getEncryptedString(tempPassword));
+                                participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                                upParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
+                            }
                             if(upParticipantDetails != null){
                                 String message="<html>" +
                                         "<body>" +
@@ -587,8 +623,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                         "</div>" +
                                         "</body>" +
                                         "</html>";
-                                /*FdahpUserRegUtil.sendMessage("Password Help - FDA Health Studies Gateway App!",message,participantDetails.getEmail());
-                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());*/
+                              //  FdahpUserRegUtil.sendMessage("Password Help - FDA Health Studies Gateway App!",message,participantDetails.getEmail());
+                               // response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA Health Studies Gateway App",message);
                                 if (isMailSent){
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -676,8 +712,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
-                            /*FdahpUserRegUtil.sendMessage("Welcome to the FDA Health Studies Gateway!",message,participantDetails.getEmail());
-                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());*/
+                            //FdahpUserRegUtil.sendMessage("Welcome to the FDA Health Studies Gateway!",message,participantDetails.getEmail());
+                           // response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Requested Confirmation mail","User Requested the confirmation email with "+participantDetails.getEmail(),"FdaUserAuditEvent",getViewContext().getContainer().getId());
                             boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Welcome to the FDA Health Studies Gateway!",message);
                             if (isMailSent){
@@ -1611,7 +1647,9 @@ public class FdahpUserRegWSController extends SpringActionController
                if(auth != null && StringUtils.isNotEmpty(auth)){
                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
                    if(isAuthenticated){
-                       String studyId = getViewContext().getRequest().getHeader("studyId");
+                       //String studyId = getViewContext().getRequest().getHeader("studyId");
+                       String studyId = getViewContext().getRequest().getParameter("studyId");
+                       _log.info(studyId);
                        if(studyId != null && StringUtils.isNotEmpty(studyId) && userId != null && StringUtils.isNotEmpty(userId)){
                            List<ParticipantActivities> participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(studyId,userId);
                            JSONArray jsonArray = new JSONArray();
@@ -1940,9 +1978,13 @@ public class FdahpUserRegWSController extends SpringActionController
            boolean isAuthenticated = false;
            try{
                String auth = getViewContext().getRequest().getHeader("auth");
-               String studyId = getViewContext().getRequest().getHeader("studyId");
                String userId = getViewContext().getRequest().getHeader("userId");
-               String consentVersion = getViewContext().getRequest().getHeader("consentVersion");
+               //String consentVersion = getViewContext().getRequest().getHeader("consentVersion");
+               //String studyId = getViewContext().getRequest().getHeader("studyId");
+
+               String consentVersion = getViewContext().getRequest().getParameter("consentVersion");
+               String studyId = getViewContext().getRequest().getParameter("studyId");
+               getViewContext().getRequest().getParameter("studyId");
 
                if(auth != null && StringUtils.isNotEmpty(auth)){
                    isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth);
@@ -2327,36 +2369,72 @@ public class FdahpUserRegWSController extends SpringActionController
         public ApiResponse execute(NotificationForm notificationForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
-            Map<String,JSONArray> studiesMap = null;
+           // Map<String,JSONArray> studiesMap = null;
+            Map<String,Map<String,JSONArray>> studiesMap = null;
             try{
                 if(notificationForm != null && notificationForm.getNotifications() != null && !notificationForm.getNotifications().isEmpty()){
                     if(!notificationForm.getNotifications().isEmpty()){
                         HashSet<String> studySet = new HashSet<>();
                         studiesMap = new HashMap<>();
-                        JSONArray allDeviceTokens = FdahpUserRegWSManager.get().getDeviceTokenOfAllUsers();
+                        //JSONArray allDeviceTokens = FdahpUserRegWSManager.get().getDeviceTokenOfAllUsers();
+                        Map<String,JSONArray> allDeviceTokens = FdahpUserRegWSManager.get().getDeviceTokenOfAllUsers();
+
                         for (NotificationBean notificationBean : notificationForm.getNotifications()){
                             if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.STUDY_LEVEL.getValue())){
                                 studySet.add(notificationBean.getCustomStudyId());
                             }
                         }
                         if(studySet != null){
-
                             studiesMap = FdahpUserRegWSManager.get().getStudyLevelDeviceToken("'"+StringUtils.join(studySet,"','")+"'");
+                            System.out.println("studiesMap:"+studiesMap);
                         }
                         for (NotificationBean notificationBean : notificationForm.getNotifications()){
-
                             if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.GATEWAY_LEVEL.getValue())){
-                                notificationBean.setDeviceToken(allDeviceTokens);
+                                notificationBean.setNotificationType(FdahpUserRegUtil.ErrorCodes.GATEWAY.getValue());
+                                if(allDeviceTokens.get(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()) != null){
+                                    notificationBean.setDeviceToken(allDeviceTokens.get(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()));
+                                    if(notificationBean.getDeviceToken() != null && notificationBean.getDeviceToken().length() > 0){
+                                        pushFCMNotification(notificationBean);
+                                    }
 
+                                }
+                                if(allDeviceTokens.get(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()) != null){
+                                    notificationBean.setDeviceToken(allDeviceTokens.get(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()));
+                                    if(notificationBean.getDeviceToken() != null && notificationBean.getDeviceToken().length() > 0){
+                                        FdahpUserRegUtil.pushNotification(notificationBean);
+                                    }
+
+                                }
                             }else if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.STUDY_LEVEL.getValue())){
-                                if(studiesMap.get(notificationBean.getCustomStudyId()) != null){
-                                    notificationBean.setDeviceToken(studiesMap.get(notificationBean.getCustomStudyId()));
+                                Map<String,JSONArray> deviceTokensMap = studiesMap.get(notificationBean.getCustomStudyId());
+                                notificationBean.setNotificationType(FdahpUserRegUtil.ErrorCodes.STUDY.getValue());
+                                if(deviceTokensMap != null){
+                                    if(deviceTokensMap.get(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()) != null){
+                                        notificationBean.setDeviceToken(deviceTokensMap.get(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()));
+                                        if(notificationBean.getDeviceToken() != null && notificationBean.getDeviceToken().length() > 0){
+                                            pushFCMNotification(notificationBean);
+                                        }
+                                    }
+                                    if(deviceTokensMap.get(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()) != null){
+                                        notificationBean.setDeviceToken(deviceTokensMap.get(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()));
+                                        if(notificationBean.getDeviceToken() != null && notificationBean.getDeviceToken().length() > 0){
+                                            FdahpUserRegUtil.pushNotification(notificationBean);
+                                        }
+                                    }
                                 }
                             }
-
+                            /*System.out.println(" length:"+notificationBean.getDeviceToken().length());
                             if(notificationBean.getDeviceToken() != null && notificationBean.getDeviceToken().length() > 0){
-                                pushFCMNotification(notificationBean);
-                            }
+                                System.out.println("notificationBean.getDeviceType():"+notificationBean.getDeviceType());
+
+                                if(notificationBean.getDeviceType() != null && notificationBean.getDeviceType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue())){
+                                    pushFCMNotification(notificationBean);
+                                }
+                                if(notificationBean.getDeviceType() != null && notificationBean.getDeviceType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue())){
+                                    FdahpUserRegUtil.pushNotification(notificationBean);
+                                }
+
+                            }*/
                         }
                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                     }else{
@@ -2383,8 +2461,6 @@ public class FdahpUserRegWSController extends SpringActionController
             String FMCurl = (String) configProp.get("API_URL_FCM");
 
 
-
-
             URL url = new URL(FMCurl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
@@ -2398,16 +2474,23 @@ public class FdahpUserRegWSController extends SpringActionController
 
             JSONObject json = new JSONObject();
 
+            _log.info("notification.getDeviceToken():"+notification.getDeviceToken());
             json.put("registration_ids",notification.getDeviceToken());
             json.put("priority","high");
-            JSONObject info = new JSONObject();
+           /* JSONObject info = new JSONObject();
             info.put("Title", notification.getNotificationTitle());
             info.put("body", notification.getNotificationText());
-            json.put("notification", info);
+            json.put("notification", info);*/
             JSONObject dataInfo = new JSONObject();
-            dataInfo.put("subType", notification.getNotificationSubType());
+            _log.info("notification.getNotificationSubType():"+notification.getNotificationSubType());
+            dataInfo.put("subtype", notification.getNotificationSubType());
+            dataInfo.put("type", notification.getNotificationType());
+            dataInfo.put("title", notification.getNotificationTitle());
+            dataInfo.put("message", notification.getNotificationText());
+            if(notification.getCustomStudyId() != null && StringUtils.isNotEmpty(notification.getCustomStudyId())){
+                dataInfo.put("studyId", notification.getCustomStudyId());
+            }
             json.put("data", dataInfo);
-
             OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
             wr.write(json.toString());
             wr.flush();
