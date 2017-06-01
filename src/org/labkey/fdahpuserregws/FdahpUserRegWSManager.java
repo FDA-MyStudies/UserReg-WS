@@ -133,8 +133,8 @@ public class FdahpUserRegWSManager
                 authInfo.setDeviceToken("");
                 authInfo.setDeviceType("");
                 authInfo.setModifiedOn(new Date());
-                _log.info("session.expiration.minute:"+FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.minute"))));
-                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.minute"))));
+                _log.info("session.expiration.days:"+FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
+                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
                 Table.update(null,table, authInfo,authInfo.getAuthId());
             }else{
                 authInfo = new AuthInfo();
@@ -143,8 +143,8 @@ public class FdahpUserRegWSManager
                 authInfo.setDeviceType("");
                 authInfo.setParticipantId(userId);
                 authInfo.setCreatedOn(new Date());
-                _log.info("session.expiration.minute:"+FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.minute"))));
-                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.minute"))));
+                _log.info("session.expiration.days:"+FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
+                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
                 Table.insert(null,table, authInfo);
             }
         }catch (Exception e){
@@ -183,9 +183,9 @@ public class FdahpUserRegWSManager
             if(authInfo != null){
                 if(FdahpUserRegUtil.getCurrentUtilDateTime().before(authInfo.getSessionExpiredDate()) || FdahpUserRegUtil.getCurrentUtilDateTime().equals(authInfo.getSessionExpiredDate())){
                     isAuthenticated = true;
-                    authInfo.setModifiedOn(new Date());
+                   /* authInfo.setModifiedOn(new Date());
                     authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.minute"))));
-                    Table.update(null,table, authInfo,authInfo.getAuthId());
+                    Table.update(null,table, authInfo,authInfo.getAuthId());*/
                 }
 
             }
@@ -575,8 +575,9 @@ public class FdahpUserRegWSManager
             TableInfo table = FdahpUserRegWSSchema.getInstance().getAuthInfo();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             if(null !=authInfo){
-                authInfo.setDeviceToken(authInfo.getDeviceToken());
-                authInfo.setDeviceType(authInfo.getDeviceType());
+              //  authInfo.setDeviceToken(authInfo.getDeviceToken());
+              //  authInfo.setDeviceType(authInfo.getDeviceType());
+              //  authInfo.setRemoteNotificationFlag(authInfo.getRemoteNotificationFlag());
                 authInfo.setModifiedOn(new Date());
                 Table.update(null,table, authInfo,authInfo.getAuthId());
             }
@@ -808,7 +809,7 @@ public class FdahpUserRegWSManager
         try{
             TableInfo authTableInfo = FdahpUserRegWSSchema.getInstance().getAuthInfo();
             SQLFragment sql=null;
-            sql =  new SQLFragment("SELECT * FROM " + authTableInfo.getSelectName() + " WHERE authkey != '0' ");
+            sql =  new SQLFragment("SELECT * FROM " + authTableInfo.getSelectName() + " WHERE authkey != '0' and remotenotificationflag=true");
             authInfoList = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getArrayList(AuthInfo.class);
             if(authInfoList != null && !authInfoList.isEmpty()){
                 jsonArray = new JSONArray();
@@ -820,7 +821,7 @@ public class FdahpUserRegWSManager
                         }else  if(authInfo.getDeviceType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue())){
                             iosJsonArray.put(authInfo.getDeviceToken());
                         }
-
+                        System.out.println(authInfo.getDeviceToken());
                     }
                 }
                 deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(),jsonArray);
@@ -838,38 +839,49 @@ public class FdahpUserRegWSManager
         //Map<String,JSONArray> studyDeviceTokenMap = new HashMap<>();
         Map<String,Map<String,JSONArray>> studyDeviceTokenMap = new HashMap<>();
         try{
+
             SQLFragment sql = new SQLFragment();
-            sql.append("SELECT sp.studyid, string_agg(a.devicetoken, ','),string_agg(a.devicetype, ',') FROM ").append(FdahpUserRegWSSchema.getInstance().getParticipantStudies(), "sp").append(" , ").append(FdahpUserRegWSSchema.getInstance().getAuthInfo(), "a").append(" where sp.userid = a.participantid and sp.status not in('yetToJoin','withdrawn','notEligible') and a.authkey != '0' and sp.studyid in ("+studyIds+") GROUP BY sp.studyid");
+            sql.append("SELECT sp.studyid, string_agg(a.devicetoken, ',') as devicetoken,string_agg(a.devicetype, ',') as devicetype FROM ").append(FdahpUserRegWSSchema.getInstance().getParticipantStudies(), "sp").append(" , ").append(FdahpUserRegWSSchema.getInstance().getAuthInfo(), "a").append(" where sp.userid = a.participantid and sp.status not in('yetToJoin','withdrawn','notEligible') and a.authkey != '0' and a.remotenotificationflag=true and sp.studyid in ("+studyIds+") GROUP BY sp.studyid");
             ResultSet rs = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getResultSet();
-            while (rs.next())
+            if(rs != null)
             {
-                String studyid = rs.getString(1);
-                String deviceToken = rs.getString(2);
-                String deviceType = rs.getString(3);
-                if(deviceToken != null){
-                    String[] deviceTokens = deviceToken.split(",");
-                    String[] deviceTypes = deviceType.split(",");
-                    _log.info("deviceTokens length:"+deviceTokens.length);
-                    _log.info("deviceTypes length:"+deviceTypes.length);
-                    if(((deviceTokens != null && deviceTokens.length > 0) && (deviceType != null && deviceTypes.length > 0)) && (deviceTokens.length == deviceTypes.length)){
+                while (rs.next())
+                {
+                    String studyid = rs.getString(1);
+                    String deviceToken = rs.getString(2);
+                    String deviceType = rs.getString(3);
+                    if (deviceToken != null)
+                    {
+                        String[] deviceTokens = deviceToken.split(",");
+                        String[] deviceTypes = deviceType.split(",");
+                        _log.info("deviceTokens length:" + deviceTokens.length);
+                        _log.info("deviceTypes length:" + deviceTypes.length);
+                        if (((deviceTokens != null && deviceTokens.length > 0) && (deviceType != null && deviceTypes.length > 0)) && (deviceTokens.length == deviceTypes.length))
+                        {
 
-                        JSONArray jsonArray = new JSONArray();
-                        JSONArray iosJsonArray = new JSONArray();
-                        Map<String,JSONArray> deviceMap = new HashMap<>();
-                        for(int i =0 ; i<deviceTokens.length ;i++){
-                            if(deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue())){
-                                jsonArray.put(deviceTokens[i]);
-                            }else if(deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue())){
-                                iosJsonArray.put(deviceTokens[i]);
+                            JSONArray jsonArray = new JSONArray();
+                            JSONArray iosJsonArray = new JSONArray();
+                            Map<String, JSONArray> deviceMap = new HashMap<>();
+                            for (int i = 0; i < deviceTokens.length; i++)
+                            {
+                                if (deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()))
+                                {
+                                    jsonArray.put(deviceTokens[i]);
+                                }
+                                else if (deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()))
+                                {
+                                    iosJsonArray.put(deviceTokens[i]);
+                                }
+
                             }
+                            deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(), jsonArray);
+                            deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(), iosJsonArray);
 
+                            studyDeviceTokenMap.put(studyid, deviceMap);
                         }
-                        deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(),jsonArray);
-                        deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(),iosJsonArray);
-
-                        studyDeviceTokenMap.put(studyid,deviceMap);
                     }
                 }
+                rs.close();
             }
         }catch (Exception e){
             _log.error("getStudyLevelDeviceToken error:",e);
