@@ -350,7 +350,7 @@ public class FdahpUserRegWSManager
                 }else{
                     Table.insert(null, table, participantStudies);
                 }
-                addAuditEvent(participantStudies.getUserId(),"Study State Update","Update Study State with Study "+participantStudies.getStudyId(),"FdaStudyAuditEvent","");
+                addAuditEvent(participantStudies.getUserId(),"Study State Update"," Study state has been updated "+participantStudies.getStudyId()+".","FdaStudyAuditEvent","");
             }
 
             if(participantStudiesList.size() > 0){
@@ -375,7 +375,7 @@ public class FdahpUserRegWSManager
                     Table.update(null,table,participantActivities,participantActivities.getId());
                 else
                     Table.insert(null,table,participantActivities);
-                addAuditEvent(participantActivities.getParticipantId(),"Activity State Update","Update Activity State with Activity Id"+participantActivities.getActivityId(),"FdaActivityAuditEvent","");
+                addAuditEvent(participantActivities.getParticipantId(),"Activity State Update","Activity state has been updated "+participantActivities.getActivityId()+".","FdaActivityAuditEvent","");
             }
 
 

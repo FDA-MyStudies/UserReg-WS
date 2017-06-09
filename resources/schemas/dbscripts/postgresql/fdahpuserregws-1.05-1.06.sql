@@ -19,5 +19,5 @@
 
 ALTER TABLE fdahpUserRegWS.AuthInfo ADD RemoteNotificationFlag BOOLEAN NULL;
 
-UPDATE fdahpUserRegWS.AuthInfo SET RemoteNotificationFlag = false;
+UPDATE fdahpUserRegWS.AuthInfo SET RemoteNotificationFlag = true;
 
