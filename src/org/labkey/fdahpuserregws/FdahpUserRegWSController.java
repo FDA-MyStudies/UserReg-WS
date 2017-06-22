@@ -55,12 +55,15 @@ import org.labkey.api.util.GUID;
 
 import javax.activation.MimeType;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,6 +75,9 @@ import org.labkey.api.module.Module;
 import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.security.CSRF;
+import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.files.FileContentService;
+
 public class FdahpUserRegWSController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FdahpUserRegWSController.class);
@@ -91,6 +97,10 @@ public class FdahpUserRegWSController extends SpringActionController
     {
         public ModelAndView getView(Object o, BindException errors) throws Exception
         {
+            File fileRoot = ServiceRegistry.get().getService(FileContentService.class).getFileRoot(getViewContext().getContainer(), FileContentService.ContentType.files);
+            if(!fileRoot.exists())
+                fileRoot.mkdirs();
+            System.out.println("fileRoot:"+fileRoot);
             return new JspView("/org/labkey/fdahpuserregws/view/hello.jsp");
         }
 
@@ -109,7 +119,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.07 Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.11 Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -170,14 +180,14 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
-                            //FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,addParticipantDetails.getEmail());
-                            boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
+                            FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,addParticipantDetails.getEmail());
+                            /*boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                 return null;
-                            }
+                            }*/
                             FdahpUserRegWSManager.addAuditEvent(addParticipantDetails.getUserId(),"User Registration Success","User Registration Success  with  email "+addParticipantDetails.getEmail()+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                         }else{
@@ -626,15 +636,15 @@ public class FdahpUserRegWSController extends SpringActionController
                                         "</div>" +
                                         "</body>" +
                                         "</html>";
-                                //FdahpUserRegUtil.sendMessage("Password Help - FDA My Studies App!",message,participantDetails.getEmail());
-                                //response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA My Studies App!",message);
+                                FdahpUserRegUtil.sendMessage("Password Help - FDA My Studies App!",message,participantDetails.getEmail());
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                /*boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA My Studies App!",message);
                                 if (isMailSent){
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 }else{
                                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                     return null;
-                                }
+                                }*/
                                 FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
                                 FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Forgot password",participantDetails.getEmail()+" used forgot password.","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             }else{
@@ -1538,8 +1548,11 @@ public class FdahpUserRegWSController extends SpringActionController
                                                     consent.setVersion(consentStatusForm.getConsent().getVersion());
                                                 if(consentStatusForm.getConsent().getStatus() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getStatus()))
                                                     consent.setStatus(consentStatusForm.getConsent().getStatus());
-                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getPdf()))
+                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getPdf())){
                                                     consent.setPdf(consentStatusForm.getConsent().getPdf());
+                                                    String pdfPath = saveConsentDocument(consent);
+                                                    consent.setPdfPath(pdfPath);
+                                                }
                                                 consent.setUserId(userId);
                                                 consent.setStudyId(consentStatusForm.getStudyId());
                                             }else{
@@ -1549,6 +1562,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 consent.setStatus(consentStatusForm.getConsent().getStatus());
                                                 consent.setVersion(consentStatusForm.getConsent().getVersion());
                                                 consent.setPdf(consentStatusForm.getConsent().getPdf());
+                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getPdf())){
+                                                    String pdfPath = saveConsentDocument(consent);
+                                                    consent.setPdfPath(pdfPath);
+                                                }
                                             }
                                             updateConsent = FdahpUserRegWSManager.get().saveStudyConsent(consent);
                                             if(updateConsent != null && message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
@@ -2241,6 +2258,23 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 }
                                                 if(studiesBean.getStatus() != null && StringUtils.isNotEmpty(studiesBean.getStatus())){
                                                     participantStudies.setStatus(studiesBean.getStatus());
+                                                    if(studiesBean.getStatus().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.IN_PROGRESS.getValue())){
+                                                        List<ParticipantActivities>   participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(studiesBean.getStudyId(),userId);
+                                                        if(participantActivitiesList != null && participantActivitiesList.size()>0){
+                                                            for (ParticipantActivities participantActivities : participantActivitiesList)
+                                                            {
+                                                                participantActivities.setActivityVersion(null);
+                                                                participantActivities.setActivityState(null);
+                                                                participantActivities.setActivityRunId(null);
+                                                                participantActivities.setBookmark(false);
+                                                                participantActivities.setTotal(0);
+                                                                participantActivities.setCompleted(0);
+                                                                participantActivities.setMissed(0);
+                                                            }
+                                                            FdahpUserRegWSManager.get().saveParticipantActivities(participantActivitiesList);
+                                                        }
+                                                        participantStudies.setEnrolledDate(FdahpUserRegUtil.getCurrentUtilDateTime());
+                                                    }
                                                 }
                                                 if (studiesBean.getBookmarked() != null)
                                                     participantStudies.setBookmark(studiesBean.getBookmarked());
@@ -2509,5 +2543,101 @@ public class FdahpUserRegWSController extends SpringActionController
         }
 
     }
+    @RequiresNoPermission
+    public class GenerateTheFileAction extends ApiAction<StudyConsent>{
 
+        @Override
+        public ApiResponse execute(StudyConsent StudyConsent, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            List<StudyConsent> studyConsentList = FdahpUserRegWSManager.get().getStudyConsentList();
+            FileContentService fileContentService = ServiceRegistry.get().getService(FileContentService.class);
+            //File root = fileContentService.getDefaultRoot(getViewContext().getContainer(), true);
+            File root = fileContentService.getFileRoot(getViewContext().getContainer(), FileContentService.ContentType.files);
+            if(!root.exists())
+                root.mkdirs();
+            _log.info("root:"+root);
+            File rootModule = null;
+            if (root != null)
+            {
+                 rootModule = new File(root, FdahpUserRegWSModule.NAME);
+                 if (!rootModule.exists())
+                    rootModule.mkdirs();
+                _log.info(rootModule);
+
+            }
+            _log.info(studyConsentList.size());
+            if(studyConsentList != null && studyConsentList.size() > 0){
+                for (StudyConsent studyConsent : studyConsentList){
+                    if(rootModule != null){
+                        File dir = new File(rootModule, studyConsent.getStudyId());
+                        if(!dir.exists())
+                            dir.mkdir();
+                        String fileName = FdahpUserRegUtil.getStandardFileName(studyConsent.getStudyId(),studyConsent.getUserId(),studyConsent.getVersion());
+                        _log.info(fileName);
+                        try {
+                            byte[] decodedBytes;
+                            FileOutputStream fop;
+                            decodedBytes =  Base64.getDecoder().decode(studyConsent.getPdf());
+                            File file = new File(dir,fileName);
+                            fop = new FileOutputStream(file);
+                            fop.write(decodedBytes);
+                            fop.flush();
+                            fop.close();
+                        } catch (Exception e) {
+                            _log.error("Error..",e);
+                            response.put("message","Fail");
+                        }
+                    }
+
+                }
+            }
+            response.put("message","SUCESS");
+            response.put("status", studyConsentList.size()+" Files Created");
+            return response;
+        }
+    }
+
+    public String saveConsentDocument(StudyConsent studyConsent){
+        String fileName="";
+        try{
+            FileContentService fileContentService = ServiceRegistry.get().getService(FileContentService.class);
+          //  File root = fileContentService.getDefaultRoot(getViewContext().getContainer(), true);
+            File root = fileContentService.getFileRoot(getViewContext().getContainer(), FileContentService.ContentType.files);
+            if(!root.exists())
+                root.mkdirs();
+            File rootModule = null;
+            _log.info("root:"+root);
+            if (root != null)
+            {
+                rootModule = new File(root, FdahpUserRegWSModule.NAME);
+                if (!rootModule.exists())
+                    rootModule.mkdirs();
+            }
+            _log.info("rootModule:"+rootModule);
+            if(rootModule != null){
+                File dir = new File(rootModule, studyConsent.getStudyId());
+                if(!dir.exists())
+                    dir.mkdir();
+                fileName = FdahpUserRegUtil.getStandardFileName(studyConsent.getStudyId(),studyConsent.getUserId(),studyConsent.getVersion());
+                _log.info(fileName);
+                try {
+                    byte[] decodedBytes;
+                    FileOutputStream fop;
+                    //_log.info("studyConsent.getPdf():"+studyConsent.getPdf().replaceAll("\n", ""));
+                    decodedBytes =  Base64.getDecoder().decode(studyConsent.getPdf().replaceAll("\n", ""));
+                    File file = new File(dir,fileName);
+                    fop = new FileOutputStream(file);
+                    fop.write(decodedBytes);
+                    fop.flush();
+                    fop.close();
+                } catch (Exception e) {
+                    _log.error("FdahpUserRegWSController saveConsentDocument:",e);
+                }
+            }
+        }catch (Exception e){
+            _log.error("FdahpUserRegWSController saveConsentDocument:",e);
+        }
+        return fileName;
+    }
 }

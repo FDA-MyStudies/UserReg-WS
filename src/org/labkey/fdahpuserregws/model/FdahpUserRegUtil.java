@@ -390,4 +390,8 @@ public class FdahpUserRegUtil
             _log.error("pushNotification ", e);
         }
     }
+    public static String getStandardFileName(String StudyId, String userId,String version) {
+        String dateTime = new SimpleDateFormat("MMddyyyyHHmmss").format(new Date());
+        return StudyId + "_" + userId+ "_"+version+ "_"+ dateTime+".pdf";
+    }
 }

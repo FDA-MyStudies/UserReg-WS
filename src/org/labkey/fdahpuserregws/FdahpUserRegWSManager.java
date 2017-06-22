@@ -521,11 +521,13 @@ public class FdahpUserRegWSManager
             SqlExecutor executor = new SqlExecutor(schema);
             SQLFragment sqlUpdateVisitDates = new SQLFragment();
 
+            TableInfo participantActivitiesInfo = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
+            participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+
             if(deleteData){
-                TableInfo participantActivitiesInfo = FdahpUserRegWSSchema.getInstance().getParticipantActivities();
-                participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
                 SimpleFilter filterActivities = new SimpleFilter();
                 filterActivities.addCondition(FieldKey.fromParts("ParticipantId"), userId);
+                filterActivities.addCondition(FieldKey.fromParts("StudyId"), studyId);
                 Table.delete(participantActivitiesInfo,filterActivities);
 
                 sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
@@ -536,7 +538,6 @@ public class FdahpUserRegWSManager
                 if (execute > 0){
                     message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
                 }
-
             }else{
                 sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
                         .append("SET Status = 'Withdrawn'")
@@ -956,6 +957,19 @@ public class FdahpUserRegWSManager
        return loginAttempts;
    }
 
+    public List<StudyConsent> getStudyConsentList(){
+        List<StudyConsent> studyConsent = null;
+        try{
+            TableInfo studyConsentInfo = FdahpUserRegWSSchema.getInstance().getStudyConsent();
+            SQLFragment sql=null;
+            sql =  new SQLFragment("SELECT * FROM " + studyConsentInfo.getSelectName() + " WHERE pdf notnull");
+            studyConsent = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getArrayList(StudyConsent.class);
+
+        }catch (Exception e){
+            _log.error("getStudyConsent Error",e);
+        }
+        return studyConsent;
+    }
 }
 
 
