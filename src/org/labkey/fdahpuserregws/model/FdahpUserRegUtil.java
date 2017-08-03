@@ -365,9 +365,7 @@ public class FdahpUserRegUtil
             File f = ((FileResource) r).getFile();
             String path = f.getPath();
             _log.info("path:"+path);
-            ApnsService service = APNS.newService()
-                    .withCert(path, (String)configProp.get("certificate.password"))
-                    .withSandboxDestination().build();
+            ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build();
 
             List<String> tokens = new ArrayList<String>();
             if(notificationBean.getDeviceToken() != null){
@@ -377,7 +375,7 @@ public class FdahpUserRegUtil
                    tokens.add(token);
                }
             }
-            String customPayload = APNS.newPayload().badge(1).alertTitle(notificationBean.getNotificationTitle())
+            String customPayload = APNS.newPayload().badge(1).alertTitle("")
                     .alertBody(notificationBean.getNotificationText())
                     .customField("subtype", notificationBean.getNotificationSubType())
                     .customField("type", notificationBean.getNotificationType())

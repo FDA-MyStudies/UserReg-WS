@@ -97,10 +97,10 @@ public class FdahpUserRegWSController extends SpringActionController
     {
         public ModelAndView getView(Object o, BindException errors) throws Exception
         {
-            File fileRoot = ServiceRegistry.get().getService(FileContentService.class).getFileRoot(getViewContext().getContainer(), FileContentService.ContentType.files);
+            /*File fileRoot = ServiceRegistry.get().getService(FileContentService.class).getFileRoot(getViewContext().getContainer(), FileContentService.ContentType.files);
             if(!fileRoot.exists())
                 fileRoot.mkdirs();
-            System.out.println("fileRoot:"+fileRoot);
+            System.out.println("fileRoot:"+fileRoot);*/
             return new JspView("/org/labkey/fdahpuserregws/view/hello.jsp");
         }
 
@@ -119,7 +119,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.11 Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.13 Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -168,11 +168,11 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "<body>" +
                                     "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
                                     "<span>Hi,</span><br/><br/>" +
-                                    "<span>Thanks for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
-                                    "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the email verification step in the mobile app. </span><br/><br/>" +
+                                    "<span>Thank you for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
+                                    "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the Verification step in the mobile app. </span><br/><br/>" +
                                     "<span><strong>Verification Code:</strong>" +addParticipantDetails.getSecurityToken()+ "</span><br/><br/>" +
                                     "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
-                                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study(ies) housed in the app. Each study has its own consent process <br/> and your data for the study will not be collected without you providing your informed consent prior<br/> to joining the study. </span><br/><br/>"+
+                                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study housed in the app. Each study has its own consent process <br/> and no data for any study will not be collected unless and until you provide an informed consent<br/> prior to joining the study </span><br/><br/>"+
                                     "<span>For any questions or assistance, please write to <a>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
                                     "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA My Studies Platform Team</span>" +
                                     "<br/><span>----------------------------------------------------</span><br/>" +
@@ -432,7 +432,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
 
                         }else{
-                            FdahpUserRegWSManager.addAuditEvent(null,"User Login Failure","Wrong information entered in email "+loginForm.getEmailId()+". Which is not existed.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                            FdahpUserRegWSManager.addAuditEvent(null,"FAILED SIGN IN","Wrong information entered in email "+loginForm.getEmailId()+". Which is not existed.","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_CREDENTIALS.name(), FdahpUserRegUtil.ErrorCodes.INVALID_CREDENTIALS.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -487,7 +487,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     }
                 }
                 FdahpUserRegWSManager.get().resetLoginAttempts(email);
-                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Success","User Logged In "+email+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"SIGN IN","User Signed In.(User ID =  "+participantDetails.getUserId()+").","FdaUserAuditEvent",getViewContext().getContainer().getId());
             }  else{
                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                 return null;
@@ -512,7 +512,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         response.put("resetPassword", participantDetails.getTempPassword());
                         FdahpUserRegWSManager.get().resetLoginAttempts(email);
-                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Success","User Logged In with "+email+" with temp password.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"SIGN IN","User Signed In.(User ID =  "+participantDetails.getUserId()+") with temp password.","FdaUserAuditEvent",getViewContext().getContainer().getId());
                     } else{
                         FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
                         return null;
@@ -523,7 +523,7 @@ public class FdahpUserRegWSController extends SpringActionController
                 }
             }
         }else{
-            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Login Failure","Login failed due to wrong temporary password/Login failed due to wrong password/Login failed due to wrong email id.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"FAILED SIGN IN","User Sign-In Failed. (User ID = "+participantDetails.getUserId()+")","FdaUserAuditEvent",getViewContext().getContainer().getId());
             LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email);
             _log.info("maxAttemptsCount:"+maxAttemptsCount);
             if(failAttempts != null && failAttempts.getAttempts() == maxAttemptsCount){
@@ -625,14 +625,14 @@ public class FdahpUserRegWSController extends SpringActionController
                                         "<body>" +
                                         "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
                                         "<span>Hi,</span><br/><br/>" +
-                                        "<span>Thanks for reaching out for password help.</span><br/><br/>" +
-                                        "<span>Here is a temporary password which you can use to sign in to the FDA My Studies<br/> App. You will be required to set up a new password after signing in.</span><br/><br/>" +
+                                        "<span>Thank you for reaching out for password help.</span><br/><br/>" +
+                                        "<span>Here is a temporary password which you can use to sign in to the FDA My Studies App.<br/> You will be required to set up a new password after signing in.</span><br/><br/>" +
                                         "<span><strong>Temporary Password:</strong> " + tempPassword + "</span><br/><br/>" +
                                         "<span>Please note that this temporary password can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
                                         "<span>For any questions or assistance, please write to <a>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
                                         "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA My Studies Platform Team</span>" +
                                         "<br/><span>----------------------------------------------------</span><br/>" +
-                                        "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.. In case you did not request for password help, please visit the app and change your password as a precautionary measure.</span>" +
+                                        "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply. In case you did not request password help, please visit the app and change your password as a precautionary measure.</span>" +
                                         "</div>" +
                                         "</body>" +
                                         "</html>";
@@ -646,7 +646,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     return null;
                                 }*/
                                 FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
-                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Forgot password",participantDetails.getEmail()+" used forgot password.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"PASSWORD HELP","Password Help sent to user.(User ID = "+participantDetails.getUserId()+")","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_VERIFIED.getValue(), FdahpUserRegUtil.ErrorCodes.EMAIL_NOT_VERIFIED.getValue(), getViewContext().getResponse());
                                 return null;
@@ -713,11 +713,11 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "<body>" +
                                     "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
                                     "<span>Hi,</span><br/><br/>" +
-                                    "<span>Thanks for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
-                                    "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the email verification step in the mobile app.</span><br/><br/>" +
+                                    "<span>Thank you for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
+                                    "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the Verification step in the mobile app.</span><br/><br/>" +
                                     "<span><strong>Verification Code:</strong>" +participantDetails.getSecurityToken()+ "</span><br/><br/>" +
                                     "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
-                                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study(ies) housed in the app. Each study has its own consent process <br/> and your data for the study will not be collected without you providing your informed consent prior<br/> to joining the study. </span><br/><br/>"+
+                                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study housed in the app.Each study has its own consent process, <br/>and no data for any study will be collected unless and until you provide an informed consent<br/> prior to joining the study. </span><br/><br/>"+
                                     "<span>For any questions or assistance, please write to <a>"+configProp.get("support.email")+"</a> </span><br/><br/>" +
                                     "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA My Studies Platform Team</span>" +
                                     "<br/><span>----------------------------------------------------</span><br/>" +
@@ -940,7 +940,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 message = FdahpUserRegWSManager.get().signout(userId);
                                 if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                    FdahpUserRegWSManager.addAuditEvent(userId,"User Logout"," User logged out.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                                    FdahpUserRegWSManager.addAuditEvent(userId,"SIGN OUT","User Signed Out. (User ID = "+userId+") ","FdaUserAuditEvent",getViewContext().getContainer().getId());
                                 }else{
                                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(), getViewContext().getResponse());
                                     return null;
@@ -1128,7 +1128,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 if (updateParticipantDetails != null || message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()) || updaAuthInfo != null)
                                 {
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"User Profile","User profile has been updated.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"PROFILE UPDATE","User Profile/Preferences updated.  (User ID = "+participantDetails.getUserId()+")","FdaUserAuditEvent",getViewContext().getContainer().getId());
                                 }
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
@@ -1544,11 +1544,11 @@ public class FdahpUserRegWSController extends SpringActionController
                                         if(consentStatusForm.getConsent().getVersion() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getVersion())){
                                             consent = FdahpUserRegWSManager.get().getStudyConsent(userId,consentStatusForm.getStudyId(),consentStatusForm.getConsent().getVersion());
                                             if(consent != null){
-                                                if(consentStatusForm.getConsent().getVersion() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getVersion()))
+                                                if(consentStatusForm.getConsent().getVersion() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getVersion()))
                                                     consent.setVersion(consentStatusForm.getConsent().getVersion());
-                                                if(consentStatusForm.getConsent().getStatus() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getStatus()))
+                                                if(consentStatusForm.getConsent().getStatus() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getStatus()))
                                                     consent.setStatus(consentStatusForm.getConsent().getStatus());
-                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getPdf())){
+                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getPdf())){
                                                     consent.setPdf(consentStatusForm.getConsent().getPdf());
                                                     String pdfPath = saveConsentDocument(consent);
                                                     consent.setPdfPath(pdfPath);
@@ -1562,7 +1562,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 consent.setStatus(consentStatusForm.getConsent().getStatus());
                                                 consent.setVersion(consentStatusForm.getConsent().getVersion());
                                                 consent.setPdf(consentStatusForm.getConsent().getPdf());
-                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNoneEmpty(consentStatusForm.getConsent().getPdf())){
+                                                if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getPdf())){
                                                     String pdfPath = saveConsentDocument(consent);
                                                     consent.setPdfPath(pdfPath);
                                                 }
@@ -1682,14 +1682,14 @@ public class FdahpUserRegWSController extends SpringActionController
                            if(participantActivitiesList !=null && participantActivitiesList.size() >0)
                            {
                                for (ParticipantActivities participantActivities : participantActivitiesList){
-                                   JSONObject jsonObject = new JSONObject();//&& StringUtils.isNoneEmpty(consentStatusForm.getConsent().getVersion())
-                                   if (participantActivities.getActivityId() != null && StringUtils.isNoneEmpty(participantActivities.getActivityId()))
+                                   JSONObject jsonObject = new JSONObject();//&& StringUtils.isNotEmpty(consentStatusForm.getConsent().getVersion())
+                                   if (participantActivities.getActivityId() != null && StringUtils.isNotEmpty(participantActivities.getActivityId()))
                                        jsonObject.put("activityId",participantActivities.getActivityId());
-                                   if(participantActivities.getActivityVersion() != null && StringUtils.isNoneEmpty(participantActivities.getActivityVersion()))
+                                   if(participantActivities.getActivityVersion() != null && StringUtils.isNotEmpty(participantActivities.getActivityVersion()))
                                        jsonObject.put("activityVersion",participantActivities.getActivityVersion());
-                                   if(participantActivities.getActivityState() != null && StringUtils.isNoneEmpty(participantActivities.getActivityState()))
+                                   if(participantActivities.getActivityState() != null && StringUtils.isNotEmpty(participantActivities.getActivityState()))
                                        jsonObject.put("activityState",participantActivities.getActivityState());
-                                   if(participantActivities.getActivityRunId() != null && StringUtils.isNoneEmpty(participantActivities.getActivityRunId()))
+                                   if(participantActivities.getActivityRunId() != null && StringUtils.isNotEmpty(participantActivities.getActivityRunId()))
                                        jsonObject.put("activityRunId",participantActivities.getActivityRunId());
                                    if(participantActivities.getBookmark() != null )
                                        jsonObject.put("bookmarked",participantActivities.getBookmark());
@@ -2180,7 +2180,7 @@ public class FdahpUserRegWSController extends SpringActionController
                             if(null != userId && StringUtils.isNotEmpty(userId)){
                                 message = FdahpUserRegWSManager.get().deActivate(userId,deactivateForm);
                                 if(message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue())){
-                                    FdahpUserRegWSManager.addAuditEvent(userId,"User Deactivate","User Deactivated.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                                    FdahpUserRegWSManager.addAuditEvent(userId,"ACCOUNT DELETE","User account deleted. (User ID = "+userId+") ","FdaUserAuditEvent",getViewContext().getContainer().getId());
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 }else{
                                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(), getViewContext().getResponse());
