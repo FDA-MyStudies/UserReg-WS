@@ -12,6 +12,7 @@ public class StudyConsent extends Entity
     private String _Status;
     private String _Version;
     private String _Pdf;
+    private String _PdfPath;
 
     public Integer getId()
     {
@@ -71,5 +72,15 @@ public class StudyConsent extends Entity
     public void setPdf(String pdf)
     {
         _Pdf = pdf;
+    }
+
+    public String getPdfPath()
+    {
+        return _PdfPath;
+    }
+
+    public void setPdfPath(String pdfPath)
+    {
+        _PdfPath = pdfPath;
     }
 }

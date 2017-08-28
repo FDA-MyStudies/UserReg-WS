@@ -99,8 +99,8 @@ public class FdahpUserRegUtil
         STUDY_LEVEL("ST"),
         GATEWAY_LEVEL("GT"),
         INVALID_CREDENTIALS("Invalid credentials"),
-        ACCOUNT_LOCKED("Your account is locked! Please reset password"),
-        ACCOUNT_TEMP_LOCKED("As a security measure, this account has been locked for 10 minutes."),
+        ACCOUNT_LOCKED("As a security measure, this account has been locked for 15 minutes."),
+        ACCOUNT_TEMP_LOCKED("As a security measure, this account has been locked for 15 minutes."),
         EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
         EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),
         LABKEY_HOME("http://192.168.0.6:8081"),
@@ -365,9 +365,7 @@ public class FdahpUserRegUtil
             File f = ((FileResource) r).getFile();
             String path = f.getPath();
             _log.info("path:"+path);
-            ApnsService service = APNS.newService()
-                    .withCert(path, (String)configProp.get("certificate.password"))
-                    .withSandboxDestination().build();
+            ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build();
 
             List<String> tokens = new ArrayList<String>();
             if(notificationBean.getDeviceToken() != null){
@@ -377,7 +375,7 @@ public class FdahpUserRegUtil
                    tokens.add(token);
                }
             }
-            String customPayload = APNS.newPayload().badge(1).alertTitle(notificationBean.getNotificationTitle())
+            String customPayload = APNS.newPayload().badge(1).alertTitle("")
                     .alertBody(notificationBean.getNotificationText())
                     .customField("subtype", notificationBean.getNotificationSubType())
                     .customField("type", notificationBean.getNotificationType())
@@ -389,5 +387,9 @@ public class FdahpUserRegUtil
         }catch (Exception e){
             _log.error("pushNotification ", e);
         }
+    }
+    public static String getStandardFileName(String StudyId, String userId,String version) {
+        String dateTime = new SimpleDateFormat("MMddyyyyHHmmss").format(new Date());
+        return StudyId + "_" + userId+ "_"+version+ "_"+ dateTime+".pdf";
     }
 }

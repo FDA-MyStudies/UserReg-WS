@@ -20,6 +20,8 @@ public class AuthInfo extends Entity
     private String _AndroidAppVersion;
 
     private Date _SessionExpiredDate;
+    private Boolean _RemoteNotificationFlag=false;
+
 
 
     public int getAuthId()
@@ -122,5 +124,13 @@ public class AuthInfo extends Entity
         _SessionExpiredDate = sessionExpiredDate;
     }
 
+    public Boolean getRemoteNotificationFlag()
+    {
+        return _RemoteNotificationFlag;
+    }
 
+    public void setRemoteNotificationFlag(Boolean remoteNotificationFlag)
+    {
+        _RemoteNotificationFlag = remoteNotificationFlag;
+    }
 }
