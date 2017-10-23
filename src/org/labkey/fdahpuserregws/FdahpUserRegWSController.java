@@ -77,7 +77,9 @@ import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.files.FileContentService;
-
+import org.labkey.api.view.NavTree;
+import org.labkey.api.view.menu.FolderAdminMenu;
+import org.labkey.api.util.FileUtil;
 public class FdahpUserRegWSController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FdahpUserRegWSController.class);
@@ -119,8 +121,48 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.13 Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.14 Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
+
+            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            File siteRoot = svc.getSiteDefaultRoot();
+            System.out.println("siteRoot:"+siteRoot);
+            File testRoot = new File(siteRoot, "FDA");
+            System.out.println("testRoot:"+testRoot);
+            testRoot.mkdirs();
+
+            File root = fileContentService.getDefaultRoot(getViewContext().getContainer(), true);
+
+            System.out.println("root:"+root);
+
+            FileContentService service = ServiceRegistry.get().getService(FileContentService.class);
+
+            if (service != null)
+            {
+                File root = service.getFileRoot(getViewContext().getContainer());
+                System.out.println("root:"+root);
+                if (null != root)
+                {
+                    String path = root.getPath();
+                    System.out.println("path:"+path);
+                    try
+                    {
+                       // NetworkDrive.ensureDrive(path);
+                        path = FileUtil.getAbsoluteCaseSensitiveFile(root).getAbsolutePath();
+                        System.out.println("path2:"+path);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.error("Could not get canonical path for " + root.getPath() + ", using path as entered.", e);
+                    }
+                   // form.setRootPath(path);
+                }
+            }
+            //Assert.assertTrue("Unable to create test file root", testRoot.exists());
+
+            //return testRoot;
+            System.out.println(svc.getUserFilesRoot());
+
             return apiSimpleResponse;
         }
     }
@@ -162,6 +204,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(addParticipantDetails.getUserId());
                                 if(authInfo != null){
                                     response.put("auth", authInfo.getAuthKey());
+                                    response.put("refreshToken",authInfo.getRefreshToken());
                                 }
                             }
                             String message = "<html>" +
@@ -180,14 +223,14 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
-                            FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,addParticipantDetails.getEmail());
-                            /*boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
+                            //FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,addParticipantDetails.getEmail());
+                            boolean isMailSent = FdahpUserRegUtil.sendemail(addParticipantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                 return null;
-                            }*/
+                            }
                             FdahpUserRegWSManager.addAuditEvent(addParticipantDetails.getUserId(),"User Registration Success","User Registration Success  with  email "+addParticipantDetails.getEmail()+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                         }else{
@@ -471,6 +514,7 @@ public class FdahpUserRegWSController extends SpringActionController
                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                 response.put("userId",participantDetails.getUserId());
                 response.put("auth",authInfo.getAuthKey());
+                response.put("refreshToken",authInfo.getRefreshToken());
                 if(participantDetails.getStatus() == 2)
                 {
                     response.put("verified", false);
@@ -636,15 +680,15 @@ public class FdahpUserRegWSController extends SpringActionController
                                         "</div>" +
                                         "</body>" +
                                         "</html>";
-                                FdahpUserRegUtil.sendMessage("Password Help - FDA My Studies App!",message,participantDetails.getEmail());
-                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                /*boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA My Studies App!",message);
+                              /*  FdahpUserRegUtil.sendMessage("Password Help - FDA My Studies App!",message,participantDetails.getEmail());
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());*/
+                                boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Password Help - FDA My Studies App!",message);
                                 if (isMailSent){
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 }else{
                                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                     return null;
-                                }*/
+                                }
                                 FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
                                 FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"PASSWORD HELP","Password Help sent to user.(User ID = "+participantDetails.getUserId()+")","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             }else{
@@ -725,16 +769,16 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
-                            FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,participantDetails.getEmail());
-                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Requested Confirmation mail","Confirmation mail has been sent again to"+participantDetails.getEmail()+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
-                            /*boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
+                           // FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,participantDetails.getEmail());
+                           // response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                          //  FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Requested Confirmation mail","Confirmation mail has been sent again to"+participantDetails.getEmail()+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                            boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                             }else{
                                 FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(),FdahpUserRegUtil.ErrorCodes.FAILURE_TO_SENT_MAIL.getValue(), getViewContext().getResponse());
                                 return null;
-                            }*/
+                            }
                         }else{
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue(), FdahpUserRegUtil.ErrorCodes.USER_ALREADY_VERIFIED.getValue(), getViewContext().getResponse());
                             return null;
@@ -2639,5 +2683,71 @@ public class FdahpUserRegWSController extends SpringActionController
             _log.error("FdahpUserRegWSController saveConsentDocument:",e);
         }
         return fileName;
+    }
+
+    public static class RefreshTokenForm{
+
+        public  String _refreshToken;
+
+        public String getRefreshToken()
+        {
+            return _refreshToken;
+        }
+
+        public void setRefreshToken(String refreshToken)
+        {
+            _refreshToken = refreshToken;
+        }
+    }
+
+    @RequiresNoPermission
+    public class RefreshTokenAction extends ApiAction<RefreshTokenForm>{
+
+        @Override
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
+        public ApiResponse execute(RefreshTokenForm refreshTokenForm, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            AuthInfo existedAuthInfo = null;
+            try{
+                if(refreshTokenForm != null){
+                    if((refreshTokenForm.getRefreshToken() != null && StringUtils.isNotEmpty(refreshTokenForm.getRefreshToken()))){
+                        existedAuthInfo = FdahpUserRegWSManager.get().getAuthInfoByRefreshToken(refreshTokenForm.getRefreshToken());
+                        if(null != existedAuthInfo){
+                            AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(existedAuthInfo.getParticipantId());
+                            if(authInfo != null){
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                response.put("userId",authInfo.getParticipantId());
+                                response.put("auth",authInfo.getAuthKey());
+                                response.put("refreshToken",authInfo.getRefreshToken());
+                            }
+                        }else{
+                            FdahpUserRegWSManager.addAuditEvent(null,"FAILED RefreshToken IN","Wrong RefreshToken. Which is not existed.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.name(), FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.getValue(), getViewContext().getResponse());
+                            return null;
+                        }
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        return null;
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                    return null;
+                }
+
+
+            }catch (Exception e){
+                _log.error("Login Action:",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                return null;
+            }
+            return response;
+        }
     }
 }

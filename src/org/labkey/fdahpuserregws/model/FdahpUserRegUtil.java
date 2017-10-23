@@ -107,7 +107,8 @@ public class FdahpUserRegUtil
         STUDY("Study"),
         GATEWAY("Gateway"),
         DEVICE_ANDROID("android"),
-        DEVICE_IOS("ios");
+        DEVICE_IOS("ios"),
+        INVALID_REFRESHTOKEN("Invalid refresh token.");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
