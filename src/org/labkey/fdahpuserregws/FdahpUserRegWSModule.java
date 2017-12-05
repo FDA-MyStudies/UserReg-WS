@@ -23,6 +23,7 @@ import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.audit.AuditLogService;
+import org.labkey.api.module.ModuleProperty;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -41,7 +42,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 1.14;
+        return 1.16;
     }
 
     @Override
@@ -61,6 +62,9 @@ public class FdahpUserRegWSModule extends DefaultModule
     protected void init()
     {
         addController(FdahpUserRegWSController.NAME, FdahpUserRegWSController.class);
+        ModuleProperty mp = new ModuleProperty(this, "StudyId");
+        mp.setCanSetPerContainer(true);
+        addModuleProperty(mp);
     }
 
     @Override

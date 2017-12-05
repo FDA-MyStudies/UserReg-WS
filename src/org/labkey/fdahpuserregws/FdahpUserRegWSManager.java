@@ -116,7 +116,7 @@ public class FdahpUserRegWSManager
         return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getArrayList(UserDetails.class);
     }
 
-    public AuthInfo saveAuthInfo(String userId){
+    public AuthInfo saveAuthInfo(String userId,boolean isRefresh){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -137,7 +137,8 @@ public class FdahpUserRegWSManager
                 authInfo.setModifiedOn(new Date());
                 _log.info("session.expiration.days:"+FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
                 authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
-                authInfo.setRefreshToken(refreshToken);
+                if(isRefresh)
+                    authInfo.setRefreshToken(refreshToken);
                 Table.update(null,table, authInfo,authInfo.getAuthId());
             }else{
                 authInfo = new AuthInfo();
@@ -148,7 +149,8 @@ public class FdahpUserRegWSManager
                 authInfo.setCreatedOn(new Date());
                 _log.info("session.expiration.days:"+FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
                 authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
-                authInfo.setRefreshToken(refreshToken);
+                if(isRefresh)
+                    authInfo.setRefreshToken(refreshToken);
                 Table.insert(null,table, authInfo);
             }
         }catch (Exception e){
@@ -210,7 +212,7 @@ public class FdahpUserRegWSManager
             participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(UserDetails.class);
             if(null != participantDetails){
                 participantForm = new ParticipantForm();
-                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId());
+                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId(),true);
                 if(authInfo != null){
                     participantForm.setAuth(authInfo.getAuthKey());
                 }
