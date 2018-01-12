@@ -37,7 +37,7 @@ For ex:C:\dev\labkey
 
 Move the above distribution file into your tomcat webapps folder and unzip the folder and restart the you server and test with below link
 
-Test URL
+## Test URL
 http://localhost:8080/labkey/fdahpUserRegWS/ping.api
 
 
