@@ -1,8 +1,8 @@
-FDA-User Reg WS
+#FDA-User Reg WS
 
 This project consists of APIs that required for MyStudies User registration.This project is developed in Spring MVC framework on Labkey environment.
 
-Getting Started
+##Getting Started
 
 This project built on Labkey environment and to start this project you need to set up the labkey 
 Development machine. Below link will help you to set up the labkey development machine 
@@ -17,7 +17,7 @@ git clone https://github.com/LabKey/compliance.git
 
 Switch to the release17.1 branch and git pull
 
-Build
+###Build
 
 Once the setup is done you should be able to build the distribution with these two commands 
 
@@ -33,7 +33,7 @@ LBAKEY_HOME is the root folder where you cloned the labkey code
 
 For ex:C:\dev\labkey
 
-Deployment
+##Deployment
 
 Move the above distribution file into your tomcat webapps folder and unzip the folder and restart the you server and test with below link
 
