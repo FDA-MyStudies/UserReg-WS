@@ -6,10 +6,15 @@ Getting Started
 
 This project built on Labkey environment and to start this project you need to set up the labkey 
 Development machine. Below link will help you to set up the labkey development machine 
+
 https://www.labkey.org/Documentation/wiki-page.view?name=devMachine
+
 Once the Labkey development environment set clone git repositories such as fdahpUserRegWS into the /server/customModules folder.
+
 Clone git repositories such as compliance into the /server/optionalModules folder
+
 git clone https://github.com/LabKey/compliance.git
+
 Switch to the release17.1 branch and git pull
 
 Build
