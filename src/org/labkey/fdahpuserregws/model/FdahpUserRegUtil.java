@@ -107,7 +107,8 @@ public class FdahpUserRegUtil
         STUDY("Study"),
         GATEWAY("Gateway"),
         DEVICE_ANDROID("android"),
-        DEVICE_IOS("ios");
+        DEVICE_IOS("ios"),
+        INVALID_REFRESHTOKEN("Invalid refresh token.");
         private final String value;
         ErrorCodes(final String newValue){
             value=newValue;
@@ -365,7 +366,8 @@ public class FdahpUserRegUtil
             File f = ((FileResource) r).getFile();
             String path = f.getPath();
             _log.info("path:"+path);
-            ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build();
+            ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withSandboxDestination().build(); //for Test and UAT with dev certificate
+           // ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build(); //for Production with production certificate
 
             List<String> tokens = new ArrayList<String>();
             if(notificationBean.getDeviceToken() != null){

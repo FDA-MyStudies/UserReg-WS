@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 public class FdahpUserRegWSManager
 {
@@ -115,7 +116,7 @@ public class FdahpUserRegWSManager
         return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getArrayList(UserDetails.class);
     }
 
-    public AuthInfo saveAuthInfo(String userId){
+    public AuthInfo saveAuthInfo(String userId,boolean isRefresh){
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -128,13 +129,16 @@ public class FdahpUserRegWSManager
             authKey = RandomStringUtils.randomNumeric(9);
             TableInfo table = FdahpUserRegWSSchema.getInstance().getAuthInfo();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            String refreshToken = UUID.randomUUID().toString();
             if(null !=authInfo){
                 authInfo.setAuthKey(authKey);
                 authInfo.setDeviceToken("");
                 authInfo.setDeviceType("");
                 authInfo.setModifiedOn(new Date());
-                _log.info("session.expiration.days:"+FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
-                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
+                _log.info("session.expiration.days:"+FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
+                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
+                if(isRefresh)
+                    authInfo.setRefreshToken(refreshToken);
                 Table.update(null,table, authInfo,authInfo.getAuthId());
             }else{
                 authInfo = new AuthInfo();
@@ -143,8 +147,10 @@ public class FdahpUserRegWSManager
                 authInfo.setDeviceType("");
                 authInfo.setParticipantId(userId);
                 authInfo.setCreatedOn(new Date());
-                _log.info("session.expiration.days:"+FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
-                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addDays(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.days"))));
+                _log.info("session.expiration.days:"+FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
+                authInfo.setSessionExpiredDate(FdahpUserRegUtil.addMinutes(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt((String) configProp.get("session.expiration.time"))));
+                if(isRefresh)
+                    authInfo.setRefreshToken(refreshToken);
                 Table.insert(null,table, authInfo);
             }
         }catch (Exception e){
@@ -206,7 +212,7 @@ public class FdahpUserRegWSManager
             participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(),filter,null).getObject(UserDetails.class);
             if(null != participantDetails){
                 participantForm = new ParticipantForm();
-                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId());
+                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId(),true);
                 if(authInfo != null){
                     participantForm.setAuth(authInfo.getAuthKey());
                 }
@@ -246,7 +252,7 @@ public class FdahpUserRegWSManager
             SQLFragment sqlUpdateVisitDates = new SQLFragment();
 
             sqlUpdateVisitDates.append("UPDATE ").append(authInfo.getSelectName()).append("\n")
-                    .append("SET AuthKey = 0, DeviceToken = NULL, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
+                    .append("SET AuthKey = 0, DeviceToken = NULL,RefreshToken=NULL, ModifiedOn='"+FdahpUserRegUtil.getCurrentDateTime()+"'")
                     .append(" WHERE ParticipantId = '"+userId+"'");
             int execute = executor.execute(sqlUpdateVisitDates);
             if (execute > 0){
@@ -969,6 +975,22 @@ public class FdahpUserRegWSManager
             _log.error("getStudyConsent Error",e);
         }
         return studyConsent;
+    }
+
+    public AuthInfo getAuthInfoByRefreshToken(String refreshToken){
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        UserDetails addParticipant = null;
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        AuthInfo authInfo = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("RefreshToken"), refreshToken);
+            authInfo = new TableSelector(FdahpUserRegWSSchema.getInstance().getAuthInfo(),filter,null).getObject(AuthInfo.class);
+        }catch (Exception e){
+            _log.error("getAuthInfoByRefreshToken:",e);
+        }
+        transaction.commit();
+        return authInfo;
     }
 }
 

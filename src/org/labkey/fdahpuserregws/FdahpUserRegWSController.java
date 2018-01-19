@@ -77,7 +77,13 @@ import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.files.FileContentService;
-
+import org.labkey.api.view.NavTree;
+import org.labkey.api.view.menu.FolderAdminMenu;
+import org.labkey.api.util.FileUtil;
+import org.labkey.api.module.ModuleProperty;
+import org.labkey.api.data.ContainerManager;
+import org.labkey.api.data.Container;
+import java.util.Set;
 public class FdahpUserRegWSController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FdahpUserRegWSController.class);
@@ -119,7 +125,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.13 Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.16 Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -159,9 +165,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                 response.put("verified", true);
                             if(addParticipantDetails.getId() != null)
                             {
-                                AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(addParticipantDetails.getUserId());
+                                AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(addParticipantDetails.getUserId(),true);
                                 if(authInfo != null){
                                     response.put("auth", authInfo.getAuthKey());
+                                    response.put("refreshToken",authInfo.getRefreshToken());
                                 }
                             }
                             String message = "<html>" +
@@ -466,11 +473,12 @@ public class FdahpUserRegWSController extends SpringActionController
                 participantDetails.setTempPasswordDate(FdahpUserRegUtil.getCurrentUtilDateTime());
                 FdahpUserRegWSManager.get().saveParticipant(participantDetails);
             }
-            AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
+            AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId(),true);
             if(authInfo != null){
                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                 response.put("userId",participantDetails.getUserId());
                 response.put("auth",authInfo.getAuthKey());
+                response.put("refreshToken",authInfo.getRefreshToken());
                 if(participantDetails.getStatus() == 2)
                 {
                     response.put("verified", false);
@@ -498,7 +506,7 @@ public class FdahpUserRegWSController extends SpringActionController
                 String hours = (String) configProp.get("verification.expiration.in.hour");
                 Date validateDate  = FdahpUserRegUtil.addHours(FdahpUserRegUtil.getCurrentDateTime(),Integer.parseInt(hours));
                 if(participantDetails.getTempPasswordDate().before(validateDate) || participantDetails.getTempPasswordDate().equals(validateDate)){
-                    AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId());
+                    AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(participantDetails.getUserId(),true);
                     if(authInfo != null){
                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                         response.put("userId",participantDetails.getUserId());
@@ -725,9 +733,9 @@ public class FdahpUserRegWSController extends SpringActionController
                                     "</div>" +
                                     "</body>" +
                                     "</html>";
-                            FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,participantDetails.getEmail());
-                            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Requested Confirmation mail","Confirmation mail has been sent again to"+participantDetails.getEmail()+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                           FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!",message,participantDetails.getEmail());
+                           response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                           FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(),"Requested Confirmation mail","Confirmation mail has been sent again to"+participantDetails.getEmail()+".","FdaUserAuditEvent",getViewContext().getContainer().getId());
                             /*boolean isMailSent = FdahpUserRegUtil.sendemail(participantDetails.getEmail(),"Welcome to the FDA My Studies App!",message);
                             if (isMailSent){
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -1550,7 +1558,9 @@ public class FdahpUserRegWSController extends SpringActionController
                                                     consent.setStatus(consentStatusForm.getConsent().getStatus());
                                                 if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getPdf())){
                                                     consent.setPdf(consentStatusForm.getConsent().getPdf());
-                                                    String pdfPath = saveConsentDocument(consent);
+                                                   // String pdfPath = saveConsentDocument(consent);
+                                                    String pdfPath = saveStudyConsentDocument(consent);
+
                                                     consent.setPdfPath(pdfPath);
                                                 }
                                                 consent.setUserId(userId);
@@ -1563,7 +1573,8 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 consent.setVersion(consentStatusForm.getConsent().getVersion());
                                                 consent.setPdf(consentStatusForm.getConsent().getPdf());
                                                 if(consentStatusForm.getConsent().getPdf() != null && StringUtils.isNotEmpty(consentStatusForm.getConsent().getPdf())){
-                                                    String pdfPath = saveConsentDocument(consent);
+                                                    //String pdfPath = saveConsentDocument(consent);
+                                                    String pdfPath = saveStudyConsentDocument(consent);
                                                     consent.setPdfPath(pdfPath);
                                                 }
                                             }
@@ -1675,7 +1686,7 @@ public class FdahpUserRegWSController extends SpringActionController
                    if(isAuthenticated){
                        //String studyId = getViewContext().getRequest().getHeader("studyId");
                        String studyId = getViewContext().getRequest().getParameter("studyId");
-                       _log.info(studyId);
+
                        if(studyId != null && StringUtils.isNotEmpty(studyId) && userId != null && StringUtils.isNotEmpty(userId)){
                            List<ParticipantActivities> participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(studyId,userId);
                            JSONArray jsonArray = new JSONArray();
@@ -2640,4 +2651,127 @@ public class FdahpUserRegWSController extends SpringActionController
         }
         return fileName;
     }
+
+    public static class RefreshTokenForm{
+
+        public  String _refreshToken;
+
+        public String getRefreshToken()
+        {
+            return _refreshToken;
+        }
+
+        public void setRefreshToken(String refreshToken)
+        {
+            _refreshToken = refreshToken;
+        }
+    }
+
+    @RequiresNoPermission
+    public class RefreshTokenAction extends ApiAction<RefreshTokenForm>{
+
+        @Override
+        protected ModelAndView handleGet() throws Exception
+        {
+            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+            return null;
+        }
+
+        @Override
+        public ApiResponse execute(RefreshTokenForm refreshTokenForm, BindException errors) throws Exception
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            AuthInfo existedAuthInfo = null;
+            try{
+                if(refreshTokenForm != null){
+                    if((refreshTokenForm.getRefreshToken() != null && StringUtils.isNotEmpty(refreshTokenForm.getRefreshToken()))){
+                        existedAuthInfo = FdahpUserRegWSManager.get().getAuthInfoByRefreshToken(refreshTokenForm.getRefreshToken());
+                        if(null != existedAuthInfo){
+                            AuthInfo authInfo = FdahpUserRegWSManager.get().saveAuthInfo(existedAuthInfo.getParticipantId(),false);
+                            if(authInfo != null){
+                                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                                response.put("userId",authInfo.getParticipantId());
+                                response.put("auth",authInfo.getAuthKey());
+                                response.put("refreshToken",authInfo.getRefreshToken());
+                            }
+                        }else{
+                            FdahpUserRegWSManager.addAuditEvent(null,"FAILED RefreshToken IN","Wrong RefreshToken. Which is not existed.","FdaUserAuditEvent",getViewContext().getContainer().getId());
+                            FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.name(), FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.getValue(), getViewContext().getResponse());
+                            return null;
+                        }
+                    }else{
+                        FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                        return null;
+                    }
+                }else{
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(),FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                    return null;
+                }
+
+
+            }catch (Exception e){
+                _log.error("Login Action:",e);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(),FdahpUserRegUtil.ErrorCodes.UNKNOWN.name(), FdahpUserRegUtil.ErrorCodes.CONNECTION_ERROR_MSG.getValue(), getViewContext().getResponse());
+                return null;
+            }
+            return response;
+        }
+    }
+
+    public String saveStudyConsentDocument(StudyConsent studyConsent){
+        _log.info("FdahpUserRegWSController saveStudyConsentDocument starts");
+        String fileName="";
+        try{
+            FileContentService fileContentService = ServiceRegistry.get().getService(FileContentService.class);
+            Container availableContainer = null;
+            boolean isAvailable= false;
+            Module module =  ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+            Set<Container> all = ContainerManager.getAllChildren(ContainerManager.getRoot());
+
+            ModuleProperty mp = module.getModuleProperties().get("StudyId");
+            String postedStudyId = studyConsent.getStudyId();
+            File root = null;
+            for (Container c : all)
+            {
+                String studyId = mp.getValueContainerSpecific(c);
+                if (postedStudyId.equalsIgnoreCase(studyId))
+                {
+                    isAvailable = true;
+                    root = fileContentService.getFileRoot(c, FileContentService.ContentType.files);
+                    break;
+                }
+                
+            }
+            _log.info("isAvailable:"+isAvailable);
+            _log.info("root:"+root);
+            if(isAvailable){
+                if(!root.exists())
+                    root.mkdirs();
+                fileName = FdahpUserRegUtil.getStandardFileName(studyConsent.getStudyId(),studyConsent.getUserId(),studyConsent.getVersion());
+                _log.info(fileName);
+                try {
+                    byte[] decodedBytes;
+                    FileOutputStream fop;
+                    //_log.info("studyConsent.getPdf():"+studyConsent.getPdf().replaceAll("\n", ""));
+                    decodedBytes =  Base64.getDecoder().decode(studyConsent.getPdf().replaceAll("\n", ""));
+                    File file = new File(root,fileName);
+                    fop = new FileOutputStream(file);
+                    fop.write(decodedBytes);
+                    fop.flush();
+                    fop.close();
+                } catch (Exception e) {
+                    _log.error("FdahpUserRegWSController saveStudyConsentDocument:",e);
+                }
+            }else{
+                saveConsentDocument(studyConsent);
+            }
+
+        }catch (Exception e){
+            _log.error("FdahpUserRegWSController saveStudyConsentDocument:",e);
+        }
+        _log.info("FdahpUserRegWSController saveStudyConsentDocument Exit");
+        return fileName;
+    }
+
+
 }

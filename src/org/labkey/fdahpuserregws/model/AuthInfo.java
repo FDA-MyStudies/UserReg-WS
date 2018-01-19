@@ -21,6 +21,7 @@ public class AuthInfo extends Entity
 
     private Date _SessionExpiredDate;
     private Boolean _RemoteNotificationFlag=false;
+    private String _RefreshToken;
 
 
 
@@ -132,5 +133,15 @@ public class AuthInfo extends Entity
     public void setRemoteNotificationFlag(Boolean remoteNotificationFlag)
     {
         _RemoteNotificationFlag = remoteNotificationFlag;
+    }
+
+    public String getRefreshToken()
+    {
+        return _RefreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken)
+    {
+        _RefreshToken = refreshToken;
     }
 }
