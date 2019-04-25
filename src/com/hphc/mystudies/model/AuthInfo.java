@@ -44,7 +44,8 @@ public class AuthInfo extends Entity
     private Date _SessionExpiredDate;
     private Boolean _RemoteNotificationFlag=false;
     private String _RefreshToken;
-
+    private String _ApplicationId;
+    private String _OrgId;
 
 
     public int getAuthId()
@@ -165,5 +166,25 @@ public class AuthInfo extends Entity
     public void setRefreshToken(String refreshToken)
     {
         _RefreshToken = refreshToken;
+    }
+
+    public String getApplicationId()
+    {
+        return _ApplicationId;
+    }
+
+    public void setApplicationId(String applicationId)
+    {
+        _ApplicationId = applicationId;
+    }
+
+    public String getOrgId()
+    {
+        return _OrgId;
+    }
+
+    public void setOrgId(String orgId)
+    {
+        _OrgId = orgId;
     }
 }

@@ -43,6 +43,8 @@ public class ParticipantStudies extends Entity
     private String _Sharing;
     private Integer _Completion;
     private Integer _Adherence;
+    private String _ApplicationId;
+    private String _OrgId;
 
     public Integer getId()
     {
@@ -162,5 +164,25 @@ public class ParticipantStudies extends Entity
     public void setAdherence(Integer adherence)
     {
         _Adherence = adherence;
+    }
+
+    public String getApplicationId()
+    {
+        return _ApplicationId;
+    }
+
+    public void setApplicationId(String applicationId)
+    {
+        _ApplicationId = applicationId;
+    }
+
+    public String getOrgId()
+    {
+        return _OrgId;
+    }
+
+    public void setOrgId(String orgId)
+    {
+        _OrgId = orgId;
     }
 }

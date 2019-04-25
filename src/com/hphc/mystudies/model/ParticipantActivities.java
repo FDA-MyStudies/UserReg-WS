@@ -44,6 +44,8 @@ public class ParticipantActivities extends Entity
     private Integer _Total;
     private Integer _Completed;
     private Integer _Missed;
+    private String _ApplicationId;
+    private String _OrgId;
 
     public Integer getId()
     {
@@ -183,5 +185,25 @@ public class ParticipantActivities extends Entity
     public void setMissed(Integer missed)
     {
         _Missed = missed;
+    }
+
+    public String getApplicationId()
+    {
+        return _ApplicationId;
+    }
+
+    public void setApplicationId(String applicationId)
+    {
+        _ApplicationId = applicationId;
+    }
+
+    public String getOrgId()
+    {
+        return _OrgId;
+    }
+
+    public void setOrgId(String orgId)
+    {
+        _OrgId = orgId;
     }
 }

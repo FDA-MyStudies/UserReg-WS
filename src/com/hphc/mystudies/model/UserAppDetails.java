@@ -22,30 +22,29 @@
  */
 package com.hphc.mystudies.model;
 
-/**
- * Created by Ravinder on 3/13/2017.
- */
 import org.labkey.api.data.Entity;
-public class StudyConsent extends Entity
+
+import java.util.Date;
+
+/**
+ * Created by Ronalin on 4/11/2019.
+ */
+public class UserAppDetails extends Entity
 {
-    private Integer _Id;
+    private int _UserAppId;
     private String _UserId;
-    private String _StudyId;
-    private String _Status;
-    private String _Version;
-    private String _Pdf;
-    private String _PdfPath;
     private String _ApplicationId;
     private String _OrgId;
+    private Date _CreatedOn;
 
-    public Integer getId()
+    public Integer getUserAppId()
     {
-        return _Id;
+        return _UserAppId;
     }
 
-    public void setId(Integer id)
+    public void setUserAppId(Integer id)
     {
-        _Id = id;
+        _UserAppId = id;
     }
 
     public String getUserId()
@@ -58,54 +57,14 @@ public class StudyConsent extends Entity
         _UserId = userId;
     }
 
-    public String getStudyId()
+    public Date getCreatedOn()
     {
-        return _StudyId;
+        return _CreatedOn;
     }
 
-    public void setStudyId(String studyId)
+    public void setCreatedOn(Date createdOn)
     {
-        _StudyId = studyId;
-    }
-
-    public String getStatus()
-    {
-        return _Status;
-    }
-
-    public void setStatus(String status)
-    {
-        _Status = status;
-    }
-
-    public String getVersion()
-    {
-        return _Version;
-    }
-
-    public void setVersion(String version)
-    {
-        _Version = version;
-    }
-
-    public String getPdf()
-    {
-        return _Pdf;
-    }
-
-    public void setPdf(String pdf)
-    {
-        _Pdf = pdf;
-    }
-
-    public String getPdfPath()
-    {
-        return _PdfPath;
-    }
-
-    public void setPdfPath(String pdfPath)
-    {
-        _PdfPath = pdfPath;
+        _CreatedOn = createdOn;
     }
 
     public String getApplicationId()
