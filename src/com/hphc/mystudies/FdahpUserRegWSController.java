@@ -144,7 +144,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.20 Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.25 Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -155,6 +155,7 @@ public class FdahpUserRegWSController extends SpringActionController
      *
      * */
     @RequiresNoPermission
+    @CSRF(CSRF.Method.NONE)
     public class RegisterAction extends ApiAction<ParticipantForm>{
 
         @Override
@@ -265,6 +266,7 @@ public class FdahpUserRegWSController extends SpringActionController
      *
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class ConfirmRegistrationAction extends ApiAction{
 
         @Override
@@ -342,6 +344,7 @@ public class FdahpUserRegWSController extends SpringActionController
      *
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class VerifyAction extends ApiAction<VerificationForm>{
 
         @Override
@@ -415,6 +418,7 @@ public class FdahpUserRegWSController extends SpringActionController
      *
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class LoginAction extends ApiAction<LoginForm>{
 
         @Override
@@ -609,6 +613,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Forgot password of an register email
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class ForgotPasswordAction extends ApiAction<LoginForm>
     {
 
@@ -705,6 +710,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Resending the confirmation email
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class ResendConfirmationAction extends  ApiAction<LoginForm>{
 
         @Override
@@ -777,6 +783,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Updating the user password
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class ChangePasswordAction extends ApiAction<ChangePasswordForm>{
 
         @Override
@@ -911,6 +918,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Logout from app
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class LogoutAction extends  ApiAction<UserForm>{
 
         @Override
@@ -969,6 +977,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class UserProfileAction extends ApiAction<Object>{
 
         @Override
@@ -1010,6 +1019,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class UpdateUserProfileAction extends  ApiAction<ProfileForm>{
 
         @Override
@@ -1175,6 +1185,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class UpdatePreferencesAction extends  ApiAction<PreferencesForm>{
 
         @Override
@@ -1328,6 +1339,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class UserPreferencesAction extends  ApiAction<UserForm>{
 
         @Override
@@ -1419,6 +1431,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
    public class UpdateEligibilityConsentStatusAction extends  ApiAction<ConsentStatusForm>{
 
        @Override
@@ -1575,6 +1588,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Get activity state of an study to the user
      */
    @RequiresNoPermission
+   @CSRF(CSRF.Method.NONE)
     public class ActivityStateAction extends ApiAction<ActivityForm>
    {
 
@@ -1698,6 +1712,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
    @Marshal(Marshaller.Jackson)
    @RequiresNoPermission
+   @CSRF(CSRF.Method.NONE)
     public class UpdateActivityStateAction extends  ApiAction<PreferencesForm>{
 
        @Override
@@ -1843,6 +1858,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * With draw the user from study
      */
    @RequiresNoPermission
+   @CSRF(CSRF.Method.NONE)
     public class WithdrawAction extends  ApiAction<WithDrawForm>{
 
        @Override
@@ -1910,6 +1926,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Get the consent pdf of an user
      */
    @RequiresNoPermission
+   @CSRF(CSRF.Method.NONE)
     public class ConsentPDFAction extends ApiAction<ActivityForm>{
 
        @Override
@@ -1971,6 +1988,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Delete of an user
      */
    @RequiresNoPermission
+   @CSRF(CSRF.Method.NONE)
     public class DeleteAccountAction extends ApiAction{
 
        @Override
@@ -2027,6 +2045,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class DeactivateAction extends ApiAction<DeactivateForm>{
 
         @Override
@@ -2085,6 +2104,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class UpdateStudyStateAction extends  ApiAction<PreferencesForm>{
 
         @Override
@@ -2216,6 +2236,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class StudyStateAction extends  ApiAction<UserForm>{
 
         @Override
@@ -2273,6 +2294,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class SendNotificationAction extends ApiAction<NotificationForm>{
 
         @Override
@@ -2411,6 +2433,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Generate the consent doc as pdf file
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class GenerateTheFileAction extends ApiAction<StudyConsent>{
 
         @Override
@@ -2530,6 +2553,7 @@ public class FdahpUserRegWSController extends SpringActionController
      * Refresh of an auth key
      */
     @RequiresNoPermission
+	@CSRF(CSRF.Method.NONE)
     public class RefreshTokenAction extends ApiAction<RefreshTokenForm>{
 
         @Override

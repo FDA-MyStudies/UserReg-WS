@@ -388,7 +388,7 @@ public class FdahpUserRegWSManager
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try{
             AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getParticipantStudies();
-           table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for(ParticipantStudies participantStudies : participantStudiesList){
                 if(participantStudies.getId() != null ){
                     Table.update(null,table,participantStudies,participantStudies.getId());
@@ -452,38 +452,38 @@ public class FdahpUserRegWSManager
             if(null!=participantStudiesList && participantStudiesList.size() >0){
 
                 for (ParticipantStudies participantStudies : participantStudiesList){
-                        StudiesBean studiesBean = new StudiesBean();
-                        if(participantStudies.getStudyId() != null)
-                            studiesBean.setStudyId(participantStudies.getStudyId());
-                        if(participantStudies.getBookmark() != null)
-                            studiesBean.setBookmarked(participantStudies.getBookmark());
-                        if(participantStudies.getStatus() != null){
-                            studiesBean.setStatus(participantStudies.getStatus());
-                        }else{
-                            studiesBean.setStatus("");
-                        }
-                        if(participantStudies.getEnrolledDate() != null){
-                            studiesBean.setEnrolledDate(FdahpUserRegUtil.getFormattedDateTimeZone(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(participantStudies.getEnrolledDate()), "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-                        }else{
-                            studiesBean.setEnrolledDate("");
-                        }
-                        if(participantStudies.getCompletion() != null){
-                            studiesBean.setCompletion(participantStudies.getCompletion());
-                        }else{
-                            studiesBean.setCompletion(0);
-                        }
-                        if(participantStudies.getAdherence() != null){
-                            studiesBean.setAdherence(participantStudies.getAdherence());
-                        }else{
-                            studiesBean.setAdherence(0);
-                        }
-                        if(participantStudies.getParticipantId() != null){
-                            studiesBean.setParticipantId(participantStudies.getParticipantId());
-                        }else{
-                            studiesBean.setParticipantId("");
-                        }
-                        studiesBeenList.add(studiesBean);
+                    StudiesBean studiesBean = new StudiesBean();
+                    if(participantStudies.getStudyId() != null)
+                        studiesBean.setStudyId(participantStudies.getStudyId());
+                    if(participantStudies.getBookmark() != null)
+                        studiesBean.setBookmarked(participantStudies.getBookmark());
+                    if(participantStudies.getStatus() != null){
+                        studiesBean.setStatus(participantStudies.getStatus());
+                    }else{
+                        studiesBean.setStatus("");
                     }
+                    if(participantStudies.getEnrolledDate() != null){
+                        studiesBean.setEnrolledDate(FdahpUserRegUtil.getFormattedDateTimeZone(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(participantStudies.getEnrolledDate()), "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+                    }else{
+                        studiesBean.setEnrolledDate("");
+                    }
+                    if(participantStudies.getCompletion() != null){
+                        studiesBean.setCompletion(participantStudies.getCompletion());
+                    }else{
+                        studiesBean.setCompletion(0);
+                    }
+                    if(participantStudies.getAdherence() != null){
+                        studiesBean.setAdherence(participantStudies.getAdherence());
+                    }else{
+                        studiesBean.setAdherence(0);
+                    }
+                    if(participantStudies.getParticipantId() != null){
+                        studiesBean.setParticipantId(participantStudies.getParticipantId());
+                    }else{
+                        studiesBean.setParticipantId("");
+                    }
+                    studiesBeenList.add(studiesBean);
+                }
             }
             response.put(FdahpUserRegUtil.ErrorCodes.STUDIES.getValue(),studiesBeenList);
             response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(),FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
@@ -545,13 +545,13 @@ public class FdahpUserRegWSManager
         try{
             DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
             AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getParticipantStudies();
-           table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
 
             SqlExecutor executor = new SqlExecutor(schema);
             SQLFragment sqlUpdateVisitDates = new SQLFragment();
 
             AuditConfigurable participantActivitiesInfo = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getParticipantActivities();
-          participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
 
             if(deleteData){
                 SimpleFilter filterActivities = new SimpleFilter();
@@ -722,13 +722,13 @@ public class FdahpUserRegWSManager
             Table.delete(table,filter);
 
             AuditConfigurable participantInfo = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getParticipantDetails();
-           participantInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            participantInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
             SimpleFilter participantFilter = new SimpleFilter();
             participantFilter.addCondition(FieldKey.fromParts("UserId"), userId);
             int count = Table.delete(participantInfo,participantFilter);
 
             AuditConfigurable authInfo = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getAuthInfo();
-           authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+            authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
             SimpleFilter authInfoFilter = new SimpleFilter();
             authInfoFilter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
             Table.delete(authInfo,authInfoFilter);
@@ -770,7 +770,7 @@ public class FdahpUserRegWSManager
                 {
 
                     AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getParticipantStudies();
-                  table.setAuditBehavior(AuditBehaviorType.DETAILED);
+                    table.setAuditBehavior(AuditBehaviorType.DETAILED);
                     sqlUpdateVisitDates.append("UPDATE ").append(table.getSelectName()).append("\n")
                             .append("SET Status = 'Withdrawn', ParticipantId = NULL")
                             .append(" WHERE UserId = '" + userId + "'")
@@ -779,13 +779,13 @@ public class FdahpUserRegWSManager
                 }
 
                 AuditConfigurable participantActivitiesInfo = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getParticipantActivities();
-              participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+                participantActivitiesInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
                 SimpleFilter filterActivities = new SimpleFilter();
                 filterActivities.addCondition(FieldKey.fromParts("ParticipantId"), userId);
                 Table.delete(participantActivitiesInfo,filterActivities);
 
                 AuditConfigurable authInfo = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getAuthInfo();
-               authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
+                authInfo.setAuditBehavior(AuditBehaviorType.DETAILED);
                 SimpleFilter authInfoFilter = new SimpleFilter();
                 authInfoFilter.addCondition(FieldKey.fromParts("ParticipantId"), userId);
                 Table.delete(authInfo,authInfoFilter);
@@ -842,7 +842,7 @@ public class FdahpUserRegWSManager
             passwordHistories = getPasswordHistoryList(userId);
 
             AuditConfigurable  table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getPasswordHistory();
-           table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
 
             if(passwordHistories != null && passwordHistories.size() > (Integer.parseInt(passwordHistoryCount) - 1)){
                 for (int i=0;i<((passwordHistories.size() - Integer.parseInt(passwordHistoryCount)) + 1);i++){
@@ -893,7 +893,7 @@ public class FdahpUserRegWSManager
                         }else  if(authInfo.getDeviceType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue())){
                             iosJsonArray.put(authInfo.getDeviceToken().trim());
                         }
-                       // System.out.println(authInfo.getDeviceToken());
+                        // System.out.println(authInfo.getDeviceToken());
                     }
                 }
                 deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(),jsonArray);
@@ -967,13 +967,13 @@ public class FdahpUserRegWSManager
 
     /**
      * adding the audit log
-      * @param userId
+     * @param userId
      * @param activity
      * @param activityDetails
      * @param eventType
      * @param container
      */
-   public static void addAuditEvent(String userId,String activity,String activityDetails,String eventType,String container){
+    public static void addAuditEvent(String userId,String activity,String activityDetails,String eventType,String container){
         FdaAuditProvider.FdaAuditEvent event = new FdaAuditProvider.FdaAuditEvent(eventType,container,activityDetails);
         try{
             event.setActivity(activity);
@@ -983,76 +983,76 @@ public class FdahpUserRegWSManager
         }catch (Exception e){
             _log.error("addAuditEvent error:",e);
         }
-   }
+    }
 
     /**
      * Get the user login attempts
      * @param email
      * @return LoginAttempts
      */
-   public LoginAttempts getLoginAttempts(String email){
-       LoginAttempts loginAttempts = null;
-       try{
-           SimpleFilter filter = new SimpleFilter();
-           filter.addCondition(FieldKey.fromParts("Email"), email);
-           loginAttempts = new TableSelector(FdahpUserRegWSSchema.getInstance().getLoginAttempts(),filter,null).getObject(LoginAttempts.class);
-       }catch (Exception e ){
-           _log.error("FdahpUserRegWSManger getLoginAttempts ()",e);
-       }
-       return loginAttempts;
-   }
+    public LoginAttempts getLoginAttempts(String email){
+        LoginAttempts loginAttempts = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("Email"), email);
+            loginAttempts = new TableSelector(FdahpUserRegWSSchema.getInstance().getLoginAttempts(),filter,null).getObject(LoginAttempts.class);
+        }catch (Exception e ){
+            _log.error("FdahpUserRegWSManger getLoginAttempts ()",e);
+        }
+        return loginAttempts;
+    }
 
     /**
      * reset the user login attempts
      * @param email
      */
-   public void resetLoginAttempts(String email){
-       try{
-           AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getLoginAttempts();
-           table.setAuditBehavior(AuditBehaviorType.DETAILED);
-           SimpleFilter filter = new SimpleFilter();
-           filter.addCondition(FieldKey.fromParts("Email"), email);
-           Table.delete(table,filter);
-       }catch (Exception e)
-       {
-           _log.error("FdahpUserRegWSManger resetLoginAttempts ()", e);
-       }
-   }
+    public void resetLoginAttempts(String email){
+        try{
+            AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getLoginAttempts();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("Email"), email);
+            Table.delete(table,filter);
+        }catch (Exception e)
+        {
+            _log.error("FdahpUserRegWSManger resetLoginAttempts ()", e);
+        }
+    }
 
     /**
      * save or update failure login attempts of an user
      * @param email
      * @return LoginAttempts
      */
-   public LoginAttempts updateLoginFailureAttempts(String email){
-       LoginAttempts loginAttempts = null;
-       int count = 0;
-       try{
-           loginAttempts = getLoginAttempts(email);
-           AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getLoginAttempts();
-           table.setAuditBehavior(AuditBehaviorType.DETAILED);
-           if(loginAttempts != null){
-               if(loginAttempts.getAttempts() > 0){
-                   count = loginAttempts.getAttempts();
-               }
-               count++;
-               loginAttempts.setAttempts(count);
-               loginAttempts.setLastModified(FdahpUserRegUtil.getCurrentUtilDateTime());
-               loginAttempts = Table.update(null,table, loginAttempts,loginAttempts.getId());
-           }else{
-               loginAttempts = new LoginAttempts();
-               count++;
-               loginAttempts.setAttempts(count);
-               loginAttempts.setEmail(email);
-               loginAttempts.setLastModified(FdahpUserRegUtil.getCurrentUtilDateTime());
-               loginAttempts = Table.insert(null,table,loginAttempts);
-           }
-       }catch (Exception e)
-       {
-           _log.error("FdahpUserRegWSManger updateLoginFailureAttempts ()", e);
-       }
-       return loginAttempts;
-   }
+    public LoginAttempts updateLoginFailureAttempts(String email){
+        LoginAttempts loginAttempts = null;
+        int count = 0;
+        try{
+            loginAttempts = getLoginAttempts(email);
+            AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getLoginAttempts();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+            if(loginAttempts != null){
+                if(loginAttempts.getAttempts() > 0){
+                    count = loginAttempts.getAttempts();
+                }
+                count++;
+                loginAttempts.setAttempts(count);
+                loginAttempts.setLastModified(FdahpUserRegUtil.getCurrentUtilDateTime());
+                loginAttempts = Table.update(null,table, loginAttempts,loginAttempts.getId());
+            }else{
+                loginAttempts = new LoginAttempts();
+                count++;
+                loginAttempts.setAttempts(count);
+                loginAttempts.setEmail(email);
+                loginAttempts.setLastModified(FdahpUserRegUtil.getCurrentUtilDateTime());
+                loginAttempts = Table.insert(null,table,loginAttempts);
+            }
+        }catch (Exception e)
+        {
+            _log.error("FdahpUserRegWSManger updateLoginFailureAttempts ()", e);
+        }
+        return loginAttempts;
+    }
 
     /**
      * Get the study consent list
