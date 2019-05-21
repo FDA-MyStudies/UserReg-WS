@@ -1,24 +1,10 @@
 /*
- * Copyright © 2017-2018 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors.
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
+ * Copyright © 2017-2019 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * Funding Source: Food and Drug Administration (“Funding Agency”) effective 18 September 2014 as Contract no. HHSF22320140030I/HHSF22301006T (the “Prime Contract”).
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * Funding Source: Food and Drug Administration ("Funding Agency") effective 18 September 2014 as Contract no.
- * HHSF22320140030I/HHSF22301006T (the "Prime Contract").
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
  */
 package com.hphc.mystudies;
 import com.hphc.mystudies.bean.ActivitiesBean;
@@ -30,6 +16,7 @@ import com.hphc.mystudies.bean.ParticipantInfoBean;
 import com.hphc.mystudies.bean.ProfileBean;
 import com.hphc.mystudies.bean.SettingsBean;
 import com.hphc.mystudies.bean.StudiesBean;
+import com.hphc.mystudies.model.AppPropertiesDetails;
 import com.hphc.mystudies.model.AuthInfo;
 import com.hphc.mystudies.model.FdahpUserRegUtil;
 import com.hphc.mystudies.model.LoginAttempts;
@@ -2734,16 +2721,20 @@ public class FdahpUserRegWSController extends SpringActionController
                 if(notificationForm != null && notificationForm.getNotifications() != null && !notificationForm.getNotifications().isEmpty()){
                     if(!notificationForm.getNotifications().isEmpty()){
                         HashSet<String> studySet = new HashSet<>();
+                        HashSet<String> appSet = new HashSet<>();
                         studiesMap = new HashMap<>();
-                        Map<String,JSONArray> allDeviceTokens = FdahpUserRegWSManager.get().getDeviceTokenOfAllUsers();
 
                         for (NotificationBean notificationBean : notificationForm.getNotifications()){
                             if(notificationBean.getNotificationType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.STUDY_LEVEL.getValue())){
                                 studySet.add(notificationBean.getCustomStudyId());
+                                appSet.add(notificationBean.getAppId());
                             }
                         }
-                        if(studySet != null && !studySet.isEmpty()){
-                            studiesMap = FdahpUserRegWSManager.get().getStudyLevelDeviceToken("'"+StringUtils.join(studySet,"','")+"'");
+
+                        Map<String,JSONArray> allDeviceTokens = FdahpUserRegWSManager.get().getDeviceTokenOfAllUsers("'"+StringUtils.join(appSet,"','")+"'");
+
+                        if(studySet != null && !studySet.isEmpty() && appSet != null && !appSet.isEmpty()){
+                            studiesMap = FdahpUserRegWSManager.get().getStudyLevelDeviceToken("'"+StringUtils.join(studySet,"','")+"'", "'"+StringUtils.join(appSet,"','")+"'");
                            _log.info("studiesMap:"+studiesMap);
                         }
                         for (NotificationBean notificationBean : notificationForm.getNotifications()){
@@ -2807,11 +2798,17 @@ public class FdahpUserRegWSController extends SpringActionController
      * @param notification
      */
     public void pushFCMNotification(NotificationBean notification) {
-
+        AppPropertiesDetails appPropertiesDetails = null;
+        String authKey = "";
        try{
-            String authKey = (String) configProp.get("AUTH_KEY_FCM");   // You FCM AUTH key
-            String FMCurl = (String) configProp.get("API_URL_FCM");
+           String FMCurl = (String) configProp.get("API_URL_FCM");
+           appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notification.getAppId());
 
+           if(appPropertiesDetails!=null){
+               authKey =    appPropertiesDetails.getAndroidPushNotificationPath();// You FCM AUTH key
+           }else{
+               authKey = (String) configProp.get("AUTH_KEY_FCM");   // You FCM AUTH key
+           }
 
             URL url = new URL(FMCurl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

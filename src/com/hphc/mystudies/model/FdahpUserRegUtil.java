@@ -1,27 +1,14 @@
 /*
- * Copyright © 2017-2018 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors.
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
+ * Copyright © 2017-2019 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * Funding Source: Food and Drug Administration (“Funding Agency”) effective 18 September 2014 as Contract no. HHSF22320140030I/HHSF22301006T (the “Prime Contract”).
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * Funding Source: Food and Drug Administration ("Funding Agency") effective 18 September 2014 as Contract no.
- * HHSF22320140030I/HHSF22301006T (the "Prime Contract").
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
  */
 package com.hphc.mystudies.model;
 
+import com.hphc.mystudies.FdahpUserRegWSManager;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -384,15 +371,32 @@ public class FdahpUserRegUtil
     }
     public static void pushNotification(NotificationBean notificationBean){
         Properties configProp = FdahpUserRegUtil.getProperties();
+        AppPropertiesDetails appPropertiesDetails = null;
+        Resource r = null;
+        String certificatePassword = "";
         try{
             _log.info("pushNotification");
+            appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notificationBean.getAppId());
+
             Module m =  ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
-            Resource r = m.getModuleResource("/constants/"+(String)configProp.get("certificate.name"));
+           // Resource r = m.getModuleResource("/constants/"+(String)configProp.get("certificate.name"));
+            if(appPropertiesDetails!=null){
+                r = m.getModuleResource(appPropertiesDetails.getIosPushNotificationPath());
+                certificatePassword = appPropertiesDetails.getIosPushNotificationPassword();
+            }else{
+                r = m.getModuleResource("/constants/"+(String)configProp.get("certificate.name"));
+            }
             File f = ((FileResource) r).getFile();
             String path = f.getPath();
             _log.info("path:"+path);
            // ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withSandboxDestination().build(); //for Test and UAT with dev certificate
-            ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build(); //for Production with production certificate
+            //ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build(); //for Production with production certificate
+
+            //ApnsService service = APNS.newService().withCert(path, certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
+            ApnsService service = APNS.newService().withCert(path, certificatePassword).withProductionDestination().build(); //for Production with production certificate
+
+
+
 
             List<String> tokens = new ArrayList<String>();
             if(notificationBean.getDeviceToken() != null){

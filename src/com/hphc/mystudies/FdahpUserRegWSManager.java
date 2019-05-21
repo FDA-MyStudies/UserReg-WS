@@ -1,29 +1,16 @@
 /*
- * Copyright © 2017-2018 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors.
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
+ * Copyright © 2017-2019 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * Funding Source: Food and Drug Administration (“Funding Agency”) effective 18 September 2014 as Contract no. HHSF22320140030I/HHSF22301006T (the “Prime Contract”).
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * Funding Source: Food and Drug Administration ("Funding Agency") effective 18 September 2014 as Contract no.
- * HHSF22320140030I/HHSF22301006T (the "Prime Contract").
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.hphc.mystudies;
 import com.hphc.mystudies.bean.ParticipantForm;
 import com.hphc.mystudies.bean.SettingsBean;
+import com.hphc.mystudies.model.AppPropertiesDetails;
 import com.hphc.mystudies.model.FdahpUserRegUtil;
 import com.hphc.mystudies.model.ParticipantActivities;
 import com.hphc.mystudies.model.ParticipantStudies;
@@ -904,7 +891,7 @@ public class FdahpUserRegWSManager
      * Get the all user device token
      * @return Map<String,JSONArray>
      */
-    public Map<String,JSONArray> getDeviceTokenOfAllUsers(){
+    public Map<String,JSONArray> getDeviceTokenOfAllUsers(String appIds){
         String deviceTokens = null;
         List<AuthInfo> authInfoList = new ArrayList<>();
         List<String> deviceTokenList = new ArrayList<>();
@@ -914,9 +901,47 @@ public class FdahpUserRegWSManager
         Map<String,JSONArray> deviceMap = new HashMap<>();
         try{
             TableInfo authTableInfo = FdahpUserRegWSSchema.getInstance().getAuthInfo();
+            SQLFragment sql = new SQLFragment();
+            sql.append("SELECT a.devicetoken as devicetoken,a.devicetype as devicetype FROM ").append(FdahpUserRegWSSchema.getInstance().getUserAppDetails(), "u").append(" , ").append(FdahpUserRegWSSchema.getInstance().getAuthInfo(), "a")
+                    .append(" where u.userid = a.participantid and u.applicationid in ("+appIds+") and a.authkey != '0' and a.remotenotificationflag=true and (a.devicetoken is not NULL and a.devicetoken != '' and a.devicetype is not NULL and a.devicetype != '') ");
+            ResultSet rs = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getResultSet();
+            if(rs != null)
+            {
+                jsonArray = new JSONArray();
+                iosJsonArray = new JSONArray();
+                while (rs.next())
+                {
+                    String devicetoken = rs.getString(1);
+                    String devicetype = rs.getString(2);
+                    if(devicetoken != null && devicetype != null){
+                        if(devicetype.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue())){
+                            jsonArray.put(devicetoken.trim());
+                        }else  if(devicetype.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue())){
+                            iosJsonArray.put(devicetoken.trim());
+                        }
+                    }
+                }
+                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(),jsonArray);
+                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(),iosJsonArray);
+                rs.close();
+            }
+            /**
+             select a.deviceToken,a.deviceType from fdahpuserregws.authinfo as a,
+             fdahpuserregws.userappdetails as u
+             where u.applicationid='12'
+             and a.deviceToken IS NOT NULL
+             and a.deviceToken != '0'
+             and a.devicetype IS NOT NULL
+             and a.remotenotificationflag=true
+             and u.userid=a.participantId;
+             */
+
+
+            /*
             SQLFragment sql=null;
             sql =  new SQLFragment("SELECT * FROM " + authTableInfo.getSelectName() + " WHERE authkey != '0' and remotenotificationflag=true");
             authInfoList = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getArrayList(AuthInfo.class);
+
             if(authInfoList != null && !authInfoList.isEmpty()){
                 jsonArray = new JSONArray();
                 iosJsonArray = new JSONArray();
@@ -927,14 +952,13 @@ public class FdahpUserRegWSManager
                         }else  if(authInfo.getDeviceType().equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue())){
                             iosJsonArray.put(authInfo.getDeviceToken().trim());
                         }
-                       // System.out.println(authInfo.getDeviceToken());
                     }
                 }
                 deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(),jsonArray);
                 deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(),iosJsonArray);
 
 
-            }
+            }*/
         }catch (Exception e){
             _log.error("getDeviceTokenOfAllUsers error:",e);
         }
@@ -946,12 +970,12 @@ public class FdahpUserRegWSManager
      * @param studyIds
      * @return Map<String,Map<String,JSONArray>>
      */
-    public  Map<String,Map<String,JSONArray>> getStudyLevelDeviceToken(String studyIds){
+    public  Map<String,Map<String,JSONArray>> getStudyLevelDeviceToken(String studyIds, String appIds){
         Map<String,Map<String,JSONArray>> studyDeviceTokenMap = new HashMap<>();
         try{
 
             SQLFragment sql = new SQLFragment();
-            sql.append("SELECT sp.studyid, string_agg(a.devicetoken, ',') as devicetoken,string_agg(a.devicetype, ',') as devicetype FROM ").append(FdahpUserRegWSSchema.getInstance().getParticipantStudies(), "sp").append(" , ").append(FdahpUserRegWSSchema.getInstance().getAuthInfo(), "a").append(" where sp.userid = a.participantid and sp.status not in('yetToJoin','withdrawn','notEligible') and a.authkey != '0' and a.remotenotificationflag=true and sp.studyid in ("+studyIds+") and (a.devicetoken is not NULL and a.devicetoken != '' and a.devicetype is not NULL and a.devicetype != '') GROUP BY sp.studyid");
+            sql.append("SELECT sp.studyid, string_agg(a.devicetoken, ',') as devicetoken,string_agg(a.devicetype, ',') as devicetype FROM ").append(FdahpUserRegWSSchema.getInstance().getParticipantStudies(), "sp").append(" , ").append(FdahpUserRegWSSchema.getInstance().getAuthInfo(), "a").append(" where sp.userid = a.participantid and sp.status not in('yetToJoin','withdrawn','notEligible') and a.authkey != '0' and a.remotenotificationflag=true and sp.studyid in ("+studyIds+") and sp.applicationId in("+appIds+") and (a.devicetoken is not NULL and a.devicetoken != '' and a.devicetype is not NULL and a.devicetype != '') GROUP BY sp.studyid");
             ResultSet rs = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getResultSet();
             if(rs != null)
             {
@@ -1265,6 +1289,23 @@ public class FdahpUserRegWSManager
         return message;
     }
 
+    /**
+     * Get the auth info by refresh token
+     * @param appId
+     * @return AppPropertiesDetails
+     */
+    public AppPropertiesDetails getAppPropertiesDetailsByAppId(String appId){
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        AppPropertiesDetails appPropertiesDetails = null;
+        try{
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("AppId"), appId);
+            appPropertiesDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getAppPropertiesDetails(),filter,null).getObject(AppPropertiesDetails.class);
+        }catch (Exception e){
+            _log.error("getAppPropertiesDetailsByAppId:",e);
+        }
+        return appPropertiesDetails;
+    }
 
 
     }
