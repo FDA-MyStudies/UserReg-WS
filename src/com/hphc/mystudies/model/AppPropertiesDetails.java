@@ -20,21 +20,20 @@ public class AppPropertiesDetails extends Entity
     private int _Id;
     private String _AppId;
     private String _AppType;
-    private String _StudyIDs;
     private String _OrgId;
-    private String  _IosBundleId;
-    private String  _AndroidBundleId;
-    private String _IosPushNotificationPath;
-    private String _IosPushNotificationPassword;
-    private String  _AndroidPushNotificationPath;
+    private String _IosBundleId;
+    private String _AndroidBundleId;
+    private String _IosCertificate;
+    private String _IosCertificatePassword;
+    private String _AndroidServerKey;
     private Date _CreatedOn;
 
-    public Integer getId()
+    public int getId()
     {
         return _Id;
     }
 
-    public void setId(Integer id)
+    public void setId(int id)
     {
         _Id = id;
     }
@@ -79,16 +78,6 @@ public class AppPropertiesDetails extends Entity
         _OrgId = orgId;
     }
 
-    public String getStudyIDs()
-    {
-        return _StudyIDs;
-    }
-
-    public void setStudyIDs(String studyIDs)
-    {
-        _StudyIDs = studyIDs;
-    }
-
     public String getIosBundleId()
     {
         return _IosBundleId;
@@ -109,33 +98,43 @@ public class AppPropertiesDetails extends Entity
         _AndroidBundleId = androidBundleId;
     }
 
-    public String getIosPushNotificationPath()
+    public String getAppType()
     {
-        return _IosPushNotificationPath;
+        return _AppType;
     }
 
-    public void setIosPushNotificationPath(String iosPushNotificationPath)
+    public void setAppType(String appType)
     {
-        _IosPushNotificationPath = iosPushNotificationPath;
+        _AppType = appType;
     }
 
-    public String getIosPushNotificationPassword()
+    public String getIosCertificate()
     {
-        return _IosPushNotificationPassword;
+        return _IosCertificate;
     }
 
-    public void setIosPushNotificationPassword(String iosPushNotificationPassword)
+    public void setIosCertificate(String iosCertificate)
     {
-        _IosPushNotificationPassword = iosPushNotificationPassword;
+        _IosCertificate = iosCertificate;
     }
 
-    public String getAndroidPushNotificationPath()
+    public String getIosCertificatePassword()
     {
-        return _AndroidPushNotificationPath;
+        return _IosCertificatePassword;
     }
 
-    public void setAndroidPushNotificationPath(String androidPushNotificationPath)
+    public void setIosCertificatePassword(String iosCertificatePassword)
     {
-        _AndroidPushNotificationPath = androidPushNotificationPath;
+        _IosCertificatePassword = iosCertificatePassword;
+    }
+
+    public String getAndroidServerKey()
+    {
+        return _AndroidServerKey;
+    }
+
+    public void setAndroidServerKey(String androidServerKey)
+    {
+        _AndroidServerKey = androidServerKey;
     }
 }

@@ -22,10 +22,7 @@
  */
 package com.hphc.mystudies.model;
 
-import org.jetbrains.annotations.Nullable;
-import org.labkey.api.data.Container;
 import org.labkey.api.data.Entity;
-import org.labkey.api.util.GUID;
 
 import java.util.Date;
 
@@ -50,10 +47,31 @@ public class UserDetails extends Entity
     private Boolean _TempPassword=false;
     private String _Locale;
     private String _ResetPassword;
-
     private Date _VerificationDate;
     private Date _TempPasswordDate;
     private Date _PasswordUpdatedDate;
+    private String _ApplicationId;
+    private String _OrgId;
+
+    public String getApplicationId()
+    {
+        return _ApplicationId;
+    }
+
+    public void setApplicationId(String applicationId)
+    {
+        _ApplicationId = applicationId;
+    }
+
+    public String getOrgId()
+    {
+        return _OrgId;
+    }
+
+    public void setOrgId(String orgId)
+    {
+        _OrgId = orgId;
+    }
 
     public Integer getId()
     {
