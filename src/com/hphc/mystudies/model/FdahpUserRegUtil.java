@@ -20,11 +20,19 @@ import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.resource.FileResource;
 import org.labkey.api.resource.Resource;
-import org.labkey.api.util.MailHelper;
 
 import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -262,59 +270,59 @@ public class FdahpUserRegUtil
         return new String(decodedBytes, DEFAULT_CHARSET);
     }
 
-//    public static boolean sendemail(String email, String subject, String messageBody) throws Exception
-//    {
-//
-//        boolean sentMail = false;
-//
-//        Properties configProp = FdahpUserRegUtil.getProperties();
-//        try
-//        {
-//            Properties props = new Properties();
-//            props.put("mail.smtp.auth", "true");
-//            props.put("mail.smtp.host", (String) configProp.get("hostname"));
-//
-//            //props.put("mail.smtp.ssl.enable", true);
-//            props.put("mail.smtp.starttls.enable", true);
-//            props.put("mail.smtp.socketFactory.port", (String) configProp.get("port"));
-//            props.put("mail.smtp.socketFactory.class", (String) configProp.get("factory.value"));
-//            props.put("mail.smtp.port", (String) configProp.get("port"));
-//
-//            _log.info("factory - " + (String) configProp.get("factory.value"));
-//            _log.info("hostName - " + (String) configProp.get("hostname"));
-//            _log.info("port - " + (String) configProp.get("port"));
-//            final String username = (String) configProp.get("from.email.address");
-//            final String password = (String) configProp.get("from.email.password");
-//            _log.info("username - " + username);
-//            _log.info("password - " + password);
-//            Session session = Session.getInstance(props,
-//                    new javax.mail.Authenticator()
-//                    {
-//                        protected PasswordAuthentication getPasswordAuthentication()
-//                        {
-//                            return new PasswordAuthentication("apps@boston-technology.com", "password789");
-//                        }
-//                    });
-//            Message message = new MimeMessage(session);
-//            _log.info("email - " + email);
-//            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
-//            message.setSubject(subject);
-//            message.setContent(messageBody, "text/html");
-//            Transport.send(message);
-//            sentMail = true;
-//        }
-//        catch (MessagingException e)
-//        {
-//            _log.error("ERROR:  sendemail() - ", e);
-//            sentMail = false;
-//        }
-//        catch (Exception e)
-//        {
-//            _log.error("ERROR:  sendemail() - ", e);
-//        }
-//
-//        return sentMail;
-//    }
+    public static boolean sendemail(String email, String subject, String messageBody) throws Exception
+    {
+
+        boolean sentMail = false;
+
+        Properties configProp = FdahpUserRegUtil.getProperties();
+        try
+        {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.host", (String) configProp.get("hostname"));
+
+            //props.put("mail.smtp.ssl.enable", true);
+            props.put("mail.smtp.starttls.enable", true);
+            props.put("mail.smtp.socketFactory.port", (String) configProp.get("port"));
+            props.put("mail.smtp.socketFactory.class", (String) configProp.get("factory.value"));
+            props.put("mail.smtp.port", (String) configProp.get("port"));
+
+            _log.info("factory - " + (String) configProp.get("factory.value"));
+            _log.info("hostName - " + (String) configProp.get("hostname"));
+            _log.info("port - " + (String) configProp.get("port"));
+            final String username = (String) configProp.get("from.email.address");
+            final String password = (String) configProp.get("from.email.password");
+            _log.info("username - " + username);
+            _log.info("password - " + password);
+            Session session = Session.getInstance(props,
+                    new javax.mail.Authenticator()
+                    {
+                        protected PasswordAuthentication getPasswordAuthentication()
+                        {
+                            return new PasswordAuthentication("apps@boston-technology.com", "password789");
+                        }
+                    });
+            Message message = new MimeMessage(session);
+            _log.info("email - " + email);
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+            message.setSubject(subject);
+            message.setContent(messageBody, "text/html");
+            Transport.send(message);
+            sentMail = true;
+        }
+        catch (MessagingException e)
+        {
+            _log.error("ERROR:  sendemail() - ", e);
+            sentMail = false;
+        }
+        catch (Exception e)
+        {
+            _log.error("ERROR:  sendemail() - ", e);
+        }
+
+        return sentMail;
+    }
 
     public static Properties getProperties()
     {
@@ -409,14 +417,30 @@ public class FdahpUserRegUtil
         return futureDate;
     }
 
-    public static void sendMessage(String subject, String bodyHtml, String recipients)
+
+    public static void sendMessage(String subject, String bodyHtml, String recipients, AppPropertiesDetails appPropertiesDetails)
     {
-        Properties configProp = FdahpUserRegUtil.getProperties();
         try
         {
-            MailHelper.MultipartMessage msg = MailHelper.createMultipartMessage();
-            final String username = (String) configProp.get("from.email.address");
-            msg.setFrom(username);
+            String Email = "", password = "";
+            if (appPropertiesDetails.getEmail() == null || appPropertiesDetails.getEmailPassword() == null || appPropertiesDetails.getEmail().equalsIgnoreCase("") || appPropertiesDetails.getEmailPassword().equalsIgnoreCase(""))
+            {
+                InitialContext ctx = new InitialContext();
+                Context envCtx = (Context) ctx.lookup("java:comp/env");
+                Session _session = (Session) envCtx.lookup("mail/Session");
+
+                Email = _session.getProperty("mail.smtp.user");
+                password = _session.getProperty("mail.smtp.password");
+            }
+            else
+            {
+                Email = appPropertiesDetails.getEmail();
+                password = AES.decrypt(appPropertiesDetails.getEmailPassword());
+            }
+
+
+            MailHelper.MultipartMessage msg = MailHelper.createMultipartMessage(Email, password);
+            msg.setFrom(Email);
             msg.setSubject(subject);
             msg.setRecipients(Message.RecipientType.TO, recipients);
             msg.setEncodedHtmlContent(bodyHtml);
@@ -440,45 +464,38 @@ public class FdahpUserRegUtil
             appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notificationBean.getAppId());
 
             Module m = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
-            // Resource r = m.getModuleResource("/constants/"+(String)configProp.get("certificate.name"));
+            File file = null;
             if (appPropertiesDetails != null)
             {
-                r = m.getModuleResource(appPropertiesDetails.getIosCertificate());
                 certificatePassword = appPropertiesDetails.getIosCertificatePassword();
+                try
+                {
+                    byte[] decodedBytes;
+                    FileOutputStream fop;
+                    decodedBytes = java.util.Base64.getDecoder().decode(appPropertiesDetails.getIosCertificate().replaceAll("\n", ""));
+                    file = new File("pushCert.p12");
+                    fop = new FileOutputStream(file);
+                    fop.write(decodedBytes);
+                    fop.flush();
+                    fop.close();
+                }
+                catch (Exception e)
+                {
+                    _log.error("FdahpUserRegWSController pushNotificationCertCreation:", e);
+                }
             }
             else
             {
-                if (notificationBean.getAppId() != null && !notificationBean.getAppId().equalsIgnoreCase(""))
-                {
-                    try
-                    {
-                        r = m.getModuleResource("/constants/" + notificationBean.getAppId() + "/" + (String) configProp.get("certificate.name"));
-                    }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                    if (r == null)
-                    {
-                        r = m.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
-                    }
-                }
-                else
-                {
-                    r = m.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
-                }
-
-
+                r = m.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
                 certificatePassword = (String) configProp.get("certificate.password");
+                file = ((FileResource) r).getFile();
             }
-            File f = ((FileResource) r).getFile();
-            String path = f.getPath();
-            _log.info("path:" + path);
+
             // ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withSandboxDestination().build(); //for Test and UAT with dev certificate
             //ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build(); //for Production with production certificate
 
-//            ApnsService service = APNS.newService().withCert(path, certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
-            ApnsService service = APNS.newService().withCert(path, certificatePassword).withProductionDestination().build(); //for Production with production certificate
+//            ApnsService service = APNS.newService().withCert(file.getPath(), certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
+            ApnsService service = APNS.newService().withCert(file.getPath(), certificatePassword).withProductionDestination().build(); //for Production with production certificate
 
 
             List<String> tokens = new ArrayList<String>();

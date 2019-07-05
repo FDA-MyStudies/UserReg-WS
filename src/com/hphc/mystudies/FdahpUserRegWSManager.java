@@ -32,6 +32,8 @@ import org.json.JSONObject;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.data.AuditConfigurable;
+import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SQLFragment;
@@ -42,8 +44,12 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.gwt.client.AuditBehaviorType;
+import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.module.Module;
+import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.query.FieldKey;
 
+import java.io.File;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,6 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 public class FdahpUserRegWSManager
@@ -1394,7 +1401,6 @@ public class FdahpUserRegWSManager
 
             if (null != userAppDetails)
             {
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
                 if (userAppDetails != null && userAppDetails.getUserAppId() != null && userAppDetails.getUserAppId() > 0)
                 {
                     Table.update(null, table, userAppDetails, userAppDetails.getUserAppId());
@@ -1403,6 +1409,7 @@ public class FdahpUserRegWSManager
                 {
                     Table.insert(null, table, userAppDetails);
                 }
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
 
         }
@@ -1565,6 +1572,25 @@ public class FdahpUserRegWSManager
 
     public String saveAppPropertiesDetails(AppPropertiesDetails appPropertiesDetails)
     {
+//        Container availableContainer = null;
+//        Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+//        Set<Container> all = ContainerManager.getAllChildren(ContainerManager.getRoot());
+//
+//        ModuleProperty mp = module.getModuleProperties().get("StudyId");
+//        String postedStudyId = appPropertiesDetails.getAppId();
+//        File root = null;
+//        for (Container c : all)
+//        {
+//            String studyId = mp.getValueContainerSpecific(c);
+//            if (postedStudyId.equalsIgnoreCase(studyId))
+//            {
+//                availableContainer = c;
+//                break;
+//            }
+//        }
+//
+//        appPropertiesDetails.setContainer(availableContainer.getId());
+
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -1578,7 +1604,6 @@ public class FdahpUserRegWSManager
 
             if (appPropertiesDetails != null)
             {
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
                 if (appPropertiesDetails1 != null)
                 {
                     Table.update(null, table, appPropertiesDetails, appPropertiesDetails1.getId());
@@ -1587,8 +1612,8 @@ public class FdahpUserRegWSManager
                 {
                     Table.insert(null, table, appPropertiesDetails);
                 }
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
             }
-
         }
         catch (Exception e)
         {

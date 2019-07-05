@@ -38,6 +38,8 @@ import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.Marshal;
 import org.labkey.api.action.Marshaller;
+import org.labkey.api.action.MutatingApiAction;
+import org.labkey.api.action.ReadOnlyApiAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -86,27 +88,12 @@ public class FdahpUserRegWSController extends SpringActionController
 
     Properties configProp = FdahpUserRegUtil.getProperties();
 
-    @CSRF(CSRF.Method.NONE)
-    @RequiresNoPermission
-    public class BeginAction extends SimpleViewAction
-    {
-        public ModelAndView getView(Object o, BindException errors) throws Exception
-        {
-            return new JspView("/com/hphc/mystudies/view/hello.jsp");
-        }
-
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root;
-        }
-    }
-
     /**
      * Check the status of the application
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class PingAction extends ApiAction<Object>
+    public class PingAction extends ReadOnlyApiAction<Object>
     {
 
         @Override
@@ -114,7 +101,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-1.20 Works!");
+            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-" + FdahpUserRegWSModule.VERSION + " Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
@@ -125,15 +112,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class RegisterAction extends ApiAction<ParticipantForm>
+    public class RegisterAction extends MutatingApiAction<ParticipantForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public Object execute(ParticipantForm participantForm, BindException errors) throws Exception
@@ -220,23 +200,36 @@ public class FdahpUserRegWSController extends SpringActionController
             String message = FdahpUserRegWSManager.get().saveUserAppDetails(userAppDetails);
             //save orgId and appid for user end
         }
-        String message = "<html>" +
-                "<body>" +
-                "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
-                "<span>Hi,</span><br/><br/>" +
-                "<span>Thank you for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
-                "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the Verification step in the mobile app. </span><br/><br/>" +
-                "<span><strong>Verification Code:</strong>" + userParticipantDetails.getSecurityToken() + "</span><br/><br/>" +
-                "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
-                "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study housed in the app. Each study has its own consent process <br/> and no data for any study will not be collected unless and until you provide an informed consent<br/> prior to joining the study </span><br/><br/>" +
-                "<span>For any questions or assistance, please write to <a>" + configProp.get("support.email") + "</a> </span><br/><br/>" +
-                "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA My Studies Platform Team</span>" +
-                "<br/><span>----------------------------------------------------</span><br/>" +
-                "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
-                "</div>" +
-                "</body>" +
-                "</html>";
-        FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!", message, userParticipantDetails.getEmail());
+        AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
+        String message;
+        String subject;
+        if (appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
+        {
+            message = "<html>" +
+                    "<body>" +
+                    "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
+                    "<span>Hi,</span><br/><br/>" +
+                    "<span>Thank you for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
+                    "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the Verification step in the mobile app. </span><br/><br/>" +
+                    "<span><strong>Verification Code:</strong>" + userParticipantDetails.getSecurityToken() + "</span><br/><br/>" +
+                    "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
+                    "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study housed in the app. Each study has its own consent process <br/> and no data for any study will not be collected unless and until you provide an informed consent<br/> prior to joining the study </span><br/><br/>" +
+                    "<span>For any questions or assistance, please write to <a>FDAMyStudiesContact@harvardpilgrim.org</a> </span><br/><br/>" +
+                    "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA MyStudies Platform Team</span>" +
+                    "<br/><span>----------------------------------------------------</span><br/>" +
+                    "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
+                    "</div>" +
+                    "</body>" +
+                    "</html>";
+            subject = "Welcome to the FDA MyStudies App!";
+            //FdahpUserRegUtil.sendMessage("Welcome to the FDA MyStudies App!", message, userParticipantDetails.getEmail());
+        }
+        else
+        {
+            message = appPropertiesDetails.getRegEmailBody().replace("<<< TOKEN HERE >>>", userParticipantDetails.getSecurityToken());
+            subject = appPropertiesDetails.getRegEmailSub();
+        }
+        FdahpUserRegUtil.sendMessage(subject, message, userParticipantDetails.getEmail(), appPropertiesDetails);
         FdahpUserRegWSManager.addAuditEvent(userParticipantDetails.getUserId(), "User Registration Success", "User Registration Success  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
     }
@@ -273,7 +266,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class ConfirmRegistrationAction extends ApiAction
+    public class ConfirmRegistrationAction extends ReadOnlyApiAction
     {
 
         @Override
@@ -296,7 +289,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     {
                         if (userId != null && StringUtils.isNotEmpty(userId))
                         {
-                            UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId,applicationId,orgId);
+                            UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId, applicationId, orgId);
                             if (participantDetails != null)
                             {
                                 if (participantDetails.getStatus() == 2)
@@ -368,15 +361,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class VerifyAction extends ApiAction<VerificationForm>
+    public class VerifyAction extends MutatingApiAction<VerificationForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public Object execute(VerificationForm verificationForm, BindException errors) throws Exception
@@ -397,7 +383,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         if (StringUtils.isNotEmpty(message) && message.equals(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                         {
 
-                            UserDetails participantDetails = participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(verificationForm.getEmailId(),applicationId,orgId);
+                            UserDetails participantDetails = participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(verificationForm.getEmailId(), applicationId, orgId);
                             if (null != participantDetails)
                             {
                                 if (participantDetails.getSecurityToken() != null && participantDetails.getSecurityToken().equalsIgnoreCase(verificationForm.getCode()))
@@ -482,15 +468,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class LoginAction extends ApiAction<LoginForm>
+    public class LoginAction extends MutatingApiAction<LoginForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
@@ -508,7 +487,7 @@ public class FdahpUserRegWSController extends SpringActionController
                             && (applicationId != null && StringUtils.isNotEmpty(applicationId))
                             && (orgId != null && StringUtils.isNotEmpty(orgId)))
                     {
-                        participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId(),applicationId,orgId);
+                        participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId(), applicationId, orgId);
                         if (null != participantDetails)
                         {
                             //check the org id exist or not if there allow same app or differnt app , not then throw the error
@@ -701,7 +680,7 @@ public class FdahpUserRegWSController extends SpringActionController
         UserDetails participantDetails = null;
         if (null != form.getUserId())
         {
-            participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(form.getUserId(),applicationId,orgId);
+            participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(form.getUserId(), applicationId, orgId);
         }
         if (participantDetails == null)
         {
@@ -741,15 +720,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class ForgotPasswordAction extends ApiAction<LoginForm>
+    public class ForgotPasswordAction extends MutatingApiAction<LoginForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
@@ -767,7 +739,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     String validAppMessage = FdahpUserRegWSManager.get().validatedUserAppDetailsByAllApi("", loginForm.getEmailId(), applicationId, orgId);
                     if (StringUtils.isNotEmpty(validAppMessage) && validAppMessage.equals(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                     {
-                        UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId(),applicationId,orgId);
+                        UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId(), applicationId, orgId);
                         if (participantDetails != null)
                         {
                             if (participantDetails.getStatus() == 1)
@@ -804,22 +776,34 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                                 if (upParticipantDetails != null)
                                 {
-                                    String message = "<html>" +
-                                            "<body>" +
-                                            "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
-                                            "<span>Hi,</span><br/><br/>" +
-                                            "<span>Thank you for reaching out for password help.</span><br/><br/>" +
-                                            "<span>Here is a temporary password which you can use to sign in to the FDA My Studies App.<br/> You will be required to set up a new password after signing in.</span><br/><br/>" +
-                                            "<span><strong>Temporary Password:</strong> " + tempPassword + "</span><br/><br/>" +
-                                            "<span>Please note that this temporary password can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
-                                            "<span>For any questions or assistance, please write to <a>" + configProp.get("support.email") + "</a> </span><br/><br/>" +
-                                            "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA My Studies Platform Team</span>" +
-                                            "<br/><span>----------------------------------------------------</span><br/>" +
-                                            "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply. In case you did not request password help, please visit the app and change your password as a precautionary measure.</span>" +
-                                            "</div>" +
-                                            "</body>" +
-                                            "</html>";
-                                    FdahpUserRegUtil.sendMessage("Password Help - FDA My Studies App!", message, participantDetails.getEmail());
+                                    AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
+                                    String message = "", subject = "";
+                                    if (appPropertiesDetails.getForgotEmailSub() == null || appPropertiesDetails.getForgotEmailBody() == null || appPropertiesDetails.getForgotEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getForgotEmailSub().equalsIgnoreCase(""))
+                                    {
+                                        message = "<html>" +
+                                                "<body>" +
+                                                "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
+                                                "<span>Hi,</span><br/><br/>" +
+                                                "<span>Thank you for reaching out for password help.</span><br/><br/>" +
+                                                "<span>Here is a temporary password which you can use to sign in to the FDA MyStudies App.<br/> You will be required to set up a new password after signing in.</span><br/><br/>" +
+                                                "<span><strong>Temporary Password:</strong> " + tempPassword + "</span><br/><br/>" +
+                                                "<span>Please note that this temporary password can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
+                                                "<span>For any questions or assistance, please write to <a>FDAMyStudiesContact@harvardpilgrim.org</a> </span><br/><br/>" +
+                                                "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA MyStudies Platform Team</span>" +
+                                                "<br/><span>----------------------------------------------------</span><br/>" +
+                                                "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply. In case you did not request password help, please visit the app and change your password as a precautionary measure.</span>" +
+                                                "</div>" +
+                                                "</body>" +
+                                                "</html>";
+                                        subject = "Password Help - FDA MyStudies App!";
+                                        //FdahpUserRegUtil.sendMessage("Password Help - FDA MyStudies App!", message, participantDetails.getEmail());
+                                    }
+                                    else
+                                    {
+                                        message = appPropertiesDetails.getForgotEmailBody().replace("<<< TOKEN HERE >>>", tempPassword);
+                                        subject = appPropertiesDetails.getForgotEmailSub();
+                                    }
+                                    FdahpUserRegUtil.sendMessage(subject, message, participantDetails.getEmail(), appPropertiesDetails);
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                     FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
                                     FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PASSWORD HELP", "Password Help sent to user.(User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getViewContext().getContainer().getId());
@@ -872,15 +856,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class ResendConfirmationAction extends ApiAction<LoginForm>
+    public class ResendConfirmationAction extends MutatingApiAction<LoginForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
@@ -902,32 +879,46 @@ public class FdahpUserRegWSController extends SpringActionController
                     if (StringUtils.isNotEmpty(isValidAppMsg) && isValidAppMsg.equals(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                     {
 
-                        UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId(),applicationId,orgId);
+                        UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetailsByEmail(loginForm.getEmailId(), applicationId, orgId);
                         if (participantDetails != null)
                         {
                             if (participantDetails.getStatus() == 2)
                             {
+                                AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
                                 code = RandomStringUtils.randomAlphanumeric(6);
                                 participantDetails.setSecurityToken(code);
                                 participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
                                 FdahpUserRegWSManager.get().saveParticipant(participantDetails);
-                                String message = "<html>" +
-                                        "<body>" +
-                                        "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
-                                        "<span>Hi,</span><br/><br/>" +
-                                        "<span>Thank you for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
-                                        "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the Verification step in the mobile app.</span><br/><br/>" +
-                                        "<span><strong>Verification Code:</strong>" + participantDetails.getSecurityToken() + "</span><br/><br/>" +
-                                        "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
-                                        "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study housed in the app.Each study has its own consent process, <br/>and no data for any study will be collected unless and until you provide an informed consent<br/> prior to joining the study. </span><br/><br/>" +
-                                        "<span>For any questions or assistance, please write to <a>" + configProp.get("support.email") + "</a> </span><br/><br/>" +
-                                        "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA My Studies Platform Team</span>" +
-                                        "<br/><span>----------------------------------------------------</span><br/>" +
-                                        "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
-                                        "</div>" +
-                                        "</body>" +
-                                        "</html>";
-                                FdahpUserRegUtil.sendMessage("Welcome to the FDA My Studies App!", message, participantDetails.getEmail());
+
+                                String message;
+                                String subject;
+                                if (appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
+                                {
+                                    message = "<html>" +
+                                            "<body>" +
+                                            "<div style='margin:20px;padding:10px;font-family: sans-serif;font-size: 14px;'>" +
+                                            "<span>Hi,</span><br/><br/>" +
+                                            "<span>Thank you for registering with us! We look forward to having you on board and actively taking part in<br/>research studies conducted by the FDA and its partners.</span><br/><br/>" +
+                                            "<span>Your sign-up process is almost complete. Please use the verification code provided below to<br/>complete the Verification step in the mobile app.</span><br/><br/>" +
+                                            "<span><strong>Verification Code:</strong>" + participantDetails.getSecurityToken() + "</span><br/><br/>" +
+                                            "<span>This code can be used only once and is valid for a period of 48 hours only.</span><br/><br/>" +
+                                            "<span>Please note that  registration (or sign up) for the app  is requested only to provide you with a <br/>seamless experience of using the app. Your registration information does not become part of <br/>the data collected for any study housed in the app.Each study has its own consent process, <br/>and no data for any study will be collected unless and until you provide an informed consent<br/> prior to joining the study. </span><br/><br/>" +
+                                            "<span>For any questions or assistance, please write to <a>FDAMyStudiesContact@harvardpilgrim.org</a> </span><br/><br/>" +
+                                            "<span style='font-size:15px;'>Thanks,</span><br/><span>The FDA MyStudies Platform Team</span>" +
+                                            "<br/><span>----------------------------------------------------</span><br/>" +
+                                            "<span style='font-size:10px;'>PS - This is an auto-generated email. Please do not reply.</span>" +
+                                            "</div>" +
+                                            "</body>" +
+                                            "</html>";
+                                    subject = "Welcome to the FDA MyStudies App!";
+                                    //FdahpUserRegUtil.sendMessage("Welcome to the FDA MyStudies App!", message, participantDetails.getEmail());
+                                }
+                                else
+                                {
+                                    message = appPropertiesDetails.getRegEmailBody().replace("<<< TOKEN HERE >>>", participantDetails.getSecurityToken());
+                                    subject = appPropertiesDetails.getRegEmailSub();
+                                }
+                                FdahpUserRegUtil.sendMessage(subject, message, participantDetails.getEmail(), appPropertiesDetails);
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                 FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Requested Confirmation mail", "Confirmation mail has been sent again to" + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
                             }
@@ -974,15 +965,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class ChangePasswordAction extends ApiAction<ChangePasswordForm>
+    public class ChangePasswordAction extends MutatingApiAction<ChangePasswordForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(ChangePasswordForm form, BindException errors) throws Exception
@@ -1012,7 +996,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
                             if ((oldPassword != null && StringUtils.isNotEmpty(oldPassword)) && (newPassword != null && StringUtils.isNotEmpty(newPassword)))
                             {
-                                UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId,applicationId,orgId);
+                                UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId, applicationId, orgId);
                                 if (participantDetails != null)
                                 {
                                     if ((participantDetails.getPassword() != null && participantDetails.getPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))) || (participantDetails.getResetPassword() != null && participantDetails.getResetPassword().equalsIgnoreCase(FdahpUserRegUtil.getEncryptedString(oldPassword))))
@@ -1157,7 +1141,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class LogoutAction extends ApiAction<UserForm>
+    public class LogoutAction extends ReadOnlyApiAction<UserForm>
     {
 
         @Override
@@ -1249,7 +1233,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @Marshal(Marshaller.Jackson)
     @RequiresNoPermission
-    public class UserProfileAction extends ApiAction<Object>
+    public class UserProfileAction extends ReadOnlyApiAction<Object>
     {
 
         @Override
@@ -1275,7 +1259,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         isAuthenticated = FdahpUserRegWSManager.get().validatedAuthKey(auth, applicationId, orgId);
                         if (isAuthenticated)
                         {
-                            response = FdahpUserRegWSManager.get().getParticipantInfoDetails(userId,applicationId,orgId);
+                            response = FdahpUserRegWSManager.get().getParticipantInfoDetails(userId, applicationId, orgId);
                         }
                         else
                         {
@@ -1314,15 +1298,8 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class UpdateUserProfileAction extends ApiAction<ProfileForm>
+    public class UpdateUserProfileAction extends MutatingApiAction<ProfileForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(ProfileForm profileForm, BindException errors) throws Exception
@@ -1351,7 +1328,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         {
                             if (profileForm != null)
                             {
-                                UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId,applicationId,orgId);
+                                UserDetails participantDetails = FdahpUserRegWSManager.get().getParticipantDetails(userId, applicationId, orgId);
                                 if (participantDetails != null)
                                 {
                                     if (profileForm.getSettings() != null)
@@ -1511,15 +1488,8 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class UpdatePreferencesAction extends ApiAction<PreferencesForm>
+    public class UpdatePreferencesAction extends MutatingApiAction<PreferencesForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(PreferencesForm preferencesForm, BindException errors) throws Exception
@@ -1706,7 +1676,7 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class UserPreferencesAction extends ApiAction<UserForm>
+    public class UserPreferencesAction extends ReadOnlyApiAction<UserForm>
     {
 
         @Override
@@ -1828,15 +1798,8 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class UpdateEligibilityConsentStatusAction extends ApiAction<ConsentStatusForm>
+    public class UpdateEligibilityConsentStatusAction extends MutatingApiAction<ConsentStatusForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(ConsentStatusForm consentStatusForm, BindException errors) throws Exception
@@ -2038,7 +2001,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class ActivityStateAction extends ApiAction<ActivityForm>
+    public class ActivityStateAction extends ReadOnlyApiAction<ActivityForm>
     {
 
         @Override
@@ -2179,15 +2142,8 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class UpdateActivityStateAction extends ApiAction<PreferencesForm>
+    public class UpdateActivityStateAction extends MutatingApiAction<PreferencesForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(PreferencesForm preferencesForm, BindException errors) throws Exception
@@ -2371,7 +2327,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class WithdrawAction extends ApiAction<WithDrawForm>
+    public class WithdrawAction extends ReadOnlyApiAction<WithDrawForm>
     {
 
         @Override
@@ -2477,7 +2433,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class ConsentPDFAction extends ApiAction<ActivityForm>
+    public class ConsentPDFAction extends ReadOnlyApiAction<ActivityForm>
     {
 
         @Override
@@ -2571,7 +2527,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class DeleteAccountAction extends ApiAction
+    public class DeleteAccountAction extends ReadOnlyApiAction
     {
 
         @Override
@@ -2647,7 +2603,7 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class DeactivateAction extends ApiAction<DeactivateForm>
+    public class DeactivateAction extends ReadOnlyApiAction<DeactivateForm>
     {
 
         @Override
@@ -2741,15 +2697,8 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class UpdateStudyStateAction extends ApiAction<PreferencesForm>
+    public class UpdateStudyStateAction extends MutatingApiAction<PreferencesForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
 
         @Override
         public ApiResponse execute(PreferencesForm preferencesForm, BindException errors) throws Exception
@@ -2914,7 +2863,7 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class StudyStateAction extends ApiAction<UserForm>
+    public class StudyStateAction extends ReadOnlyApiAction<UserForm>
     {
 
         @Override
@@ -3003,7 +2952,7 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class SendNotificationAction extends ApiAction<NotificationForm>
+    public class SendNotificationAction extends MutatingApiAction<NotificationForm>
     {
 
         @Override
@@ -3143,16 +3092,7 @@ public class FdahpUserRegWSController extends SpringActionController
             }
             else
             {
-                try
-                {
-                    authKey = (String) configProp.get("AUTH_KEY_FCM_" + notification.getAppId());   // You FCM AUTH key
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-                if (authKey.equalsIgnoreCase(""))
-                    authKey = (String) configProp.get("AUTH_KEY_FCM");
+                authKey = (String) configProp.get("AUTH_KEY_FCM");
             }
 
             URL url = new URL(FMCurl);
@@ -3200,7 +3140,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class GenerateTheFileAction extends ApiAction<StudyConsent>
+    public class GenerateTheFileAction extends ReadOnlyApiAction<StudyConsent>
     {
 
         @Override
@@ -3337,7 +3277,7 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class RefreshTokenAction extends ApiAction<RefreshTokenForm>
+    public class RefreshTokenAction extends MutatingApiAction<RefreshTokenForm>
     {
 
         @Override
@@ -3477,7 +3417,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class testAction extends ApiAction<AppPropertiesDetailsBean>
+    public class AppPropertiesUpdateAction extends MutatingApiAction<AppPropertiesDetailsBean>
     {
 
         @Override
@@ -3492,20 +3432,42 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
 
-            AppPropertiesDetails appPropertiesDetails = new AppPropertiesDetails();
+            if (appPropertiesDetailsBean.getAppId() != null)
+            {
+                AppPropertiesDetails appPropertiesDetails = new AppPropertiesDetails();
 
-            appPropertiesDetails.setAppId(appPropertiesDetailsBean.getAppId());
-            appPropertiesDetails.setOrgId(appPropertiesDetailsBean.getOrgId());
-            appPropertiesDetails.setIosBundleId(appPropertiesDetailsBean.getIosBundleId());
-            appPropertiesDetails.setAndroidBundleId(appPropertiesDetailsBean.getAndroidBundleId());
-            appPropertiesDetails.setAndroidServerKey(appPropertiesDetailsBean.getAndroidServerKey());
-            appPropertiesDetails.setIosCertificate(appPropertiesDetailsBean.getIosCertificate());
-            appPropertiesDetails.setIosCertificatePassword(appPropertiesDetailsBean.getIosCertificatePassword());
-            appPropertiesDetails.setCreatedOn(new Date());
+                appPropertiesDetails.setAppId(appPropertiesDetailsBean.getAppId());
+                appPropertiesDetails.setOrgId(appPropertiesDetailsBean.getOrgId());
+                appPropertiesDetails.setIosBundleId(appPropertiesDetailsBean.getIosBundleId());
+                appPropertiesDetails.setAndroidBundleId(appPropertiesDetailsBean.getAndroidBundleId());
+                appPropertiesDetails.setAndroidServerKey(appPropertiesDetailsBean.getAndroidServerKey());
+                appPropertiesDetails.setIosCertificate(appPropertiesDetailsBean.getIosCertificate());
+                appPropertiesDetails.setIosCertificatePassword(appPropertiesDetailsBean.getIosCertificatePassword());
 
-            FdahpUserRegWSManager.get().saveAppPropertiesDetails(appPropertiesDetails);
+                appPropertiesDetails.setEmail(appPropertiesDetailsBean.getEmail());
+                appPropertiesDetails.setEmailPassword(appPropertiesDetailsBean.getEmailPassword());
 
-            apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
+                appPropertiesDetails.setRegEmailSub(appPropertiesDetailsBean.getRegisterEmailSubject());
+                appPropertiesDetails.setRegEmailBody(appPropertiesDetailsBean.getRegisterEmailBody());
+                appPropertiesDetails.setForgotEmailSub(appPropertiesDetailsBean.getForgotPassEmailSubject());
+                appPropertiesDetails.setForgotEmailBody(appPropertiesDetailsBean.getForgotPassEmailBody());
+
+                appPropertiesDetails.setCreatedOn(new Date());
+
+                String message = FdahpUserRegWSManager.get().saveAppPropertiesDetails(appPropertiesDetails);
+                if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
+                    apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
+                else
+                {
+                    apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.FAILURE.getValue().toLowerCase(), true);
+                    FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+                }
+            }
+            else
+            {
+                apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.FAILURE.getValue().toLowerCase(), true);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
+            }
             return apiSimpleResponse;
         }
     }

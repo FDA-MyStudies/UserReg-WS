@@ -19,14 +19,39 @@ public class AppPropertiesDetails extends Entity
 {
     private int _Id;
     private String _AppId;
-    private String _AppType;
     private String _OrgId;
     private String _IosBundleId;
     private String _AndroidBundleId;
     private String _IosCertificate;
     private String _IosCertificatePassword;
     private String _AndroidServerKey;
+    private String _Email;
+    private String _EmailPassword;
+    private String _RegEmailSub;
+    private String _RegEmailBody;
+    private String _ForgotEmailSub;
+    private String _ForgotEmailBody;
     private Date _CreatedOn;
+
+    public String getEmail()
+    {
+        return _Email;
+    }
+
+    public void setEmail(String email)
+    {
+        _Email = email;
+    }
+
+    public String getEmailPassword()
+    {
+        return _EmailPassword;
+    }
+
+    public void setEmailPassword(String emailPassword)
+    {
+        _EmailPassword = emailPassword;
+    }
 
     public int getId()
     {
@@ -56,16 +81,6 @@ public class AppPropertiesDetails extends Entity
     public void setCreatedOn(Date createdOn)
     {
         _CreatedOn = createdOn;
-    }
-
-    public String getApplicationId()
-    {
-        return _AppType;
-    }
-
-    public void setApplicationId(String appType)
-    {
-        _AppType = appType;
     }
 
     public String getOrgId()
@@ -98,16 +113,6 @@ public class AppPropertiesDetails extends Entity
         _AndroidBundleId = androidBundleId;
     }
 
-    public String getAppType()
-    {
-        return _AppType;
-    }
-
-    public void setAppType(String appType)
-    {
-        _AppType = appType;
-    }
-
     public String getIosCertificate()
     {
         return _IosCertificate;
@@ -136,5 +141,45 @@ public class AppPropertiesDetails extends Entity
     public void setAndroidServerKey(String androidServerKey)
     {
         _AndroidServerKey = androidServerKey;
+    }
+
+    public String getRegEmailBody()
+    {
+        return _RegEmailBody;
+    }
+
+    public void setRegEmailBody(String regEmailBody)
+    {
+        _RegEmailBody = regEmailBody;
+    }
+
+    public String getForgotEmailBody()
+    {
+        return _ForgotEmailBody;
+    }
+
+    public void setForgotEmailBody(String forgotEmailBody)
+    {
+        _ForgotEmailBody = forgotEmailBody;
+    }
+
+    public String getRegEmailSub()
+    {
+        return _RegEmailSub;
+    }
+
+    public void setRegEmailSub(String regEmailSub)
+    {
+        _RegEmailSub = regEmailSub;
+    }
+
+    public String getForgotEmailSub()
+    {
+        return _ForgotEmailSub;
+    }
+
+    public void setForgotEmailSub(String forgotEmailSub)
+    {
+        _ForgotEmailSub = forgotEmailSub;
     }
 }

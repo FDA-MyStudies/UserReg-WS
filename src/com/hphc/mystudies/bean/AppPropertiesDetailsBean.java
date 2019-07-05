@@ -9,7 +9,33 @@ public class AppPropertiesDetailsBean
     private String _AndroidBundleId;
     private String _IosCertificate;
     private String _IosCertificatePassword;
+    private String _Email;
+    private String _EmailPassword;
     private String _AndroidServerKey;
+    private String _RegisterEmailSubject;
+    private String _RegisterEmailBody;
+    private String _ForgotPassEmailSubject;
+    private String _ForgotPassEmailBody;
+
+    public String getEmail()
+    {
+        return _Email;
+    }
+
+    public void setEmail(String email)
+    {
+        _Email = email;
+    }
+
+    public String getEmailPassword()
+    {
+        return _EmailPassword;
+    }
+
+    public void setEmailPassword(String emailPassword)
+    {
+        _EmailPassword = emailPassword;
+    }
 
     public String getAppId()
     {
@@ -89,5 +115,45 @@ public class AppPropertiesDetailsBean
     public void setAndroidServerKey(String androidServerKey)
     {
         _AndroidServerKey = androidServerKey;
+    }
+
+    public String getRegisterEmailSubject()
+    {
+        return _RegisterEmailSubject;
+    }
+
+    public void setRegisterEmailSubject(String registerEmailSubject)
+    {
+        _RegisterEmailSubject = registerEmailSubject;
+    }
+
+    public String getRegisterEmailBody()
+    {
+        return _RegisterEmailBody;
+    }
+
+    public void setRegisterEmailBody(String registerEmailBody)
+    {
+        _RegisterEmailBody = registerEmailBody;
+    }
+
+    public String getForgotPassEmailSubject()
+    {
+        return _ForgotPassEmailSubject;
+    }
+
+    public void setForgotPassEmailSubject(String forgotPassEmailSubject)
+    {
+        _ForgotPassEmailSubject = forgotPassEmailSubject;
+    }
+
+    public String getForgotPassEmailBody()
+    {
+        return _ForgotPassEmailBody;
+    }
+
+    public void setForgotPassEmailBody(String forgotPassEmailBody)
+    {
+        _ForgotPassEmailBody = forgotPassEmailBody;
     }
 }
