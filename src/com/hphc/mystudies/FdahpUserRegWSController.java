@@ -3434,6 +3434,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
             if (appPropertiesDetailsBean.getAppId() != null)
             {
+                //add code for user data partition
                 AppPropertiesDetails appPropertiesDetails = new AppPropertiesDetails();
 
                 appPropertiesDetails.setAppId(appPropertiesDetailsBean.getAppId());
