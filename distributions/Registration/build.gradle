@@ -50,7 +50,7 @@ project.task(
         type: ModuleDistribution,
         {ModuleDistribution dist ->
             dist.subDirName='Registration'
-            dist.versionPrefix="Registration-1.31"
+            dist.versionPrefix="Registration-1.32"
             dist.includeTarGZArchive=true
         }
 )

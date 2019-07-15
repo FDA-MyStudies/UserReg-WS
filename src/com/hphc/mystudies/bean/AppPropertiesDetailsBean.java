@@ -16,6 +16,17 @@ public class AppPropertiesDetailsBean
     private String _RegisterEmailBody;
     private String _ForgotPassEmailSubject;
     private String _ForgotPassEmailBody;
+    private boolean _MethodHandler;
+
+    public boolean isMethodHandler()
+    {
+        return _MethodHandler;
+    }
+
+    public void setMethodHandler(boolean methodHandler)
+    {
+        _MethodHandler = methodHandler;
+    }
 
     public String getEmail()
     {

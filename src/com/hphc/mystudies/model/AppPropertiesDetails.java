@@ -31,7 +31,18 @@ public class AppPropertiesDetails extends Entity
     private String _RegEmailBody;
     private String _ForgotEmailSub;
     private String _ForgotEmailBody;
+    private boolean _MethodHandler;
     private Date _CreatedOn;
+
+    public boolean isMethodHandler()
+    {
+        return _MethodHandler;
+    }
+
+    public void setMethodHandler(boolean methodHandler)
+    {
+        _MethodHandler = methodHandler;
+    }
 
     public String getEmail()
     {

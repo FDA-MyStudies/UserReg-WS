@@ -203,7 +203,7 @@ public class FdahpUserRegWSController extends SpringActionController
         AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
         String message;
         String subject;
-        if (appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
+        if (appPropertiesDetails == null || appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
         {
             message = "<html>" +
                     "<body>" +
@@ -778,7 +778,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 {
                                     AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
                                     String message = "", subject = "";
-                                    if (appPropertiesDetails.getForgotEmailSub() == null || appPropertiesDetails.getForgotEmailBody() == null || appPropertiesDetails.getForgotEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getForgotEmailSub().equalsIgnoreCase(""))
+                                    if (appPropertiesDetails == null || appPropertiesDetails.getForgotEmailSub() == null || appPropertiesDetails.getForgotEmailBody() == null || appPropertiesDetails.getForgotEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getForgotEmailSub().equalsIgnoreCase(""))
                                     {
                                         message = "<html>" +
                                                 "<body>" +
@@ -892,7 +892,7 @@ public class FdahpUserRegWSController extends SpringActionController
 
                                 String message;
                                 String subject;
-                                if (appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
+                                if (appPropertiesDetails == null || appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
                                 {
                                     message = "<html>" +
                                             "<body>" +
@@ -3374,7 +3374,6 @@ public class FdahpUserRegWSController extends SpringActionController
                     root = fileContentService.getFileRoot(c, FileContentService.ContentType.files);
                     break;
                 }
-
             }
             _log.info("isAvailable:" + isAvailable);
             _log.info("root:" + root);
@@ -3452,6 +3451,7 @@ public class FdahpUserRegWSController extends SpringActionController
                 appPropertiesDetails.setRegEmailBody(appPropertiesDetailsBean.getRegisterEmailBody());
                 appPropertiesDetails.setForgotEmailSub(appPropertiesDetailsBean.getForgotPassEmailSubject());
                 appPropertiesDetails.setForgotEmailBody(appPropertiesDetailsBean.getForgotPassEmailBody());
+                appPropertiesDetails.setMethodHandler(appPropertiesDetailsBean.isMethodHandler());
 
                 appPropertiesDetails.setCreatedOn(new Date());
 
