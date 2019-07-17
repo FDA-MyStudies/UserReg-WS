@@ -44,12 +44,11 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.gwt.client.AuditBehaviorType;
-import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.Module;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.query.FieldKey;
 
-import java.io.File;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,7 +57,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 public class FdahpUserRegWSManager
@@ -87,6 +85,11 @@ public class FdahpUserRegWSManager
      */
     public UserDetails saveParticipant(UserDetails participant)
     {
+        Container availableContainer = getContainer_AppID(participant.getApplicationId());
+
+        if (availableContainer != null && participant != null)
+            participant.setContainer(availableContainer.getId());
+
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -118,7 +121,7 @@ public class FdahpUserRegWSManager
      * @param id
      * @return UserDetails
      */
-    public UserDetails getParticipantDetails(String id,String appId,String orgId)
+    public UserDetails getParticipantDetails(String id, String appId, String orgId)
     {
         SimpleFilter filter = new SimpleFilter();
         filter.addCondition(FieldKey.fromParts("UserId"), id);
@@ -133,7 +136,7 @@ public class FdahpUserRegWSManager
      * @param email
      * @return List {@link UserDetails}
      */
-    public List<UserDetails> getParticipantDetailsListByEmail(String email,String applicationId,String orgId)
+    public List<UserDetails> getParticipantDetailsListByEmail(String email, String applicationId, String orgId)
     {
         SimpleFilter filter = new SimpleFilter();
         filter.addCondition(FieldKey.fromParts("Email"), email);
@@ -151,6 +154,8 @@ public class FdahpUserRegWSManager
      */
     public AuthInfo saveAuthInfo(String userId, boolean isRefresh, String applicationId, String orgId)
     {
+        Container availableContainer = getContainer_AppID(applicationId);
+
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         UserDetails addParticipant = null;
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -180,6 +185,10 @@ public class FdahpUserRegWSManager
                     authInfo.setDeviceToken("");
                     authInfo.setDeviceType("");
                 }
+
+                if (availableContainer != null)
+                    authInfo.setContainer(availableContainer.getId());
+
                 Table.update(null, table, authInfo, authInfo.getAuthId());
             }
             else
@@ -199,6 +208,10 @@ public class FdahpUserRegWSManager
                     authInfo.setDeviceToken("");
                     authInfo.setDeviceType("");
                 }
+
+                if (availableContainer != null)
+                    authInfo.setContainer(availableContainer.getId());
+
                 Table.insert(null, table, authInfo);
             }
         }
@@ -296,7 +309,7 @@ public class FdahpUserRegWSManager
      * @param email
      * @return UserDetails
      */
-    public UserDetails getParticipantDetailsByEmail(String email,String applicationId,String orgId)
+    public UserDetails getParticipantDetailsByEmail(String email, String applicationId, String orgId)
     {
         UserDetails participantDetails = null;
         try
@@ -354,13 +367,13 @@ public class FdahpUserRegWSManager
      * @param userId
      * @return ApiSimpleResponse
      */
-    public ApiSimpleResponse getParticipantInfoDetails(String userId,String applicationId,String orgId)
+    public ApiSimpleResponse getParticipantInfoDetails(String userId, String applicationId, String orgId)
     {
         JSONObject jsonObject = new JSONObject();
         ApiSimpleResponse response = new ApiSimpleResponse();
         try
         {
-            UserDetails participantDetails = getParticipantDetails(userId,applicationId,orgId);
+            UserDetails participantDetails = getParticipantDetails(userId, applicationId, orgId);
             if (participantDetails != null)
             {
                 ProfileBean profileBean = new ProfileBean();
@@ -462,6 +475,10 @@ public class FdahpUserRegWSManager
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for (ParticipantStudies participantStudies : participantStudiesList)
             {
+                Container container = getContainer_StudyID(participantStudies.getApplicationId(), participantStudies.getStudyId());
+                if (container != null)
+                    participantStudies.setContainer(container.getId());
+
                 if (participantStudies.getId() != null)
                 {
                     Table.update(null, table, participantStudies, participantStudies.getId());
@@ -503,6 +520,10 @@ public class FdahpUserRegWSManager
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for (ParticipantActivities participantActivities : participantActivitiesList)
             {
+                Container container = getContainer_StudyID(participantActivities.getApplicationId(), participantActivities.getStudyId());
+                if (container != null)
+                    participantActivities.setContainer(container.getId());
+
                 if (participantActivities.getId() != null)
                     Table.update(null, table, participantActivities, participantActivities.getId());
                 else
@@ -710,8 +731,6 @@ public class FdahpUserRegWSManager
                     message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
                 }
             }
-
-
         }
         catch (Exception e)
         {
@@ -763,6 +782,11 @@ public class FdahpUserRegWSManager
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             if (null != authInfo)
             {
+                // No need to set coz it already has container value
+//                Container container = getContainer_AppID(authInfo.getApplicationId());
+//                if (container != null)
+//                    authInfo.setContainer(container.getId());
+
                 authInfo.setModifiedOn(new Date());
                 Table.update(null, table, authInfo, authInfo.getAuthId());
             }
@@ -784,6 +808,10 @@ public class FdahpUserRegWSManager
      */
     public StudyConsent saveStudyConsent(StudyConsent studyConsent)
     {
+        Container container = getContainer_StudyID(studyConsent.getApplicationId(), studyConsent.getStudyId());
+        if (container != null)
+            studyConsent.setContainer(container.getId());
+
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -852,7 +880,7 @@ public class FdahpUserRegWSManager
      * @param token
      * @return UserDetails
      */
-    public UserDetails getParticipantDetailsByToken(String emailId, String token,String applicationId,String orgId)
+    public UserDetails getParticipantDetailsByToken(String emailId, String token, String applicationId, String orgId)
     {
         UserDetails participantDetails = null;
         try
@@ -931,7 +959,6 @@ public class FdahpUserRegWSManager
     public String deActivate(String userId, DeactivateForm deactivateForm, String applicationId, String orgId)
     {
 
-
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -945,7 +972,6 @@ public class FdahpUserRegWSManager
             SQLFragment sqlUpdateVisitDates = new SQLFragment();
             if (userId != null && !userId.isEmpty())
             {
-
                 if (deactivateForm != null && deactivateForm.getDeleteData() != null && deactivateForm.getDeleteData().size() > 0)
                 {
 
@@ -1029,10 +1055,15 @@ public class FdahpUserRegWSManager
      *
      * @param userId
      * @param password
+     * @param applicationId
+     * @param orgId
      * @return String Success/Failure
      */
-    public String savePasswordHistory(String userId, String password)
+    public String savePasswordHistory(String userId, String password, String applicationId, String orgId)
     {
+
+        Container availableContainer = getContainer_AppID(applicationId);
+
         Properties configProp = FdahpUserRegUtil.getProperties();
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         String passwordHistoryCount = (String) configProp.get("password.history.count");
@@ -1060,6 +1091,10 @@ public class FdahpUserRegWSManager
             passwordHistory.setUserId(userId);
             passwordHistory.setPassword(password);
             message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+
+            if (availableContainer != null)
+                passwordHistory.setContainer(availableContainer.getId());
+
             Table.insert(null, table, passwordHistory);
 
 
@@ -1294,10 +1329,14 @@ public class FdahpUserRegWSManager
      * save or update failure login attempts of an user
      *
      * @param email
+     * @param applicationId
+     * @param orgId
      * @return LoginAttempts
      */
-    public LoginAttempts updateLoginFailureAttempts(String email)
+    public LoginAttempts updateLoginFailureAttempts(String email, String applicationId, String orgId)
     {
+        Container availableContainer = getContainer_AppID(applicationId);
+
         LoginAttempts loginAttempts = null;
         int count = 0;
         try
@@ -1314,6 +1353,10 @@ public class FdahpUserRegWSManager
                 count++;
                 loginAttempts.setAttempts(count);
                 loginAttempts.setLastModified(FdahpUserRegUtil.getCurrentUtilDateTime());
+
+                if (availableContainer != null)
+                    loginAttempts.setContainer(availableContainer.getId());
+
                 loginAttempts = Table.update(null, table, loginAttempts, loginAttempts.getId());
             }
             else
@@ -1323,6 +1366,10 @@ public class FdahpUserRegWSManager
                 loginAttempts.setAttempts(count);
                 loginAttempts.setEmail(email);
                 loginAttempts.setLastModified(FdahpUserRegUtil.getCurrentUtilDateTime());
+
+                if (availableContainer != null)
+                    loginAttempts.setContainer(availableContainer.getId());
+
                 loginAttempts = Table.insert(null, table, loginAttempts);
             }
         }
@@ -1391,6 +1438,11 @@ public class FdahpUserRegWSManager
      */
     public String saveUserAppDetails(UserAppDetails userAppDetails)
     {
+
+        Container availableContainer = getContainer_AppID(userAppDetails.getApplicationId());
+        if (availableContainer != null)
+            userAppDetails.setContainer(availableContainer.getId());
+
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
@@ -1572,24 +1624,9 @@ public class FdahpUserRegWSManager
 
     public String saveAppPropertiesDetails(AppPropertiesDetails appPropertiesDetails)
     {
-//        Container availableContainer = null;
-//        Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
-//        Set<Container> all = ContainerManager.getAllChildren(ContainerManager.getRoot());
-//
-//        ModuleProperty mp = module.getModuleProperties().get("StudyId");
-//        String postedStudyId = appPropertiesDetails.getAppId();
-//        File root = null;
-//        for (Container c : all)
-//        {
-//            String studyId = mp.getValueContainerSpecific(c);
-//            if (postedStudyId.equalsIgnoreCase(studyId))
-//            {
-//                availableContainer = c;
-//                break;
-//            }
-//        }
-//
-//        appPropertiesDetails.setContainer(availableContainer.getId());
+        Container availableContainer = getContainer_AppID(appPropertiesDetails.getAppId());
+        if (availableContainer != null)
+            appPropertiesDetails.setContainer(availableContainer.getId());
 
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
@@ -1623,5 +1660,82 @@ public class FdahpUserRegWSManager
         return message;
     }
 
+    private Container getContainer_AppID(String postedAppId)
+    {
+        Container appIdContainer = null;
+        Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+        ModuleProperty mp = module.getModuleProperties().get("StudyId");
 
+        List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
+//        for (Container rootContainer : all)
+//        {
+//            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
+//            {
+//                all = ContainerManager.getChildren(rootContainer);
+                for (Container appContainer : all)
+                {
+                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+                    {
+                        appIdContainer = appContainer;
+                        break;
+                    }
+                }
+//                break;
+//            }
+//        }
+        if (appIdContainer == null)
+        {
+            _log.error("container not available for AppID " + postedAppId);
+        }
+        return appIdContainer;
+    }
+
+    private Container getContainer_StudyID(String postedAppId, String postedStudyId)
+    {
+        Container studyIdContainer = null;
+        Container appIdContainer = null;
+        Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+        ModuleProperty mp = module.getModuleProperties().get("StudyId");
+
+        List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
+//        for (Container rootContainer : all)
+//        {
+//            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
+//            {
+//                all = ContainerManager.getChildren(rootContainer);
+
+                for (Container appContainer : all)
+                {
+                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+                    {
+                        appIdContainer = appContainer;
+                        List<Container> allStudy = ContainerManager.getChildren(appContainer);
+                        for (Container studyContainer : allStudy)
+                        {
+                            if (postedStudyId.equalsIgnoreCase(mp.getValueContainerSpecific(studyContainer)))
+                            {
+                                studyIdContainer = studyContainer;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+//            }
+//        }
+
+        if (studyIdContainer == null)
+        {
+            _log.error("container not available for StudyID" + postedStudyId);
+            if (appIdContainer == null)
+            {
+                _log.error("container not available for AppID " + postedAppId);
+            }
+            return appIdContainer;
+        }
+        else
+        {
+            return studyIdContainer;
+        }
+    }
 }

@@ -27,9 +27,7 @@ import org.labkey.api.resource.Resource;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.MailHelper;
 
-import javax.mail.Authenticator;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -53,7 +51,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
 
@@ -534,7 +531,9 @@ public class FdahpUserRegUtil
             _log.error("pushNotification method");
             appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notificationBean.getAppId());
 
-            Module m = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+            Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+            ModuleProperty mp = module.getModuleProperties().get("StudyId");
+
             File file = null;
             if (appPropertiesDetails != null)
             {
@@ -543,8 +542,8 @@ public class FdahpUserRegUtil
                 List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
                 for (Container rootContainer : all)
                 {
-                    _log.error("pushNotification root checking" + rootContainer.getName() + "   " + m.getName());
-                    if (rootContainer.getName().equalsIgnoreCase(m.getName()))
+                    _log.error("pushNotification root checking" + mp.getValueContainerSpecific(rootContainer) + "   " + notificationBean.getAppId());
+                    if (mp.getValueContainerSpecific(rootContainer).equalsIgnoreCase(notificationBean.getAppId()))
                     {
                         root = fileContentService.getFileRoot(rootContainer, FileContentService.ContentType.files);
                         break;
@@ -587,7 +586,7 @@ public class FdahpUserRegUtil
             }
             else
             {
-                r = m.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
+                r = module.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
                 certificatePassword = (String) configProp.get("certificate.password");
                 file = ((FileResource) r).getFile();
             }
@@ -602,8 +601,8 @@ public class FdahpUserRegUtil
 //            System.out.println("gateway isSocketAliveUitlitybyCrunchify" + isSocketAliveUitlitybyCrunchify("gateway.push.apple.com", 2195));
 //            System.out.println("feedback isSocketAliveUitlitybyCrunchify" + isSocketAliveUitlitybyCrunchify("feedback.push.apple.com", 2196));
 
-            _log.error("gateway isSocketAliveUitlitybyCrunchify - " + isSocketAliveUitlitybyCrunchify("gateway.push.apple.com", 2195));
-            _log.error("feedback isSocketAliveUitlitybyCrunchify - " + isSocketAliveUitlitybyCrunchify("feedback.push.apple.com", 2196));
+//            _log.error("gateway isSocketAliveUitlitybyCrunchify - " + isSocketAliveUitlitybyCrunchify("gateway.push.apple.com", 2195));
+//            _log.error("feedback isSocketAliveUitlitybyCrunchify - " + isSocketAliveUitlitybyCrunchify("feedback.push.apple.com", 2196));
 
 
 //             ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withSandboxDestination().build(); //for Test and UAT with dev certificate

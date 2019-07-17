@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.Marshal;
@@ -41,7 +40,6 @@ import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.ReadOnlyApiAction;
 import org.labkey.api.action.ReturnUrlForm;
-import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
@@ -52,8 +50,6 @@ import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.services.ServiceRegistry;
-import org.labkey.api.view.JspView;
-import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -438,8 +434,6 @@ public class FdahpUserRegWSController extends SpringActionController
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
                             return null;
                         }
-
-
                     }
                     else
                     {
@@ -540,8 +534,6 @@ public class FdahpUserRegWSController extends SpringActionController
                     FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(), getViewContext().getResponse());
                     return null;
                 }
-
-
             }
             catch (Exception e)
             {
@@ -652,7 +644,7 @@ public class FdahpUserRegWSController extends SpringActionController
         else
         {
             FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "FAILED SIGN IN", "User Sign-In Failed. (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getViewContext().getContainer().getId());
-            LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email);
+            LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email,applicationId,orgId);
             _log.info("maxAttemptsCount:" + maxAttemptsCount);
             if (failAttempts != null && failAttempts.getAttempts() == maxAttemptsCount)
             {
@@ -1026,7 +1018,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 UserDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                                                 if (updParticipantDetails != null && !participantDetails.getTempPassword())
                                                 {
-                                                    String message = FdahpUserRegWSManager.get().savePasswordHistory(userId, FdahpUserRegUtil.getEncryptedString(newPassword));
+                                                    String message = FdahpUserRegWSManager.get().savePasswordHistory(userId, FdahpUserRegUtil.getEncryptedString(newPassword),applicationId,orgId);
                                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                                     FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Change Password", "User password changed successfully " + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
