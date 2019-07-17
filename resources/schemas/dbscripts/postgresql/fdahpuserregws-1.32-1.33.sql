@@ -1,1 +1,10 @@
+ALTER TABLE fdahpUserRegWS.AppPropertiesDetails ADD COLUMN Container ENTITYID not null;
 ALTER TABLE fdahpUserRegWS.authInfo ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.loginAttempts ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.ParticipantActivities ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.ParticipantStudies ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.passwordHistory ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.studyConsent ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.userAppDetails ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.userDetails ADD COLUMN Container ENTITYID not null;
+ALTER TABLE fdahpUserRegWS.versionInfo ADD COLUMN Container ENTITYID not null;
