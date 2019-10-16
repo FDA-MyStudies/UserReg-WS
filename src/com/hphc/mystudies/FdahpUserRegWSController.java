@@ -2948,13 +2948,6 @@ public class FdahpUserRegWSController extends SpringActionController
     {
 
         @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
-
-        @Override
         public ApiResponse execute(NotificationForm notificationForm, BindException errors) throws Exception
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
@@ -3081,50 +3074,45 @@ public class FdahpUserRegWSController extends SpringActionController
             if (appPropertiesDetails != null)
             {
                 authKey = appPropertiesDetails.getAndroidServerKey();// You FCM AUTH key
+
+                URL url = new URL(FMCurl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+                conn.setUseCaches(false);
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Authorization", "key=" + authKey);
+                conn.setRequestProperty("Content-Type", "application/json");
+
+                JSONObject json = new JSONObject();
+
+                _log.info("notification.getDeviceToken():" + notification.getDeviceToken());
+                json.put("registration_ids", notification.getDeviceToken());
+                json.put("priority", "high");
+
+                JSONObject dataInfo = new JSONObject();
+                _log.info("notification.getNotificationSubType():" + notification.getNotificationSubType());
+                dataInfo.put("subtype", notification.getNotificationSubType());
+                dataInfo.put("type", notification.getNotificationType());
+                dataInfo.put("title", notification.getNotificationTitle());
+                dataInfo.put("message", notification.getNotificationText());
+                if (notification.getCustomStudyId() != null && StringUtils.isNotEmpty(notification.getCustomStudyId()))
+                {
+                    dataInfo.put("studyId", notification.getCustomStudyId());
+                }
+                json.put("data", dataInfo);
+                OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+                wr.write(json.toString());
+                wr.flush();
+                conn.getInputStream();
             }
-            else
-            {
-                authKey = (String) configProp.get("AUTH_KEY_FCM");
-            }
-
-            URL url = new URL(FMCurl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "key=" + authKey);
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            JSONObject json = new JSONObject();
-
-            _log.info("notification.getDeviceToken():" + notification.getDeviceToken());
-            json.put("registration_ids", notification.getDeviceToken());
-            json.put("priority", "high");
-
-            JSONObject dataInfo = new JSONObject();
-            _log.info("notification.getNotificationSubType():" + notification.getNotificationSubType());
-            dataInfo.put("subtype", notification.getNotificationSubType());
-            dataInfo.put("type", notification.getNotificationType());
-            dataInfo.put("title", notification.getNotificationTitle());
-            dataInfo.put("message", notification.getNotificationText());
-            if (notification.getCustomStudyId() != null && StringUtils.isNotEmpty(notification.getCustomStudyId()))
-            {
-                dataInfo.put("studyId", notification.getCustomStudyId());
-            }
-            json.put("data", dataInfo);
-            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-            wr.write(json.toString());
-            wr.flush();
-            conn.getInputStream();
         }
         catch (Exception e)
         {
             _log.error("pushFCMNotification Action Error", e);
         }
-
     }
 
     /**
@@ -3271,14 +3259,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class RefreshTokenAction extends MutatingApiAction<RefreshTokenForm>
     {
-
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
-
         @Override
         public ApiResponse execute(RefreshTokenForm refreshTokenForm, BindException errors) throws Exception
         {
@@ -3411,12 +3391,12 @@ public class FdahpUserRegWSController extends SpringActionController
     public class AppPropertiesUpdateAction extends MutatingApiAction<AppPropertiesDetailsBean>
     {
 
-        @Override
-        protected ModelAndView handleGet() throws Exception
-        {
-            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-            return null;
-        }
+//        @Override
+//        protected ModelAndView handleGet() throws Exception
+//        {
+//            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
+//            return null;
+//        }
 
         @Override
         public ApiResponse execute(AppPropertiesDetailsBean appPropertiesDetailsBean, BindException errors) throws Exception

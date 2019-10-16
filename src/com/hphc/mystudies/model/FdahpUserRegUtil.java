@@ -376,22 +376,24 @@ public class FdahpUserRegUtil
 
     public static void sendMessage(String subject, String bodyHtml, String recipients, AppPropertiesDetails appPropertiesDetails)
     {
-        if (appPropertiesDetails.isMethodHandler())
+        if (!appPropertiesDetails.isMethodHandler())
         {
             try
             {
                 MailHelper.MultipartMessage msg = MailHelper.createMultipartMessage();
 
                 _log.error("smtp Properties MailHelper -- " + msg.getSession().getProperties().toString());
-//                System.out.println("smtp Properties MailHelper -- " + msg.getSession().getProperties().toString());
+                System.out.println("smtp Properties MailHelper -- " + msg.getSession().getProperties().toString());
 
-                msg.getSession().getProperties().put("mail.smtp.user", appPropertiesDetails.getEmail());
+                if (appPropertiesDetails.getEmail() != null)
+                {
+                    msg.getSession().getProperties().put("mail.smtp.user", appPropertiesDetails.getEmail());
 //                msg.getSession().getProperties().put("mail.smtp.password", AES.decrypt(appPropertiesDetails.getEmailPassword()));
-
+                }
                 _log.error("smtp Properties MailHelper -- " + msg.getSession().getProperties().toString());
-//                System.out.println("smtp Properties MailHelper -- " + msg.getSession().getProperties().toString());
+                System.out.println("smtp Properties MailHelper -- " + msg.getSession().getProperties().toString());
 
-                msg.setFrom(appPropertiesDetails.getEmail());
+                msg.setFrom(msg.getSession().getProperties().getProperty("mail.smtp.user"));
                 msg.setSubject(subject);
                 msg.setRecipients(Message.RecipientType.TO, recipients);
                 msg.setEncodedHtmlContent(bodyHtml);
@@ -401,16 +403,14 @@ public class FdahpUserRegUtil
             {
                 _log.error("Unable to send email MailHelper", e);
             }
-        }
-        else
-        {
+        }else{
             try
             {
                 InitialContext ctx = new InitialContext();
                 Context envCtx = (Context) ctx.lookup("java:comp/env");
                 Session _session = (Session) envCtx.lookup("mail/Session");
 
-                if (appPropertiesDetails.getEmail() == null || appPropertiesDetails.getEmail().equalsIgnoreCase(""))
+                if (appPropertiesDetails == null || appPropertiesDetails.getEmail() == null ||  appPropertiesDetails.getEmail().equalsIgnoreCase("") )
                 {
                     Email = _session.getProperty("mail.smtp.user");
 //                    password = _session.getProperty("mail.smtp.password");
@@ -429,16 +429,13 @@ public class FdahpUserRegUtil
 //            props.put("mail.smtp.port", (String) _session.getProperty("mail.smtp.port"));
 //            props.put("mail.smtp.user", (String) Email);
 //            props.put("mail.smtp.password", (String) password);
+
                 Properties props = _session.getProperties();
-
-                _log.error("smtp Properties -- " + props.toString());
-//                System.out.println("smtp Properties -- " + props.toString());
-
                 props.put("mail.smtp.user", Email);
-//                props.put("mail.smtp.password", password);
+//            props.put("mail.smtp.password", password);
 
-                _log.error("smtp Properties -- " + props.toString());
-//                System.out.println("smtp Properties -- " + props.toString());
+                _log.info("smtp Properties -- " + props.toString());
+                System.out.println("smtp Properties -- " + props.toString());
 
                 Session session = Session.getInstance(props,
                         new javax.mail.Authenticator()
@@ -446,8 +443,8 @@ public class FdahpUserRegUtil
                             protected PasswordAuthentication getPasswordAuthentication()
                             {
                                 _log.error("getPasswordAuthentication calling");
-//                                System.out.println("getPasswordAuthentication calling");
-                                return new PasswordAuthentication(Email, props.getProperty("mail.smtp.password"));
+                                System.out.println("getPasswordAuthentication calling");
+                                return new PasswordAuthentication(Email, password);
                             }
                         });
                 Message message = new MimeMessage(session);
@@ -472,7 +469,7 @@ public class FdahpUserRegUtil
 //            Context envCtx = (Context) ctx.lookup("java:comp/env");
 //            Session _session = (Session) envCtx.lookup("mail/Session");
 //
-//            if (appPropertiesDetails.getEmail() == null || appPropertiesDetails.getEmailPassword() == null || appPropertiesDetails.getEmail().equalsIgnoreCase("") || appPropertiesDetails.getEmailPassword().equalsIgnoreCase(""))
+//            if (appPropertiesDetails == null || appPropertiesDetails.getEmail() == null || appPropertiesDetails.getEmailPassword() == null || appPropertiesDetails.getEmail().equalsIgnoreCase("") || appPropertiesDetails.getEmailPassword().equalsIgnoreCase(""))
 //            {
 //                Email = _session.getProperty("mail.smtp.user");
 //                password = _session.getProperty("mail.smtp.password");
@@ -491,9 +488,10 @@ public class FdahpUserRegUtil
 ////            props.put("mail.smtp.port", (String) _session.getProperty("mail.smtp.port"));
 ////            props.put("mail.smtp.user", (String) Email);
 ////            props.put("mail.smtp.password", (String) password);
+//
 //            Properties props = _session.getProperties();
 //            props.put("mail.smtp.user", Email);
-//            props.put("mail.smtp.password", password);
+////            props.put("mail.smtp.password", password);
 //
 //            _log.info("smtp Properties -- " + props.toString());
 //            System.out.println("smtp Properties -- " + props.toString());
@@ -505,7 +503,7 @@ public class FdahpUserRegUtil
 //                        {
 //                            _log.error("getPasswordAuthentication calling");
 //                            System.out.println("getPasswordAuthentication calling");
-//                            return new PasswordAuthentication(Email, props.getProperty("mail.smtp.password"));
+//                            return new PasswordAuthentication(Email, password);
 //                        }
 //                    });
 //            Message message = new MimeMessage(session);
@@ -543,7 +541,7 @@ public class FdahpUserRegUtil
                 for (Container rootContainer : all)
                 {
                     _log.error("pushNotification root checking" + mp.getValueContainerSpecific(rootContainer) + "   " + notificationBean.getAppId());
-                    if (mp.getValueContainerSpecific(rootContainer).equalsIgnoreCase(notificationBean.getAppId()))
+                    if (mp.getValueContainerSpecific(rootContainer) != null && mp.getValueContainerSpecific(rootContainer).equalsIgnoreCase(notificationBean.getAppId()))
                     {
                         root = fileContentService.getFileRoot(rootContainer, FileContentService.ContentType.files);
                         break;
@@ -583,16 +581,39 @@ public class FdahpUserRegUtil
                     _log.error("FdahpUserRegWSController pushNotificationCertCreation:", e);
 
                 }
-            }
-            else
-            {
-                r = module.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
-                certificatePassword = (String) configProp.get("certificate.password");
-                file = ((FileResource) r).getFile();
-            }
 
-//            System.out.println("gateway " + serverListening("gateway.push.apple.com", 2195));
-//            System.out.println("feedback " + serverListening("feedback.push.apple.com", 2196));
+                ApnsService service = null;
+                if (file != null)
+                {
+//                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withProductionDestination().build(); //for Production with production certificate
+                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
+
+                    List<String> tokens = new ArrayList<String>();
+                    if (notificationBean.getDeviceToken() != null)
+                    {
+                        for (int i = 0; i < notificationBean.getDeviceToken().length(); i++)
+                        {
+                            String token = (String) notificationBean.getDeviceToken().get(i);
+                            tokens.add(token);
+                        }
+                    }
+                    String customPayload = APNS.newPayload().badge(1).alertTitle("")
+                            .alertBody(notificationBean.getNotificationText())
+                            .customField("subtype", notificationBean.getNotificationSubType())
+                            .customField("type", notificationBean.getNotificationType())
+                            .customField("studyId", notificationBean.getCustomStudyId())
+                            .sound("default")
+                            .build();
+                    service.push(tokens, customPayload);
+                    _log.error("pushNotification Ends");
+                }
+            }
+//            else
+//            {
+//                r = module.getModuleResource("/constants/" + (String) configProp.get("certificate.name"));
+//                certificatePassword = (String) configProp.get("certificate.password");
+//                file = ((FileResource) r).getFile();
+//            }
 
             _log.error("gateway " + serverListening("gateway.push.apple.com", 2195));
             _log.error("feedback " + serverListening("feedback.push.apple.com", 2196));
@@ -604,32 +625,7 @@ public class FdahpUserRegUtil
 //            _log.error("gateway isSocketAliveUitlitybyCrunchify - " + isSocketAliveUitlitybyCrunchify("gateway.push.apple.com", 2195));
 //            _log.error("feedback isSocketAliveUitlitybyCrunchify - " + isSocketAliveUitlitybyCrunchify("feedback.push.apple.com", 2196));
 
-
-//             ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withSandboxDestination().build(); //for Test and UAT with dev certificate
-//            ApnsService service = APNS.newService().withCert(path, (String)configProp.get("certificate.password")).withProductionDestination().build(); //for Production with production certificate
-//
 //            ApnsService service = APNS.newService().withCert(file.getPath(), certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
-            ApnsService service = APNS.newService().withCert(file.getPath(), certificatePassword).withProductionDestination().build(); //for Production with production certificate
-
-            List<String> tokens = new ArrayList<String>();
-            if (notificationBean.getDeviceToken() != null)
-            {
-                for (int i = 0; i < notificationBean.getDeviceToken().length(); i++)
-                {
-                    String token = (String) notificationBean.getDeviceToken().get(i);
-                    _log.info("token:" + token);
-                    tokens.add(token);
-                }
-            }
-            String customPayload = APNS.newPayload().badge(1).alertTitle("")
-                    .alertBody(notificationBean.getNotificationText())
-                    .customField("subtype", notificationBean.getNotificationSubType())
-                    .customField("type", notificationBean.getNotificationType())
-                    .customField("studyId", notificationBean.getCustomStudyId())
-                    .sound("default")
-                    .build();
-            service.push(tokens, customPayload);
-            _log.error("pushNotification Ends");
         }
         catch (Exception e)
         {
