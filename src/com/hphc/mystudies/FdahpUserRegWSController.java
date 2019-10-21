@@ -3088,12 +3088,10 @@ public class FdahpUserRegWSController extends SpringActionController
 
                 JSONObject json = new JSONObject();
 
-                _log.info("notification.getDeviceToken():" + notification.getDeviceToken());
                 json.put("registration_ids", notification.getDeviceToken());
                 json.put("priority", "high");
 
                 JSONObject dataInfo = new JSONObject();
-                _log.info("notification.getNotificationSubType():" + notification.getNotificationSubType());
                 dataInfo.put("subtype", notification.getNotificationSubType());
                 dataInfo.put("type", notification.getNotificationType());
                 dataInfo.put("title", notification.getNotificationTitle());
@@ -3133,7 +3131,6 @@ public class FdahpUserRegWSController extends SpringActionController
             File root = fileContentService.getFileRoot(getViewContext().getContainer(), FileContentService.ContentType.files);
             if (!root.exists())
                 root.mkdirs();
-            _log.info("root:" + root);
             File rootModule = null;
             if (root != null)
             {
@@ -3143,7 +3140,6 @@ public class FdahpUserRegWSController extends SpringActionController
                 _log.info(rootModule);
 
             }
-            _log.info(studyConsentList.size());
             if (studyConsentList != null && studyConsentList.size() > 0)
             {
                 for (StudyConsent studyConsent : studyConsentList)
@@ -3197,14 +3193,12 @@ public class FdahpUserRegWSController extends SpringActionController
             if (!root.exists())
                 root.mkdirs();
             File rootModule = null;
-            _log.info("root:" + root);
             if (root != null)
             {
                 rootModule = new File(root, FdahpUserRegWSModule.NAME);
                 if (!rootModule.exists())
                     rootModule.mkdirs();
             }
-            _log.info("rootModule:" + rootModule);
             if (rootModule != null)
             {
                 File dir = new File(rootModule, studyConsent.getStudyId());
@@ -3324,7 +3318,6 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     public String saveStudyConsentDocument(StudyConsent studyConsent)
     {
-        _log.info("FdahpUserRegWSController saveStudyConsentDocument starts");
         String fileName = "";
         try
         {
@@ -3347,8 +3340,6 @@ public class FdahpUserRegWSController extends SpringActionController
                     break;
                 }
             }
-            _log.info("isAvailable:" + isAvailable);
-            _log.info("root:" + root);
             if (isAvailable)
             {
                 if (!root.exists())
@@ -3381,7 +3372,6 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             _log.error("FdahpUserRegWSController saveStudyConsentDocument:", e);
         }
-        _log.info("FdahpUserRegWSController saveStudyConsentDocument Exit");
         return fileName;
     }
 
@@ -3390,13 +3380,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class AppPropertiesUpdateAction extends MutatingApiAction<AppPropertiesDetailsBean>
     {
-
-//        @Override
-//        protected ModelAndView handleGet() throws Exception
-//        {
-//            getViewContext().getResponse().sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "You must use the POST method when calling this action.");
-//            return null;
-//        }
 
         @Override
         public ApiResponse execute(AppPropertiesDetailsBean appPropertiesDetailsBean, BindException errors) throws Exception

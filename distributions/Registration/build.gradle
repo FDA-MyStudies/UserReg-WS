@@ -57,16 +57,16 @@ project.task(
 dist.description="Distribution of User Registration Modules"
 
 BuildUtils.addModuleDistributionDependencies(project, [
-    ":server:internal",
-    ":server:api",
-    ":server:modules:announcements",
-    ":server:modules:audit",
-    ":server:modules:core",
-    ":server:modules:experiment",
-    ":server:modules:filecontent",
-    ":server:modules:pipeline",
-    ":server:modules:query",
-    ":server:modules:wiki",
-    ":server:customModules:UserReg-WS"
+        ":server:modules:platform:internal",
+        ":server:modules:platform:api",
+        ":server:modules:platform:announcements",
+        ":server:modules:platform:audit",
+        ":server:modules:platform:core",
+        ":server:modules:platform:experiment",
+        ":server:modules:platform:filecontent",
+        ":server:modules:platform:pipeline",
+        ":server:modules:platform:query",
+        ":server:modules:platform:wiki",
+        ":server:modules:UserReg-WS"
 ]
 )
