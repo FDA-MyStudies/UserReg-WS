@@ -15,7 +15,7 @@ Switch to the release 2019.10 branch and git pull
 
 In your settings.gradle file, find the commented out line with this text:
 //include ":server:optionalModules:workflow"
-Underneath this line, add these two lines
+Underneath this line, add these two lines:(might change if folder structure is changed)
 include ":server:modules:UserReg-WS"
 include ":server:modules:UserReg-WS:distributions:Registration"
 
@@ -29,7 +29,7 @@ Once it’s build successfully, click the run icon in your IDE
 ### Test URL
 http://localhost:8080/labkey/fdahpUserRegWS/ping.api
 
-### To generate a production build use the below commands:
+### To generate a production build use the below commands:(might change if folder structure is changed)
 •	gradlew deployApp -PdeployMode=prod
 •	gradlew -PdeployMode=prod :server:modules:UserReg-WS:distributions:Registration:distribution
 

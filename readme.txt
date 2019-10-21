@@ -1,6 +1,4 @@
-https://svn.mgt.labkey.host/stedi/branches/release18.3-SNAPSHOT
-
-https://www.labkey.org/Documentation/wiki-page.view?name=devMachine#checklist
+https://www.labkey.org/Documentation/wiki-page.view?name=devMachine
 
 
 for development build
@@ -12,7 +10,6 @@ for development build
 For deploy single module(if you want to do any change in code)
 ---------------------------
 gradlew :server:modules:UserReg-WS:deployModule
-
 
 
 for production build

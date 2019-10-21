@@ -42,12 +42,13 @@ project.task(
         type: ModuleDistribution,
         {ModuleDistribution dist ->
             dist.subDirName='Registration'
-            dist.versionPrefix="Registration-1.00"
+            dist.versionPrefix="Registration-1.34"
             dist.includeTarGZArchive=true
         }
 )
 dist.description="Distribution of User Registration Modules"
 
+// Might change if folder structure is changed
 BuildUtils.addModuleDistributionDependencies(project, [
         ":server:modules:platform:internal",
         ":server:modules:platform:api",
