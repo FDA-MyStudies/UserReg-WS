@@ -35,17 +35,75 @@ public class ParticipantActivities extends Entity
     private String _ActivityId;
     private Integer _ActivityCompleteId;
     private String _ActivityType;
-    private Boolean _Bookmark=false;
+    private Boolean _Bookmark = false;
     private String _Status;
     private String _ActivityVersion;
     private String _ActivityState;
     private String _ActivityRunId;
+
+    private String _ActivityStartDate;
+    private String _ActivityEndDate;
+    private String _AnchorDateVersion;
+    private String _AnchorDateCreatedDate;
+    private String _LastModifiedDate;
+
 
     private Integer _Total;
     private Integer _Completed;
     private Integer _Missed;
     private String _ApplicationId;
     private String _OrgId;
+
+
+    public String getActivityStartDate()
+    {
+        return _ActivityStartDate;
+    }
+
+    public void setActivityStartDate(String activityStartDate)
+    {
+        _ActivityStartDate = activityStartDate;
+    }
+
+    public String getActivityEndDate()
+    {
+        return _ActivityEndDate;
+    }
+
+    public void setActivityEndDate(String activityEndDate)
+    {
+        _ActivityEndDate = activityEndDate;
+    }
+
+    public String getAnchorDateVersion()
+    {
+        return _AnchorDateVersion;
+    }
+
+    public void setAnchorDateVersion(String anchorDateVersion)
+    {
+        _AnchorDateVersion = anchorDateVersion;
+    }
+
+    public String getAnchorDateCreatedDate()
+    {
+        return _AnchorDateCreatedDate;
+    }
+
+    public void setAnchorDateCreatedDate(String anchorDateCreatedDate)
+    {
+        _AnchorDateCreatedDate = anchorDateCreatedDate;
+    }
+
+    public String getLastModifiedDate()
+    {
+        return _LastModifiedDate;
+    }
+
+    public void setLastModifiedDate(String lastModifiedDate)
+    {
+        _LastModifiedDate = lastModifiedDate;
+    }
 
     public Integer getId()
     {

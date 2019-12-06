@@ -10,12 +10,14 @@
 package com.hphc.mystudies;
 
 import com.hphc.mystudies.FdahpUserRegWSController.DeactivateForm;
+import com.hphc.mystudies.bean.CustomScheduleRunsBean;
 import com.hphc.mystudies.bean.ParticipantForm;
 import com.hphc.mystudies.bean.ProfileBean;
 import com.hphc.mystudies.bean.SettingsBean;
 import com.hphc.mystudies.bean.StudiesBean;
 import com.hphc.mystudies.model.AppPropertiesDetails;
 import com.hphc.mystudies.model.AuthInfo;
+import com.hphc.mystudies.model.CustomScheduleRuns;
 import com.hphc.mystudies.model.FdahpUserRegUtil;
 import com.hphc.mystudies.model.LoginAttempts;
 import com.hphc.mystudies.model.ParticipantActivities;
@@ -487,7 +489,7 @@ public class FdahpUserRegWSManager
                 {
                     Table.insert(null, table, participantStudies);
                 }
-                addAuditEvent(participantStudies.getUserId(), "Study State Update", " Study state has been updated " + participantStudies.getStudyId() + ".", "FdaStudyAuditEvent", "");
+                addAuditEvent(participantStudies.getUserId(), "Study State Update", " Study state has been updated " + participantStudies.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(participantStudies.getApplicationId()).getId());
             }
 
             if (participantStudiesList.size() > 0)
@@ -528,7 +530,7 @@ public class FdahpUserRegWSManager
                     Table.update(null, table, participantActivities, participantActivities.getId());
                 else
                     Table.insert(null, table, participantActivities);
-                addAuditEvent(participantActivities.getParticipantId(), "Activity State Update", "Activity state has been updated " + participantActivities.getActivityId() + ".", "FdaActivityAuditEvent", "");
+                addAuditEvent(participantActivities.getParticipantId(), "Activity State Update", "Activity state has been updated " + participantActivities.getActivityId() + ".", "FdaActivityAuditEvent", getContainer_AppID(participantActivities.getApplicationId()).getId());
             }
 
 
@@ -671,6 +673,62 @@ public class FdahpUserRegWSManager
             _log.error("FdahpUserRegWSManager getParticipantActivitiesList()", e);
         }
         return participantActivitiesList;
+    }
+
+    public List<CustomScheduleRunsBean> getCustomScheduleRun(String studyId, String activityId)
+    {
+        List<CustomScheduleRunsBean> customScheduleRunsList = null;
+        try
+        {
+            SimpleFilter filter = new SimpleFilter();
+            filter.addCondition(FieldKey.fromParts("ActivityId"), activityId);
+            filter.addCondition(FieldKey.fromParts("StudyId"), studyId);
+            customScheduleRunsList = new TableSelector(FdahpUserRegWSSchema.getInstance().getCustomScheduleRuns(), filter, null).getArrayList(CustomScheduleRunsBean.class);
+        }
+        catch (Exception e)
+        {
+            _log.error("FdahpUserRegWSManager getParticipantActivitiesList()", e);
+        }
+        return customScheduleRunsList;
+    }
+
+    public void saveCustomScheduleRun(List<CustomScheduleRuns> customScheduleRuns, String studyId, String activityId, String applicationId, String orgId)
+    {
+        DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
+        DbScope.Transaction transaction = dbScope.ensureTransaction();
+        try
+        {
+            AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getCustomScheduleRuns();
+            table.setAuditBehavior(AuditBehaviorType.DETAILED);
+
+            deleteExistingCustomRuns(studyId, activityId, applicationId, orgId);
+            for (CustomScheduleRuns customScheduleRunsItem : customScheduleRuns)
+            {
+
+                Container container = getContainer_StudyID(applicationId, customScheduleRunsItem.getStudyId());
+                if (container != null)
+                    customScheduleRunsItem.setContainer(container.getId());
+
+                Table.insert(null, table, customScheduleRunsItem);
+            }
+        }
+        catch (Exception e)
+        {
+            _log.error("FdahpUserRegWSManager saveCustomScheduleRun error :", e);
+        }
+        transaction.commit();
+    }
+
+    public void deleteExistingCustomRuns(String studyId, String activityId, String applicationId, String orgId)
+    {
+        AuditConfigurable customScheduleRuns = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getCustomScheduleRuns();
+        SimpleFilter filterActivities = new SimpleFilter();
+        filterActivities.addCondition(FieldKey.fromParts("StudyId"), studyId);
+        filterActivities.addCondition(FieldKey.fromParts("ActivityId"), activityId);
+        filterActivities.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
+        filterActivities.addCondition(FieldKey.fromParts("OrgId"), orgId);
+        if (customScheduleRuns != null)
+            Table.delete(customScheduleRuns, filterActivities);
     }
 
     /**
@@ -1110,7 +1168,7 @@ public class FdahpUserRegWSManager
     /**
      * Get the all user device token
      *
-     * @return Map<String, JSONArray>
+     * @return Map<String                                                                                                                               ,                                                                                                                                                                                                                                                               JSONArray>
      */
     public Map<String, JSONArray> getDeviceTokenOfAllUsers(String appIds)
     {
@@ -1198,7 +1256,7 @@ public class FdahpUserRegWSManager
      * Get the study Level user device tokens
      *
      * @param studyIds
-     * @return Map<String, Map < String, JSONArray>>
+     * @return Map<String                                                                                                                               ,                                                                                                                                                                                                                                                               Map                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                               String                                                                                                                               ,                                                                                                                                                                                                                                                               JSONArray>>
      */
     public Map<String, Map<String, JSONArray>> getStudyLevelDeviceToken(String studyIds, String appIds)
     {
@@ -1274,6 +1332,7 @@ public class FdahpUserRegWSManager
             event.setActivity(activity);
             event.setActivityDetails(activityDetails);
             event.setUserId(userId);
+            event.setContainer(container);
             AuditLogService.get().addEvent(null, event);
         }
         catch (Exception e)
@@ -1672,14 +1731,14 @@ public class FdahpUserRegWSManager
 //            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
 //            {
 //                all = ContainerManager.getChildren(rootContainer);
-                for (Container appContainer : all)
-                {
-                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
-                    {
-                        appIdContainer = appContainer;
-                        break;
-                    }
-                }
+        for (Container appContainer : all)
+        {
+            if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+            {
+                appIdContainer = appContainer;
+                break;
+            }
+        }
 //                break;
 //            }
 //        }
@@ -1704,23 +1763,23 @@ public class FdahpUserRegWSManager
 //            {
 //                all = ContainerManager.getChildren(rootContainer);
 
-                for (Container appContainer : all)
+        for (Container appContainer : all)
+        {
+            if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+            {
+                appIdContainer = appContainer;
+                List<Container> allStudy = ContainerManager.getChildren(appContainer);
+                for (Container studyContainer : allStudy)
                 {
-                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+                    if (postedStudyId.equalsIgnoreCase(mp.getValueContainerSpecific(studyContainer)))
                     {
-                        appIdContainer = appContainer;
-                        List<Container> allStudy = ContainerManager.getChildren(appContainer);
-                        for (Container studyContainer : allStudy)
-                        {
-                            if (postedStudyId.equalsIgnoreCase(mp.getValueContainerSpecific(studyContainer)))
-                            {
-                                studyIdContainer = studyContainer;
-                                break;
-                            }
-                        }
+                        studyIdContainer = studyContainer;
                         break;
                     }
                 }
+                break;
+            }
+        }
 //            }
 //        }
 

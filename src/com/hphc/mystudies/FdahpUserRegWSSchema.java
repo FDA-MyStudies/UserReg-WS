@@ -68,6 +68,10 @@ public class FdahpUserRegWSSchema
         return getSchema().getTable("UserAppDetails");
     }
 
+    public TableInfo getCustomScheduleRuns(){
+        return getSchema().getTable("CustomScheduleRuns");
+    }
+
     public TableInfo getAppPropertiesDetails(){
         return getSchema().getTable("AppPropertiesDetails");
     }

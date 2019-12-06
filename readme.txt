@@ -9,7 +9,7 @@ for development build
 
 For deploy single module(if you want to do any change in code)
 ---------------------------
-gradlew :server:modules:UserReg-WS:deployModule
+gradlew :server:customModules:UserReg-WS:deployModule
 
 
 for production build

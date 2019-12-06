@@ -22,19 +22,87 @@
  */
 package com.hphc.mystudies.bean;
 
+import java.util.List;
+
 /**
  * Created by Ravinder on 2/7/2017.
  */
 public class ActivitiesBean
 {
-    private String _activityId="";
-    private String _studyId="";
-    private String _activityVersion="";
-    private String _status="";
+    private String _activityId = "";
+    private String _studyId = "";
+    private String _activityVersion = "";
+    private String _status = "";
     private Boolean _bookmarked;
-    private String _activityRunId="";
-    private String  _activityState;
+    private String _activityRunId = "";
+    private String _activityState;
+    private String _anchorDateVersion;
+    private String _anchorDatecreatedDate;
+    private String _activityStartDate;
+    private String _activityEndDate;
+    private String _lastModifiedDate;
+    private List<CustomScheduleRunsBean> _customScheduleRuns;
     private ActivityRunBean _activityRun;
+
+    public String getAnchorDatecreatedDate()
+    {
+        return _anchorDatecreatedDate;
+    }
+
+    public void setAnchorDatecreatedDate(String anchorDatecreatedDate)
+    {
+        _anchorDatecreatedDate = anchorDatecreatedDate;
+    }
+
+    public String getActivityStartDate()
+    {
+        return _activityStartDate;
+    }
+
+    public void setActivityStartDate(String activityStartDate)
+    {
+        _activityStartDate = activityStartDate;
+    }
+
+    public String getActivityEndDate()
+    {
+        return _activityEndDate;
+    }
+
+    public void setActivityEndDate(String activityEndDate)
+    {
+        _activityEndDate = activityEndDate;
+    }
+
+    public String getLastModifiedDate()
+    {
+        return _lastModifiedDate;
+    }
+
+    public void setLastModifiedDate(String lastModifiedDate)
+    {
+        _lastModifiedDate = lastModifiedDate;
+    }
+
+    public List<CustomScheduleRunsBean> getCustomScheduleRuns()
+    {
+        return _customScheduleRuns;
+    }
+
+    public void setCustomScheduleRuns(List<CustomScheduleRunsBean> customScheduleRuns)
+    {
+        _customScheduleRuns = customScheduleRuns;
+    }
+
+    public String getAnchorDateVersion()
+    {
+        return _anchorDateVersion;
+    }
+
+    public void setAnchorDateVersion(String anchorDateVersion)
+    {
+        _anchorDateVersion = anchorDateVersion;
+    }
 
     public String getActivityId()
     {

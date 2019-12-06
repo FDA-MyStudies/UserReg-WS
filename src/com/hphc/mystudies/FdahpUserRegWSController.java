@@ -11,6 +11,7 @@ package com.hphc.mystudies;
 import com.hphc.mystudies.bean.ActivitiesBean;
 import com.hphc.mystudies.bean.AppPropertiesDetailsBean;
 import com.hphc.mystudies.bean.ConsentBean;
+import com.hphc.mystudies.bean.CustomScheduleRunsBean;
 import com.hphc.mystudies.bean.InfoBean;
 import com.hphc.mystudies.bean.NotificationBean;
 import com.hphc.mystudies.bean.ParticipantForm;
@@ -20,6 +21,7 @@ import com.hphc.mystudies.bean.SettingsBean;
 import com.hphc.mystudies.bean.StudiesBean;
 import com.hphc.mystudies.model.AppPropertiesDetails;
 import com.hphc.mystudies.model.AuthInfo;
+import com.hphc.mystudies.model.CustomScheduleRuns;
 import com.hphc.mystudies.model.FdahpUserRegUtil;
 import com.hphc.mystudies.model.LoginAttempts;
 import com.hphc.mystudies.model.ParticipantActivities;
@@ -51,7 +53,6 @@ import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.springframework.validation.BindException;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -95,7 +96,6 @@ public class FdahpUserRegWSController extends SpringActionController
         @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
         {
-            UserDetails participantDetails = new UserDetails();
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
             apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-" + FdahpUserRegWSModule.VERSION + " Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
@@ -139,7 +139,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         else
                         {
-                            FdahpUserRegWSManager.addAuditEvent(null, "User Registration Failure", "User Registration Failure  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                            FdahpUserRegWSManager.addAuditEvent(null, "User Registration Failure", "User Registration Failure  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(), FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -226,7 +226,7 @@ public class FdahpUserRegWSController extends SpringActionController
             subject = appPropertiesDetails.getRegEmailSub();
         }
         FdahpUserRegUtil.sendMessage(subject, message, userParticipantDetails.getEmail(), appPropertiesDetails);
-        FdahpUserRegWSManager.addAuditEvent(userParticipantDetails.getUserId(), "User Registration Success", "User Registration Success  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+        FdahpUserRegWSManager.addAuditEvent(userParticipantDetails.getUserId(), "User Registration Success", "User Registration Success  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
     }
 
@@ -396,7 +396,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                             if (null != updateParticipantDetails)
                                             {
                                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "User Verification", "User has confirmed registration through email " + verificationForm.getEmailId() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "User Verification", "User has confirmed registration through email " + verificationForm.getEmailId() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                                             }
                                             else
                                             {
@@ -518,7 +518,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         else
                         {
-                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED SIGN IN", "Wrong information entered in email " + loginForm.getEmailId() + ". Which is not existed.", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED SIGN IN", "Wrong information entered in email " + loginForm.getEmailId() + ". Which is not existed.", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_CREDENTIALS.name(), FdahpUserRegUtil.ErrorCodes.INVALID_CREDENTIALS.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -592,7 +592,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     }
                 }
                 FdahpUserRegWSManager.get().resetLoginAttempts(email);
-                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ").", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ").", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
             }
             else
             {
@@ -626,7 +626,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         response.put("resetPassword", participantDetails.getTempPassword());
                         FdahpUserRegWSManager.get().resetLoginAttempts(email);
-                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ") with temp password.", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ") with temp password.", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                     }
                     else
                     {
@@ -643,8 +643,8 @@ public class FdahpUserRegWSController extends SpringActionController
         }
         else
         {
-            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "FAILED SIGN IN", "User Sign-In Failed. (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getViewContext().getContainer().getId());
-            LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email,applicationId,orgId);
+            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "FAILED SIGN IN", "User Sign-In Failed. (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+            LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email, applicationId, orgId);
             _log.info("maxAttemptsCount:" + maxAttemptsCount);
             if (failAttempts != null && failAttempts.getAttempts() == maxAttemptsCount)
             {
@@ -798,7 +798,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     FdahpUserRegUtil.sendMessage(subject, message, participantDetails.getEmail(), appPropertiesDetails);
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                     FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
-                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PASSWORD HELP", "Password Help sent to user.(User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PASSWORD HELP", "Password Help sent to user.(User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                                 }
                                 else
                                 {
@@ -912,7 +912,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                                 FdahpUserRegUtil.sendMessage(subject, message, participantDetails.getEmail(), appPropertiesDetails);
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Requested Confirmation mail", "Confirmation mail has been sent again to" + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Requested Confirmation mail", "Confirmation mail has been sent again to" + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                             }
                             else
                             {
@@ -1018,10 +1018,10 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 UserDetails updParticipantDetails = FdahpUserRegWSManager.get().saveParticipant(participantDetails);
                                                 if (updParticipantDetails != null && !participantDetails.getTempPassword())
                                                 {
-                                                    String message = FdahpUserRegWSManager.get().savePasswordHistory(userId, FdahpUserRegUtil.getEncryptedString(newPassword),applicationId,orgId);
+                                                    String message = FdahpUserRegWSManager.get().savePasswordHistory(userId, FdahpUserRegUtil.getEncryptedString(newPassword), applicationId, orgId);
                                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Change Password", "User password changed successfully " + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Change Password", "User password changed successfully " + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
 
                                                 }
 
@@ -1167,7 +1167,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                     {
                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                        FdahpUserRegWSManager.addAuditEvent(userId, "SIGN OUT", "User Signed Out. (User ID = " + userId + ") ", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                        FdahpUserRegWSManager.addAuditEvent(userId, "SIGN OUT", "User Signed Out. (User ID = " + userId + ") ", "FdaUserAuditEvent",getContainer_AppID(applicationId).getId());
                                     }
                                     else
                                     {
@@ -1375,7 +1375,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     if (updateParticipantDetails != null || message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()) || updaAuthInfo != null)
                                     {
                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PROFILE UPDATE", "User Profile/Preferences updated.  (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PROFILE UPDATE", "User Profile/Preferences updated.  (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                                     }
                                 }
                                 else
@@ -1874,7 +1874,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 if (updateConsent != null && message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                                 {
                                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), message);
-                                                    FdahpUserRegWSManager.addAuditEvent(userId, "Update eligibility consent status", "Eligibility consent has been updated for study " + consentStatusForm.getStudyId() + ".", "FdaStudyAuditEvent", getViewContext().getContainer().getId());
+                                                    FdahpUserRegWSManager.addAuditEvent(userId, "Update eligibility consent status", "Eligibility consent has been updated for study " + consentStatusForm.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(applicationId).getId());
                                                 }
                                                 else
                                                 {
@@ -2033,6 +2033,34 @@ public class FdahpUserRegWSController extends SpringActionController
                                         jsonObject.put("activityRunId", participantActivities.getActivityRunId());
                                     if (participantActivities.getBookmark() != null)
                                         jsonObject.put("bookmarked", participantActivities.getBookmark());
+
+                                    if (participantActivities.getActivityStartDate() != null)
+                                        jsonObject.put("activityStartDate", participantActivities.getActivityStartDate());
+                                    if (participantActivities.getActivityEndDate() != null)
+                                        jsonObject.put("activityEndDate", participantActivities.getActivityEndDate());
+                                    if (participantActivities.getAnchorDateVersion() != null)
+                                        jsonObject.put("anchorDateVersion", participantActivities.getAnchorDateVersion());
+                                    if (participantActivities.getAnchorDateCreatedDate() != null)
+                                        jsonObject.put("anchorDatecreatedDate", participantActivities.getAnchorDateCreatedDate());
+                                    if (participantActivities.getLastModifiedDate() != null)
+                                        jsonObject.put("lastModifiedDate", participantActivities.getLastModifiedDate());
+
+                                    List<CustomScheduleRunsBean> customScheduleRunsList = FdahpUserRegWSManager.get().getCustomScheduleRun(participantActivities.getStudyId(), participantActivities.getActivityId());
+                                    if (customScheduleRunsList != null && !customScheduleRunsList.isEmpty())
+                                    {
+                                        JSONArray customRunjsonArray = new JSONArray();
+                                        JSONObject customRun = null;
+                                        for (CustomScheduleRunsBean customScheduleRuns : customScheduleRunsList)
+                                        {
+                                            customRun = new JSONObject();
+                                            customRun.put("runStartDate", customScheduleRuns.getRunStartDate());
+                                            customRun.put("runEndDate", customScheduleRuns.getRunEndDate());
+
+                                            customRunjsonArray.put(customRun);
+                                        }
+                                        jsonObject.put("customScheduleRuns", customRunjsonArray);
+                                    }
+
                                     JSONObject runObject = new JSONObject();
                                     if (participantActivities.getTotal() != null)
                                         runObject.put("total", participantActivities.getTotal());
@@ -2163,6 +2191,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 if ((preferencesForm.getStudyId() != null && StringUtils.isNotEmpty(preferencesForm.getStudyId())) && (preferencesForm.getActivity() != null && preferencesForm.getActivity().size() > 0))
                                 {
                                     List<ActivitiesBean> activitiesBeanList = preferencesForm.getActivity();
+                                    List<CustomScheduleRuns> customScheduleRunsList;
                                     List<ParticipantActivities> participantActivitiesList = FdahpUserRegWSManager.get().getParticipantActivitiesList(preferencesForm.getStudyId(), userId, applicationId, orgId);
                                     for (int i = 0; i < activitiesBeanList.size(); i++)
                                     {
@@ -2183,6 +2212,40 @@ public class FdahpUserRegWSController extends SpringActionController
                                                         participantActivities.setActivityRunId(activitiesBean.getActivityRunId());
                                                     if (activitiesBean.getBookmarked() != null)
                                                         participantActivities.setBookmark(activitiesBean.getBookmarked());
+
+                                                    if (activitiesBean.getActivityStartDate() != null && StringUtils.isNotEmpty(activitiesBean.getActivityStartDate()))
+                                                        participantActivities.setActivityStartDate(activitiesBean.getActivityStartDate());
+                                                    if (activitiesBean.getActivityEndDate() != null && StringUtils.isNotEmpty(activitiesBean.getActivityEndDate()))
+                                                        participantActivities.setActivityEndDate(activitiesBean.getActivityEndDate());
+                                                    if (activitiesBean.getAnchorDateVersion() != null && StringUtils.isNotEmpty(activitiesBean.getAnchorDateVersion()))
+                                                        participantActivities.setAnchorDateVersion(activitiesBean.getAnchorDateVersion());
+                                                    if (activitiesBean.getAnchorDatecreatedDate() != null && StringUtils.isNotEmpty(activitiesBean.getAnchorDatecreatedDate()))
+                                                        participantActivities.setAnchorDateCreatedDate(activitiesBean.getAnchorDatecreatedDate());
+                                                    if (activitiesBean.getLastModifiedDate() != null && StringUtils.isNotEmpty(activitiesBean.getLastModifiedDate()))
+                                                        participantActivities.setLastModifiedDate(activitiesBean.getLastModifiedDate());
+
+                                                    if (activitiesBean.getCustomScheduleRuns() != null && !activitiesBean.getCustomScheduleRuns().isEmpty())
+                                                    {
+                                                        customScheduleRunsList = new ArrayList<>();
+                                                        CustomScheduleRuns customScheduleRuns;
+                                                        for (CustomScheduleRunsBean customScheduleRunsItem : activitiesBean.getCustomScheduleRuns())
+                                                        {
+                                                            customScheduleRuns = new CustomScheduleRuns();
+                                                            customScheduleRuns.setStudyId(participantActivities.getStudyId());
+                                                            customScheduleRuns.setActivityId(participantActivities.getActivityId());
+                                                            customScheduleRuns.setRunStartDate(customScheduleRunsItem.getRunStartDate());
+                                                            customScheduleRuns.setRunEndDate(customScheduleRunsItem.getRunEndDate());
+                                                            customScheduleRuns.setApplicationId(applicationId);
+                                                            customScheduleRuns.setOrgId(orgId);
+                                                            customScheduleRunsList.add(customScheduleRuns);
+                                                        }
+                                                        FdahpUserRegWSManager.get().saveCustomScheduleRun(customScheduleRunsList, participantActivities.getStudyId(), participantActivities.getActivityId(), applicationId, orgId);
+                                                    }
+//                                                    else
+//                                                    {
+//                                                        FdahpUserRegWSManager.get().deleteExistingCustomRuns(participantActivities.getStudyId(), participantActivities.getActivityId(), applicationId, orgId);
+//                                                    }
+
                                                     if (activitiesBean.getActivityRun() != null)
                                                     {
                                                         if (activitiesBean.getActivityRun().getTotal() != null)
@@ -2214,6 +2277,38 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 addParticipantActivities.setParticipantId(userId);
                                             if (activitiesBean.getBookmarked() != null)
                                                 addParticipantActivities.setBookmark(activitiesBean.getBookmarked());
+
+                                            if (activitiesBean.getActivityStartDate() != null && StringUtils.isNotEmpty(activitiesBean.getActivityStartDate()))
+                                                addParticipantActivities.setActivityStartDate(activitiesBean.getActivityStartDate());
+                                            if (activitiesBean.getActivityEndDate() != null && StringUtils.isNotEmpty(activitiesBean.getActivityEndDate()))
+                                                addParticipantActivities.setActivityEndDate(activitiesBean.getActivityEndDate());
+                                            if (activitiesBean.getAnchorDateVersion() != null && StringUtils.isNotEmpty(activitiesBean.getAnchorDateVersion()))
+                                                addParticipantActivities.setAnchorDateVersion(activitiesBean.getAnchorDateVersion());
+                                            if (activitiesBean.getAnchorDatecreatedDate() != null && StringUtils.isNotEmpty(activitiesBean.getAnchorDatecreatedDate()))
+                                                addParticipantActivities.setAnchorDateCreatedDate(activitiesBean.getAnchorDatecreatedDate());
+                                            if (activitiesBean.getLastModifiedDate() != null && StringUtils.isNotEmpty(activitiesBean.getLastModifiedDate()))
+                                                addParticipantActivities.setLastModifiedDate(activitiesBean.getLastModifiedDate());
+
+
+                                            if (activitiesBean.getCustomScheduleRuns() != null && !activitiesBean.getCustomScheduleRuns().isEmpty())
+                                            {
+                                                customScheduleRunsList = new ArrayList<>();
+                                                CustomScheduleRuns customScheduleRuns;
+                                                for (CustomScheduleRunsBean customScheduleRunsItem : activitiesBean.getCustomScheduleRuns())
+                                                {
+                                                    customScheduleRuns = new CustomScheduleRuns();
+                                                    customScheduleRuns.setStudyId(preferencesForm.getStudyId());
+                                                    customScheduleRuns.setActivityId(activitiesBean.getActivityId());
+                                                    customScheduleRuns.setRunStartDate(customScheduleRunsItem.getRunStartDate());
+                                                    customScheduleRuns.setRunEndDate(customScheduleRunsItem.getRunEndDate());
+                                                    customScheduleRuns.setApplicationId(applicationId);
+                                                    customScheduleRuns.setOrgId(orgId);
+                                                    customScheduleRunsList.add(customScheduleRuns);
+                                                }
+                                                FdahpUserRegWSManager.get().saveCustomScheduleRun(customScheduleRunsList, preferencesForm.getStudyId(), activitiesBean.getActivityId(), applicationId, orgId);
+                                            }
+
+
                                             if (activitiesBean.getActivityRun() != null)
                                             {
                                                 if (activitiesBean.getActivityRun().getTotal() != null)
@@ -2361,7 +2456,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                             if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                             {
                                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                FdahpUserRegWSManager.addAuditEvent(userId, "With draw from study", "User withdrawn from study " + withDrawForm.getStudyId() + ".", "FdaStudyAuditEvent", getViewContext().getContainer().getId());
+                                                FdahpUserRegWSManager.addAuditEvent(userId, "With draw from study", "User withdrawn from study " + withDrawForm.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(applicationId).getId());
                                             }
                                             else
                                             {
@@ -2628,7 +2723,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     message = FdahpUserRegWSManager.get().deActivate(userId, deactivateForm, applicationId, orgId);
                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                     {
-                                        FdahpUserRegWSManager.addAuditEvent(userId, "ACCOUNT DELETE", "User account deleted. (User ID = " + userId + ") ", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                                        FdahpUserRegWSManager.addAuditEvent(userId, "ACCOUNT DELETE", "User account deleted. (User ID = " + userId + ") ", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                     }
                                     else
@@ -3281,7 +3376,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         else
                         {
-                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED RefreshToken IN", "Wrong RefreshToken. Which is not existed.", "FdaUserAuditEvent", getViewContext().getContainer().getId());
+                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED RefreshToken IN", "Wrong RefreshToken. Which is not existed.", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.name(), FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -3426,5 +3521,35 @@ public class FdahpUserRegWSController extends SpringActionController
             }
             return apiSimpleResponse;
         }
+    }
+
+    private Container getContainer_AppID(String postedAppId)
+    {
+        Container appIdContainer = null;
+        Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+        ModuleProperty mp = module.getModuleProperties().get("StudyId");
+
+        List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
+//        for (Container rootContainer : all)
+//        {
+//            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
+//            {
+//                all = ContainerManager.getChildren(rootContainer);
+        for (Container appContainer : all)
+        {
+            if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+            {
+                appIdContainer = appContainer;
+                break;
+            }
+        }
+//                break;
+//            }
+//        }
+        if (appIdContainer == null)
+        {
+            _log.error("container not available for AppID " + postedAppId);
+        }
+        return appIdContainer;
     }
 }
