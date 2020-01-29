@@ -506,8 +506,8 @@ public class FdahpUserRegUtil
                 ApnsService service = null;
                 if (file != null)
                 {
-//                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withProductionDestination().build(); //for Production with production certificate
-                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
+                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withProductionDestination().build(); //for Production with production certificate
+//                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
 
                     List<String> tokens = new ArrayList<String>();
                     if (notificationBean.getDeviceToken() != null)
