@@ -38,7 +38,7 @@ import java.util.Set;
 public class FdahpUserRegWSModule extends DefaultModule
 {
     public static final String NAME = "FdahpUserRegWS";
-    public static final double VERSION = 1.34;
+    public static final double VERSION = 1.35;
 
     @Override
     public String getName()
