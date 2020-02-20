@@ -140,11 +140,15 @@ public class FdahpUserRegWSManager
      */
     public List<UserDetails> getParticipantDetailsListByEmail(String email, String applicationId, String orgId)
     {
-        SimpleFilter filter = new SimpleFilter();
-        filter.addCondition(FieldKey.fromParts("Email"), email);
-        filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
-        filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
-        return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getArrayList(UserDetails.class);
+//        SimpleFilter filter = new SimpleFilter();
+//        filter.addCondition(FieldKey.fromParts("Email"), email);
+//        filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
+//        filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
+//        return new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getArrayList(UserDetails.class);
+        TableInfo userAppDetails = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
+        SQLFragment sql = new SQLFragment("SELECT * FROM " + userAppDetails.getSelectName() + " WHERE Email ILIKE '" + email
+                + "' and OrgId = '" + orgId + "' and ApplicationId='" + applicationId + "'");
+        return new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getArrayList(UserDetails.class);
     }
 
     /**
@@ -262,48 +266,48 @@ public class FdahpUserRegWSManager
         return isAuthenticated;
     }
 
-    /**
-     * saving the user information on sign up
-     *
-     * @param email
-     * @param password
-     * @return ParticipantForm
-     */
-    public ParticipantForm signingParticipant(String email, String password, String applicationId, String orgId)
-    {
-        ParticipantForm participantForm = null;
-        UserDetails participantDetails = null;
-        try
-        {
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("Email"), email);
-            filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
-            filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
-            filter.addCondition(FieldKey.fromParts("Password"), FdahpUserRegUtil.getEncryptedString(password));
-            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
-            if (null != participantDetails)
-            {
-                participantForm = new ParticipantForm();
-                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId(), true, applicationId, orgId);
-                if (authInfo != null)
-                {
-                    participantForm.setAuth(authInfo.getAuthKey());
-                }
-                participantForm.setUserId(participantDetails.getUserId());
-                participantForm.setFirstName(participantDetails.getFirstName());
-                participantForm.setStatus(participantDetails.getStatus());
-                participantForm.setLastName(participantDetails.getLastName());
-                participantForm.setEmailId(participantDetails.getEmail());
-                participantForm.setTempPassword(participantDetails.getTempPassword());
-                participantForm.setTempPasswordDate(participantDetails.getTempPasswordDate());
-            }
-        }
-        catch (Exception e)
-        {
-            _log.error("FdahpUserRegWSManager signingParticipant()", e);
-        }
-        return participantForm;
-    }
+//    /**
+//     * saving the user information on sign up
+//     *
+//     * @param email
+//     * @param password
+//     * @return ParticipantForm
+//     */
+//    public ParticipantForm signingParticipant(String email, String password, String applicationId, String orgId)
+//    {
+//        ParticipantForm participantForm = null;
+//        UserDetails participantDetails = null;
+//        try
+//        {
+//            SimpleFilter filter = new SimpleFilter();
+//            filter.addCondition(FieldKey.fromParts("Email"), email);
+//            filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
+//            filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
+//            filter.addCondition(FieldKey.fromParts("Password"), FdahpUserRegUtil.getEncryptedString(password));
+//            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+//            if (null != participantDetails)
+//            {
+//                participantForm = new ParticipantForm();
+//                AuthInfo authInfo = saveAuthInfo(participantDetails.getUserId(), true, applicationId, orgId);
+//                if (authInfo != null)
+//                {
+//                    participantForm.setAuth(authInfo.getAuthKey());
+//                }
+//                participantForm.setUserId(participantDetails.getUserId());
+//                participantForm.setFirstName(participantDetails.getFirstName());
+//                participantForm.setStatus(participantDetails.getStatus());
+//                participantForm.setLastName(participantDetails.getLastName());
+//                participantForm.setEmailId(participantDetails.getEmail());
+//                participantForm.setTempPassword(participantDetails.getTempPassword());
+//                participantForm.setTempPasswordDate(participantDetails.getTempPasswordDate());
+//            }
+//        }
+//        catch (Exception e)
+//        {
+//            _log.error("FdahpUserRegWSManager signingParticipant()", e);
+//        }
+//        return participantForm;
+//    }
 
     /**
      * Get the user by email
@@ -316,11 +320,15 @@ public class FdahpUserRegWSManager
         UserDetails participantDetails = null;
         try
         {
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("Email"), email);
-            filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
-            filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
-            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+//            SimpleFilter filter = new SimpleFilter();
+//            filter.addCondition(FieldKey.fromParts("Email"), email);
+//            filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
+//            filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
+//            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+            TableInfo userAppDetails = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
+            SQLFragment sql = new SQLFragment("SELECT * FROM " + userAppDetails.getSelectName() + " WHERE Email ILIKE '" + email
+                    + "' and OrgId = '" + orgId + "' and ApplicationId='" + applicationId + "'");
+            participantDetails = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getObject(UserDetails.class);
         }
         catch (Exception e)
         {
@@ -931,31 +939,31 @@ public class FdahpUserRegWSManager
         return studyConsent;
     }
 
-    /**
-     * Get the user info by using the token
-     *
-     * @param emailId
-     * @param token
-     * @return UserDetails
-     */
-    public UserDetails getParticipantDetailsByToken(String emailId, String token, String applicationId, String orgId)
-    {
-        UserDetails participantDetails = null;
-        try
-        {
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("Email"), emailId);
-            filter.addCondition(FieldKey.fromParts("SecurityToken"), token);
-            filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
-            filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
-            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
-        }
-        catch (Exception e)
-        {
-            _log.error("getParticipantDetailsByToken Error", e);
-        }
-        return participantDetails;
-    }
+//    /**
+//     * Get the user info by using the token
+//     *
+//     * @param emailId
+//     * @param token
+//     * @return UserDetails
+//     */
+//    public UserDetails getParticipantDetailsByToken(String emailId, String token, String applicationId, String orgId)
+//    {
+//        UserDetails participantDetails = null;
+//        try
+//        {
+//            SimpleFilter filter = new SimpleFilter();
+//            filter.addCondition(FieldKey.fromParts("Email"), emailId);
+//            filter.addCondition(FieldKey.fromParts("SecurityToken"), token);
+//            filter.addCondition(FieldKey.fromParts("ApplicationId"), applicationId);
+//            filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
+//            participantDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+//        }
+//        catch (Exception e)
+//        {
+//            _log.error("getParticipantDetailsByToken Error", e);
+//        }
+//        return participantDetails;
+//    }
 
     /**
      * Delete of an user account
@@ -1168,7 +1176,11 @@ public class FdahpUserRegWSManager
     /**
      * Get the all user device token
      *
+<<<<<<< HEAD
      * @return Map<String                                                                                                                               ,                                                                                                                                                                                                                                                               JSONArray>
+=======
+     * @return Map<String   ,       JSONArray>
+>>>>>>> 2019.10
      */
     public Map<String, JSONArray> getDeviceTokenOfAllUsers(String appIds)
     {
@@ -1256,7 +1268,11 @@ public class FdahpUserRegWSManager
      * Get the study Level user device tokens
      *
      * @param studyIds
+<<<<<<< HEAD
      * @return Map<String                                                                                                                               ,                                                                                                                                                                                                                                                               Map                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                               String                                                                                                                               ,                                                                                                                                                                                                                                                               JSONArray>>
+=======
+     * @return Map<String   ,       Map       <       String   ,       JSONArray>>
+>>>>>>> 2019.10
      */
     public Map<String, Map<String, JSONArray>> getStudyLevelDeviceToken(String studyIds, String appIds)
     {
@@ -1349,18 +1365,14 @@ public class FdahpUserRegWSManager
      */
     public LoginAttempts getLoginAttempts(String email)
     {
-        LoginAttempts loginAttempts = null;
-        try
-        {
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("Email"), email);
-            loginAttempts = new TableSelector(FdahpUserRegWSSchema.getInstance().getLoginAttempts(), filter, null).getObject(LoginAttempts.class);
-        }
-        catch (Exception e)
-        {
-            _log.error("FdahpUserRegWSManger getLoginAttempts ()", e);
-        }
-        return loginAttempts;
+        TableInfo loginAttempts = null;
+//            SimpleFilter filter = new SimpleFilter();
+//            filter.addCondition(FieldKey.fromParts("Email"), email);
+//            loginAttempts = new TableSelector(FdahpUserRegWSSchema.getInstance().getLoginAttempts(), filter, null).getObject(LoginAttempts.class);
+
+        loginAttempts = FdahpUserRegWSSchema.getInstance().getLoginAttempts();
+        SQLFragment sql = new SQLFragment("SELECT * FROM " + loginAttempts.getSelectName() + " WHERE Email ILIKE '" + email + "'");
+        return new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getObject(LoginAttempts.class);
     }
 
     /**
@@ -1372,11 +1384,17 @@ public class FdahpUserRegWSManager
     {
         try
         {
+            DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
+            SqlExecutor executor = new SqlExecutor(schema);
+
             AuditConfigurable table = (AuditConfigurable) FdahpUserRegWSSchema.getInstance().getLoginAttempts();
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
-            SimpleFilter filter = new SimpleFilter();
-            filter.addCondition(FieldKey.fromParts("Email"), email);
-            Table.delete(table, filter);
+//            SimpleFilter filter = new SimpleFilter();
+//            filter.addCondition(FieldKey.fromParts("Email"), email);
+//            Table.delete(table, filter);
+
+            SQLFragment sql = new SQLFragment("DELETE FROM " + table.getSelectName() + " WHERE Email ILIKE '" + email + "'");
+            executor.execute(sql);
         }
         catch (Exception e)
         {
@@ -1610,11 +1628,16 @@ public class FdahpUserRegWSManager
         {
             if (StringUtils.isNotEmpty(email))
             {
-                SimpleFilter filter = new SimpleFilter();
-                filter.addCondition(FieldKey.fromParts("Email"), email);
-                filter.addCondition(FieldKey.fromParts("ApplicationId"), appId);
-                filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
-                userDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+//                SimpleFilter filter = new SimpleFilter();
+//                filter.addCondition(FieldKey.fromParts("Email"), email);
+//                filter.addCondition(FieldKey.fromParts("ApplicationId"), appId);
+//                filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
+//                userDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getParticipantDetails(), filter, null).getObject(UserDetails.class);
+                TableInfo userAppDetails = FdahpUserRegWSSchema.getInstance().getParticipantDetails();
+                SQLFragment sql = new SQLFragment("SELECT * FROM " + userAppDetails.getSelectName() + " WHERE Email ILIKE '" + email
+                        + "' and OrgId = '" + orgId + "' and ApplicationId='" + appId + "'");
+                userDetails = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getObject(UserDetails.class);
+
                 if (userDetails != null)
                     userId = userDetails.getUserId();
             }
