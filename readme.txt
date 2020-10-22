@@ -1,6 +1,8 @@
 https://www.labkey.org/Documentation/wiki-page.view?name=devMachine
 
 
+
+
 for development build
 ---------------
 1.gradlew cleanBuild deployApp
@@ -15,4 +17,4 @@ gradlew :server:customModules:UserReg-WS:deployModule
 for production build
 ---------------
 1-gradlew cleanBuild deployApp -PdeployMode=prod
-2-gradlew -PdeployMode=prod :server:modules:UserReg-WS:distributions:Registration:distribution
+2-gradlew -PdeployMode=prod :server:customModules:UserReg-WS:distributions:Registration:distribution
