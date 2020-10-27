@@ -16,7 +16,40 @@ public class AppPropertiesDetailsBean
     private String _RegisterEmailBody;
     private String _ForgotPassEmailSubject;
     private String _ForgotPassEmailBody;
+    private String _FeedbackEmail;
+    private String _ContactUsEmail;
+    private String _AppName;
     private boolean _MethodHandler;
+
+    public String getFeedbackEmail()
+    {
+        return _FeedbackEmail;
+    }
+
+    public void setFeedbackEmail(String feedbackEmail)
+    {
+        _FeedbackEmail = feedbackEmail;
+    }
+
+    public String getContactUsEmail()
+    {
+        return _ContactUsEmail;
+    }
+
+    public void setContactUsEmail(String contactUsEmail)
+    {
+        _ContactUsEmail = contactUsEmail;
+    }
+
+    public String getAppName()
+    {
+        return _AppName;
+    }
+
+    public void setAppName(String appName)
+    {
+        _AppName = appName;
+    }
 
     public boolean isMethodHandler()
     {

@@ -87,7 +87,7 @@ public class FdahpUserRegWSManager
      */
     public UserDetails saveParticipant(UserDetails participant)
     {
-        Container availableContainer = getContainer_AppID(participant.getApplicationId());
+        Container availableContainer = getContainer_AppID(participant.getApplicationId(), participant.getOrgId());
 
         if (availableContainer != null && participant != null)
             participant.setContainer(availableContainer.getId());
@@ -160,7 +160,7 @@ public class FdahpUserRegWSManager
      */
     public AuthInfo saveAuthInfo(String userId, boolean isRefresh, String applicationId, String orgId)
     {
-        Container availableContainer = getContainer_AppID(applicationId);
+        Container availableContainer = getContainer_AppID(applicationId, orgId);
 
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         UserDetails addParticipant = null;
@@ -485,7 +485,7 @@ public class FdahpUserRegWSManager
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for (ParticipantStudies participantStudies : participantStudiesList)
             {
-                Container container = getContainer_StudyID(participantStudies.getApplicationId(), participantStudies.getStudyId());
+                Container container = getContainer_StudyID(participantStudies.getApplicationId(), participantStudies.getStudyId(), participantStudies.getOrgId());
                 if (container != null)
                     participantStudies.setContainer(container.getId());
 
@@ -497,7 +497,7 @@ public class FdahpUserRegWSManager
                 {
                     Table.insert(null, table, participantStudies);
                 }
-                addAuditEvent(participantStudies.getUserId(), "Study State Update", " Study state has been updated " + participantStudies.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(participantStudies.getApplicationId()).getId());
+                addAuditEvent(participantStudies.getUserId(), "Study State Update", " Study state has been updated " + participantStudies.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(participantStudies.getApplicationId(), participantStudies.getOrgId()).getId());
             }
 
             if (participantStudiesList.size() > 0)
@@ -530,7 +530,7 @@ public class FdahpUserRegWSManager
             table.setAuditBehavior(AuditBehaviorType.DETAILED);
             for (ParticipantActivities participantActivities : participantActivitiesList)
             {
-                Container container = getContainer_StudyID(participantActivities.getApplicationId(), participantActivities.getStudyId());
+                Container container = getContainer_StudyID(participantActivities.getApplicationId(), participantActivities.getStudyId(), participantActivities.getOrgId());
                 if (container != null)
                     participantActivities.setContainer(container.getId());
 
@@ -538,7 +538,7 @@ public class FdahpUserRegWSManager
                     Table.update(null, table, participantActivities, participantActivities.getId());
                 else
                     Table.insert(null, table, participantActivities);
-                addAuditEvent(participantActivities.getParticipantId(), "Activity State Update", "Activity state has been updated " + participantActivities.getActivityId() + ".", "FdaActivityAuditEvent", getContainer_AppID(participantActivities.getApplicationId()).getId());
+                addAuditEvent(participantActivities.getParticipantId(), "Activity State Update", "Activity state has been updated " + participantActivities.getActivityId() + ".", "FdaActivityAuditEvent", getContainer_AppID(participantActivities.getApplicationId(), participantActivities.getOrgId()).getId());
             }
 
 
@@ -713,7 +713,7 @@ public class FdahpUserRegWSManager
             for (CustomScheduleRuns customScheduleRunsItem : customScheduleRuns)
             {
 
-                Container container = getContainer_StudyID(applicationId, customScheduleRunsItem.getStudyId());
+                Container container = getContainer_StudyID(applicationId, customScheduleRunsItem.getStudyId(), orgId);
                 if (container != null)
                     customScheduleRunsItem.setContainer(container.getId());
 
@@ -874,7 +874,7 @@ public class FdahpUserRegWSManager
      */
     public StudyConsent saveStudyConsent(StudyConsent studyConsent)
     {
-        Container container = getContainer_StudyID(studyConsent.getApplicationId(), studyConsent.getStudyId());
+        Container container = getContainer_StudyID(studyConsent.getApplicationId(), studyConsent.getStudyId(), studyConsent.getOrgId());
         if (container != null)
             studyConsent.setContainer(container.getId());
 
@@ -1128,7 +1128,7 @@ public class FdahpUserRegWSManager
     public String savePasswordHistory(String userId, String password, String applicationId, String orgId)
     {
 
-        Container availableContainer = getContainer_AppID(applicationId);
+        Container availableContainer = getContainer_AppID(applicationId, orgId);
 
         Properties configProp = FdahpUserRegUtil.getProperties();
         String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
@@ -1176,11 +1176,7 @@ public class FdahpUserRegWSManager
     /**
      * Get the all user device token
      *
-<<<<<<< HEAD
-     * @return Map<String                                                                                                                               ,                                                                                                                                                                                                                                                               JSONArray>
-=======
-     * @return Map<String   ,       JSONArray>
->>>>>>> 2019.10
+     * @return Map<String, JSONArray>
      */
     public Map<String, JSONArray> getDeviceTokenOfAllUsers(String appIds)
     {
@@ -1268,11 +1264,7 @@ public class FdahpUserRegWSManager
      * Get the study Level user device tokens
      *
      * @param studyIds
-<<<<<<< HEAD
-     * @return Map<String                                                                                                                               ,                                                                                                                                                                                                                                                               Map                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                               String                                                                                                                               ,                                                                                                                                                                                                                                                               JSONArray>>
-=======
-     * @return Map<String   ,       Map       <       String   ,       JSONArray>>
->>>>>>> 2019.10
+     * @return Map<String, Map < String, JSONArray>>
      */
     public Map<String, Map<String, JSONArray>> getStudyLevelDeviceToken(String studyIds, String appIds)
     {
@@ -1412,7 +1404,7 @@ public class FdahpUserRegWSManager
      */
     public LoginAttempts updateLoginFailureAttempts(String email, String applicationId, String orgId)
     {
-        Container availableContainer = getContainer_AppID(applicationId);
+        Container availableContainer = getContainer_AppID(applicationId, orgId);
 
         LoginAttempts loginAttempts = null;
         int count = 0;
@@ -1516,7 +1508,7 @@ public class FdahpUserRegWSManager
     public String saveUserAppDetails(UserAppDetails userAppDetails)
     {
 
-        Container availableContainer = getContainer_AppID(userAppDetails.getApplicationId());
+        Container availableContainer = getContainer_AppID(userAppDetails.getApplicationId(), userAppDetails.getOrgId());
         if (availableContainer != null)
             userAppDetails.setContainer(availableContainer.getId());
 
@@ -1687,7 +1679,7 @@ public class FdahpUserRegWSManager
      * @param appId
      * @return AppPropertiesDetails
      */
-    public AppPropertiesDetails getAppPropertiesDetailsByAppId(String appId)
+    public AppPropertiesDetails getAppPropertiesDetailsByAppId(String appId, String orgId)
     {
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         AppPropertiesDetails appPropertiesDetails = null;
@@ -1695,6 +1687,8 @@ public class FdahpUserRegWSManager
         {
             SimpleFilter filter = new SimpleFilter();
             filter.addCondition(FieldKey.fromParts("AppId"), appId);
+            if (orgId != null && StringUtils.isNotEmpty(orgId))
+                filter.addCondition(FieldKey.fromParts("OrgId"), orgId);
             appPropertiesDetails = new TableSelector(FdahpUserRegWSSchema.getInstance().getAppPropertiesDetails(), filter, null).getObject(AppPropertiesDetails.class);
         }
         catch (Exception e)
@@ -1706,7 +1700,7 @@ public class FdahpUserRegWSManager
 
     public String saveAppPropertiesDetails(AppPropertiesDetails appPropertiesDetails)
     {
-        Container availableContainer = getContainer_AppID(appPropertiesDetails.getAppId());
+        Container availableContainer = getContainer_AppID(appPropertiesDetails.getAppId(), appPropertiesDetails.getOrgId());
         if (availableContainer != null)
             appPropertiesDetails.setContainer(availableContainer.getId());
 
@@ -1742,40 +1736,50 @@ public class FdahpUserRegWSManager
         return message;
     }
 
-    private Container getContainer_AppID(String postedAppId)
+    private Container getContainer_AppID(String postedAppId, String postedOrgId)
     {
         Container appIdContainer = null;
+        Container orgIdContainer = null;
         Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
         ModuleProperty mp = module.getModuleProperties().get("StudyId");
 
         List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
-//        for (Container rootContainer : all)
-//        {
-//            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
-//            {
-//                all = ContainerManager.getChildren(rootContainer);
-        for (Container appContainer : all)
+        for (Container orgContainer : all)
         {
-            if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+            System.out.println("org - " + mp.getValueContainerSpecific(orgContainer));
+            if (postedOrgId.equalsIgnoreCase(mp.getValueContainerSpecific(orgContainer)))
             {
-                appIdContainer = appContainer;
-                break;
+                orgIdContainer = orgContainer;
+                List<Container> allApp = ContainerManager.getChildren(orgContainer);
+                for (Container appContainer : allApp)
+                {
+                    System.out.println("app - " + mp.getValueContainerSpecific(appContainer));
+                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+                    {
+                        appIdContainer = appContainer;
+                        break;
+                    }
+                }
             }
         }
-//                break;
-//            }
-//        }
         if (appIdContainer == null)
         {
             _log.error("container not available for AppID " + postedAppId);
+            if (orgIdContainer == null)
+                _log.error("container not available for OrgID " + postedOrgId);
+            return orgIdContainer;
         }
-        return appIdContainer;
+        else
+        {
+            return appIdContainer;
+        }
     }
 
-    private Container getContainer_StudyID(String postedAppId, String postedStudyId)
+    private Container getContainer_StudyID(String postedAppId, String postedStudyId, String postedOrgId)
     {
         Container studyIdContainer = null;
         Container appIdContainer = null;
+        Container orgIdContainer = null;
         Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
         ModuleProperty mp = module.getModuleProperties().get("StudyId");
 
@@ -1785,26 +1789,32 @@ public class FdahpUserRegWSManager
 //            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
 //            {
 //                all = ContainerManager.getChildren(rootContainer);
-
-        for (Container appContainer : all)
+        for (Container orgContainer : all)
         {
-            if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+            if (postedOrgId.equalsIgnoreCase(mp.getValueContainerSpecific(orgContainer)))
             {
-                appIdContainer = appContainer;
-                List<Container> allStudy = ContainerManager.getChildren(appContainer);
-                for (Container studyContainer : allStudy)
+                orgIdContainer = orgContainer;
+                List<Container> allApp = ContainerManager.getChildren(orgContainer);
+                for (Container appContainer : allApp)
                 {
-                    if (postedStudyId.equalsIgnoreCase(mp.getValueContainerSpecific(studyContainer)))
+                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
                     {
-                        studyIdContainer = studyContainer;
+                        appIdContainer = appContainer;
+                        List<Container> allStudy = ContainerManager.getChildren(appContainer);
+                        for (Container studyContainer : allStudy)
+                        {
+                            if (postedStudyId.equalsIgnoreCase(mp.getValueContainerSpecific(studyContainer)))
+                            {
+                                studyIdContainer = studyContainer;
+                                break;
+                            }
+                        }
                         break;
                     }
                 }
                 break;
             }
         }
-//            }
-//        }
 
         if (studyIdContainer == null)
         {
@@ -1812,8 +1822,14 @@ public class FdahpUserRegWSManager
             if (appIdContainer == null)
             {
                 _log.error("container not available for AppID " + postedAppId);
+                if (orgIdContainer == null)
+                    _log.error("container not available for OrgID " + postedOrgId);
+                return orgIdContainer;
             }
-            return appIdContainer;
+            else
+            {
+                return appIdContainer;
+            }
         }
         else
         {

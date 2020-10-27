@@ -31,8 +31,41 @@ public class AppPropertiesDetails extends Entity
     private String _RegEmailBody;
     private String _ForgotEmailSub;
     private String _ForgotEmailBody;
+    private String _FeedbackEmail;
+    private String _ContactUsEmail;
+    private String _AppName;
     private boolean _MethodHandler;
     private Date _CreatedOn;
+
+    public String getFeedbackEmail()
+    {
+        return _FeedbackEmail;
+    }
+
+    public void setFeedbackEmail(String feedbackEmail)
+    {
+        _FeedbackEmail = feedbackEmail;
+    }
+
+    public String getContactUsEmail()
+    {
+        return _ContactUsEmail;
+    }
+
+    public void setContactUsEmail(String contactUsEmail)
+    {
+        _ContactUsEmail = contactUsEmail;
+    }
+
+    public String getAppName()
+    {
+        return _AppName;
+    }
+
+    public void setAppName(String appName)
+    {
+        _AppName = appName;
+    }
 
     public boolean isMethodHandler()
     {

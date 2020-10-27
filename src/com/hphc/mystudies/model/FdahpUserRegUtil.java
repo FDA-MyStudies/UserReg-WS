@@ -127,7 +127,9 @@ public class FdahpUserRegUtil
         INVALID_REFRESHTOKEN("Invalid refresh token."),
         APP_EXIST_NOTEXIST("You already have a valid account for this app. Please directly sign in using the same email and associated password."),
         ORG_NOTEXIST("Sorry, this email is already in use for platform-powered app(s) belonging to another organization. Please use another email to sign up for this app."),
-        LOGIN_ORG_NOTEXIST("Sorry, this account is in use for platform-powered app(s) belonging to another organization. Please sign up with a different email and try again.");
+        LOGIN_ORG_NOTEXIST("Sorry, this account is in use for platform-powered app(s) belonging to another organization. Please sign up with a different email and try again."),
+        FEEDBACK_NOT_SENT("Sorry, an error occurred and your feedback could not be sent to the organization. Please retry in some time."),
+        INJUIRY_NOT_SENT("Sorry, an error occurred and your inquiry could not be sent to the organization. Please retry in some time.");
 
         private final String value;
 
@@ -464,7 +466,7 @@ public class FdahpUserRegUtil
         String certificatePassword = "";
         try
         {
-            appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notificationBean.getAppId());
+            appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notificationBean.getAppId(),notificationBean.getOrgId());
 
             Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
             ModuleProperty mp = module.getModuleProperties().get("StudyId");

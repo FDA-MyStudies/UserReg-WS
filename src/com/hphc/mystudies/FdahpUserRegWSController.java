@@ -12,6 +12,7 @@ import com.hphc.mystudies.bean.ActivitiesBean;
 import com.hphc.mystudies.bean.AppPropertiesDetailsBean;
 import com.hphc.mystudies.bean.ConsentBean;
 import com.hphc.mystudies.bean.CustomScheduleRunsBean;
+import com.hphc.mystudies.bean.FeedbackAndContactUsBean;
 import com.hphc.mystudies.bean.InfoBean;
 import com.hphc.mystudies.bean.NotificationBean;
 import com.hphc.mystudies.bean.ParticipantForm;
@@ -45,18 +46,24 @@ import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
+import org.labkey.api.data.NormalContainerType;
 import org.labkey.api.files.FileContentService;
+import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.services.ServiceRegistry;
+import org.labkey.remoteapi.CommandException;
+import org.labkey.remoteapi.CommandResponse;
+import org.labkey.remoteapi.Connection;
 import org.springframework.validation.BindException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -139,7 +146,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         else
                         {
-                            FdahpUserRegWSManager.addAuditEvent(null, "User Registration Failure", "User Registration Failure  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                            FdahpUserRegWSManager.addAuditEvent(null, "User Registration Failure", "User Registration Failure  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_104.getValue(), FdahpUserRegUtil.ErrorCodes.UNKNOWN.getValue(), FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -196,7 +203,7 @@ public class FdahpUserRegWSController extends SpringActionController
             String message = FdahpUserRegWSManager.get().saveUserAppDetails(userAppDetails);
             //save orgId and appid for user end
         }
-        AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
+        AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId, orgId);
         String message;
         String subject;
         if (appPropertiesDetails == null || appPropertiesDetails.getRegEmailSub() == null || appPropertiesDetails.getRegEmailBody() == null || appPropertiesDetails.getRegEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getRegEmailSub().equalsIgnoreCase(""))
@@ -226,7 +233,7 @@ public class FdahpUserRegWSController extends SpringActionController
             subject = appPropertiesDetails.getRegEmailSub();
         }
         FdahpUserRegUtil.sendMessage(subject, message, userParticipantDetails.getEmail(), appPropertiesDetails);
-        FdahpUserRegWSManager.addAuditEvent(userParticipantDetails.getUserId(), "User Registration Success", "User Registration Success  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+        FdahpUserRegWSManager.addAuditEvent(userParticipantDetails.getUserId(), "User Registration Success", "User Registration Success  with  email " + userParticipantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
     }
 
@@ -396,7 +403,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                             if (null != updateParticipantDetails)
                                             {
                                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "User Verification", "User has confirmed registration through email " + verificationForm.getEmailId() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "User Verification", "User has confirmed registration through email " + verificationForm.getEmailId() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                             }
                                             else
                                             {
@@ -518,7 +525,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         else
                         {
-                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED SIGN IN", "Wrong information entered in email " + loginForm.getEmailId() + ". Which is not existed.", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED SIGN IN", "Wrong information entered in email " + loginForm.getEmailId() + ". Which is not existed.", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_CREDENTIALS.name(), FdahpUserRegUtil.ErrorCodes.INVALID_CREDENTIALS.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -592,7 +599,7 @@ public class FdahpUserRegWSController extends SpringActionController
                     }
                 }
                 FdahpUserRegWSManager.get().resetLoginAttempts(email);
-                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ").", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ").", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
             }
             else
             {
@@ -626,7 +633,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         response.put("resetPassword", participantDetails.getTempPassword());
                         FdahpUserRegWSManager.get().resetLoginAttempts(email);
-                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ") with temp password.", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "SIGN IN", "User Signed In.(User ID =  " + participantDetails.getUserId() + ") with temp password.", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                     }
                     else
                     {
@@ -643,7 +650,7 @@ public class FdahpUserRegWSController extends SpringActionController
         }
         else
         {
-            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "FAILED SIGN IN", "User Sign-In Failed. (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+            FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "FAILED SIGN IN", "User Sign-In Failed. (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
             LoginAttempts failAttempts = FdahpUserRegWSManager.get().updateLoginFailureAttempts(email, applicationId, orgId);
             _log.info("maxAttemptsCount:" + maxAttemptsCount);
             if (failAttempts != null && failAttempts.getAttempts() == maxAttemptsCount)
@@ -768,7 +775,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                                 if (upParticipantDetails != null)
                                 {
-                                    AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
+                                    AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId, orgId);
                                     String message = "", subject = "";
                                     if (appPropertiesDetails == null || appPropertiesDetails.getForgotEmailSub() == null || appPropertiesDetails.getForgotEmailBody() == null || appPropertiesDetails.getForgotEmailBody().equalsIgnoreCase("") || appPropertiesDetails.getForgotEmailSub().equalsIgnoreCase(""))
                                     {
@@ -798,7 +805,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     FdahpUserRegUtil.sendMessage(subject, message, participantDetails.getEmail(), appPropertiesDetails);
                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                     FdahpUserRegWSManager.get().resetLoginAttempts(loginForm.getEmailId());
-                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PASSWORD HELP", "Password Help sent to user.(User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PASSWORD HELP", "Password Help sent to user.(User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                 }
                                 else
                                 {
@@ -876,7 +883,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         {
                             if (participantDetails.getStatus() == 2)
                             {
-                                AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId);
+                                AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId, orgId);
                                 code = RandomStringUtils.randomAlphanumeric(6);
                                 participantDetails.setSecurityToken(code);
                                 participantDetails.setVerificationDate(FdahpUserRegUtil.getCurrentUtilDateTime());
@@ -912,7 +919,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                 }
                                 FdahpUserRegUtil.sendMessage(subject, message, participantDetails.getEmail(), appPropertiesDetails);
                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Requested Confirmation mail", "Confirmation mail has been sent again to" + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                                FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Requested Confirmation mail", "Confirmation mail has been sent again to" + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                             }
                             else
                             {
@@ -1021,7 +1028,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                                     String message = FdahpUserRegWSManager.get().savePasswordHistory(userId, FdahpUserRegUtil.getEncryptedString(newPassword), applicationId, orgId);
                                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Change Password", "User password changed successfully " + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                                                    FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "Change Password", "User password changed successfully " + participantDetails.getEmail() + ".", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
 
                                                 }
 
@@ -1167,7 +1174,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                     {
                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                        FdahpUserRegWSManager.addAuditEvent(userId, "SIGN OUT", "User Signed Out. (User ID = " + userId + ") ", "FdaUserAuditEvent",getContainer_AppID(applicationId).getId());
+                                        FdahpUserRegWSManager.addAuditEvent(userId, "SIGN OUT", "User Signed Out. (User ID = " + userId + ") ", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                     }
                                     else
                                     {
@@ -1375,7 +1382,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     if (updateParticipantDetails != null || message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()) || updaAuthInfo != null)
                                     {
                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PROFILE UPDATE", "User Profile/Preferences updated.  (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                                        FdahpUserRegWSManager.addAuditEvent(participantDetails.getUserId(), "PROFILE UPDATE", "User Profile/Preferences updated.  (User ID = " + participantDetails.getUserId() + ")", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                     }
                                 }
                                 else
@@ -1874,7 +1881,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                                 if (updateConsent != null && message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                                 {
                                                     response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), message);
-                                                    FdahpUserRegWSManager.addAuditEvent(userId, "Update eligibility consent status", "Eligibility consent has been updated for study " + consentStatusForm.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(applicationId).getId());
+                                                    FdahpUserRegWSManager.addAuditEvent(userId, "Update eligibility consent status", "Eligibility consent has been updated for study " + consentStatusForm.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                                 }
                                                 else
                                                 {
@@ -2456,7 +2463,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                             if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                             {
                                                 response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
-                                                FdahpUserRegWSManager.addAuditEvent(userId, "With draw from study", "User withdrawn from study " + withDrawForm.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(applicationId).getId());
+                                                FdahpUserRegWSManager.addAuditEvent(userId, "With draw from study", "User withdrawn from study " + withDrawForm.getStudyId() + ".", "FdaStudyAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                             }
                                             else
                                             {
@@ -2723,7 +2730,7 @@ public class FdahpUserRegWSController extends SpringActionController
                                     message = FdahpUserRegWSManager.get().deActivate(userId, deactivateForm, applicationId, orgId);
                                     if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue()))
                                     {
-                                        FdahpUserRegWSManager.addAuditEvent(userId, "ACCOUNT DELETE", "User account deleted. (User ID = " + userId + ") ", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                                        FdahpUserRegWSManager.addAuditEvent(userId, "ACCOUNT DELETE", "User account deleted. (User ID = " + userId + ") ", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                                         response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
                                     }
                                     else
@@ -3164,7 +3171,7 @@ public class FdahpUserRegWSController extends SpringActionController
         try
         {
             String FMCurl = (String) configProp.get("API_URL_FCM");
-            appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notification.getAppId());
+            appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notification.getAppId(), notification.getOrgId());
 
             if (appPropertiesDetails != null)
             {
@@ -3376,7 +3383,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         }
                         else
                         {
-                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED RefreshToken IN", "Wrong RefreshToken. Which is not existed.", "FdaUserAuditEvent", getContainer_AppID(applicationId).getId());
+                            FdahpUserRegWSManager.addAuditEvent(null, "FAILED RefreshToken IN", "Wrong RefreshToken. Which is not existed.", "FdaUserAuditEvent", getContainer_AppID(applicationId, orgId).getId());
                             FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_103.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.name(), FdahpUserRegUtil.ErrorCodes.INVALID_REFRESHTOKEN.getValue(), getViewContext().getResponse());
                             return null;
                         }
@@ -3503,6 +3510,10 @@ public class FdahpUserRegWSController extends SpringActionController
                 appPropertiesDetails.setForgotEmailBody(appPropertiesDetailsBean.getForgotPassEmailBody());
                 appPropertiesDetails.setMethodHandler(appPropertiesDetailsBean.isMethodHandler());
 
+                appPropertiesDetails.setFeedbackEmail(appPropertiesDetailsBean.getFeedbackEmail());
+                appPropertiesDetails.setContactUsEmail(appPropertiesDetailsBean.getContactUsEmail());
+                appPropertiesDetails.setAppName(appPropertiesDetailsBean.getAppName());
+
                 appPropertiesDetails.setCreatedOn(new Date());
 
                 String message = FdahpUserRegWSManager.get().saveAppPropertiesDetails(appPropertiesDetails);
@@ -3523,33 +3534,128 @@ public class FdahpUserRegWSController extends SpringActionController
         }
     }
 
-    private Container getContainer_AppID(String postedAppId)
+    @CSRF(CSRF.Method.NONE)
+    @RequiresNoPermission
+    public class FeedbackAction extends MutatingApiAction<FeedbackAndContactUsBean>
+    {
+
+        @Override
+        public ApiResponse execute(FeedbackAndContactUsBean feedbackAndContactUsBean, BindException errors) throws Exception
+        {
+            ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
+            String applicationId = getViewContext().getRequest().getHeader("applicationId");
+            String orgId = getViewContext().getRequest().getHeader("orgId");
+
+            if (applicationId != null && StringUtils.isNotEmpty(applicationId)
+                    && orgId != null && StringUtils.isNotEmpty(orgId))
+            {
+                AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId, orgId);
+
+                String subject = "App Feedback: " + feedbackAndContactUsBean.getSubject();
+                String msg = "<p>Hi</p>\n" +
+                        "<p>&nbsp;</p>\n" +
+                        "<p>A user of the " + appPropertiesDetails.getAppName() + " mobile app has provided feedback via the app. Here's the content of the feedback:</p>\n" +
+                        "<p>&nbsp;</p>\n" +
+                        "<p>" + feedbackAndContactUsBean.getBody() + "</p>\n" +
+                        "<p>&nbsp;</p>\n" +
+                        "<p>Thanks,</p>\n" +
+                        "<p>The FDA MyStudies Support Team</p>\n" +
+                        "<p>---------------------------------------------------------</p>\n" +
+                        "<p>This is an auto-generated email. Please do not reply.</p>";
+
+                FdahpUserRegUtil.sendMessage(subject, msg, appPropertiesDetails.getFeedbackEmail(), appPropertiesDetails);
+                apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
+            }
+            else
+            {
+                apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.FAILURE.getValue().toLowerCase(), true);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.FEEDBACK_NOT_SENT.getValue(), getViewContext().getResponse());
+            }
+            return apiSimpleResponse;
+        }
+    }
+
+    @CSRF(CSRF.Method.NONE)
+    @RequiresNoPermission
+    public class ContactUsAction extends MutatingApiAction<FeedbackAndContactUsBean>
+    {
+
+        @Override
+        public ApiResponse execute(FeedbackAndContactUsBean feedbackAndContactUsBean, BindException errors) throws Exception
+        {
+            ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
+            String applicationId = getViewContext().getRequest().getHeader("applicationId");
+            String orgId = getViewContext().getRequest().getHeader("orgId");
+
+            if (applicationId != null && StringUtils.isNotEmpty(applicationId)
+                    && orgId != null && StringUtils.isNotEmpty(orgId))
+            {
+                AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(applicationId, orgId);
+
+                String subject = "App HelpDesk: " + feedbackAndContactUsBean.getSubject();
+                String msg = "<p>Hi</p>\n" +
+                        "<p>A user of the " + appPropertiesDetails.getAppName() + " mobile app has reached out to the Helpdesk. Below are the contact form details:</p>\n" +
+                        "<p>___________________________________________</p>\n" +
+                        "<p>First Name: " + feedbackAndContactUsBean.getFirstName() + "</p>\n" +
+                        "<p>Email: " + feedbackAndContactUsBean.getEmail() + "</p>\n" +
+                        "<p>Subject: " + feedbackAndContactUsBean.getSubject() + "</p>\n" +
+                        "<p>Message: " + feedbackAndContactUsBean.getBody() + "</p>\n" +
+                        "<p>___________________________________________</p>\n" +
+                        "<p>Please respond to the app user at the email he/she has provided.</p>\n" +
+                        "<p>Thanks,</p>\n" +
+                        "<p>The FDA MyStudies Support Team</p>\n" +
+                        "<p>---------------------------------------------------------</p>\n" +
+                        "<p>This is an auto-generated email. Please do not reply.</p>";
+
+                FdahpUserRegUtil.sendMessage(subject, msg, appPropertiesDetails.getContactUsEmail(), appPropertiesDetails);
+                apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
+            }
+            else
+            {
+                apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.FAILURE.getValue().toLowerCase(), true);
+                FdahpUserRegUtil.getFailureResponse(FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INJUIRY_NOT_SENT.getValue(), getViewContext().getResponse());
+            }
+
+            return apiSimpleResponse;
+        }
+    }
+
+
+    private Container getContainer_AppID(String postedAppId, String postedOrgId)
     {
         Container appIdContainer = null;
+        Container orgIdContainer = null;
         Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
         ModuleProperty mp = module.getModuleProperties().get("StudyId");
 
         List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
-//        for (Container rootContainer : all)
-//        {
-//            if (rootContainer.getName().equalsIgnoreCase(module.getName()))
-//            {
-//                all = ContainerManager.getChildren(rootContainer);
-        for (Container appContainer : all)
+        for (Container orgContainer : all)
         {
-            if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+            if (postedOrgId.equalsIgnoreCase(mp.getValueContainerSpecific(orgContainer)))
             {
-                appIdContainer = appContainer;
-                break;
+                orgIdContainer = orgContainer;
+                List<Container> allApp = ContainerManager.getChildren(orgContainer);
+                for (Container appContainer : allApp)
+                {
+                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+                    {
+                        appIdContainer = appContainer;
+                        break;
+                    }
+                }
             }
         }
-//                break;
-//            }
-//        }
         if (appIdContainer == null)
         {
             _log.error("container not available for AppID " + postedAppId);
+            if (orgIdContainer == null)
+                _log.error("container not available for OrgID " + postedOrgId);
+            return orgIdContainer;
         }
-        return appIdContainer;
+        else
+        {
+            return appIdContainer;
+        }
     }
+
 }

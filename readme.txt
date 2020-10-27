@@ -11,10 +11,11 @@ for development build
 
 For deploy single module(if you want to do any change in code)
 ---------------------------
-gradlew :server:customModules:UserReg-WS:deployModule
+gradlew :server:modules:UserReg-WS:deployModule
 
 
 for production build
 ---------------
+Change the version on FdahpUserRegWSModule & build.gradle file in distribution folder
 1-gradlew cleanBuild deployApp -PdeployMode=prod
-2-gradlew -PdeployMode=prod :server:customModules:UserReg-WS:distributions:Registration:distribution
+2-gradlew -PdeployMode=prod :server:modules:UserReg-WS:distributions:Registration:distribution
