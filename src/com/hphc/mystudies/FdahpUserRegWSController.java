@@ -53,8 +53,10 @@ import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.security.CSRF;
+import org.labkey.api.security.MethodsAllowed;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.util.HttpUtil;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.CommandResponse;
 import org.labkey.remoteapi.Connection;
@@ -1140,7 +1142,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class LogoutAction extends ReadOnlyApiAction<UserForm>
+    @MethodsAllowed(HttpUtil.Method.DELETE)
+    public class LogoutAction extends MutatingApiAction<UserForm>
     {
 
         @Override
@@ -2421,7 +2424,8 @@ public class FdahpUserRegWSController extends SpringActionController
      */
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class WithdrawAction extends ReadOnlyApiAction<WithDrawForm>
+    @MethodsAllowed(HttpUtil.Method.DELETE)
+    public class WithdrawAction extends MutatingApiAction<WithDrawForm>
     {
 
         @Override
@@ -2697,7 +2701,8 @@ public class FdahpUserRegWSController extends SpringActionController
     @Marshal(Marshaller.Jackson)
     @CSRF(CSRF.Method.NONE)
     @RequiresNoPermission
-    public class DeactivateAction extends ReadOnlyApiAction<DeactivateForm>
+    @MethodsAllowed(HttpUtil.Method.DELETE)
+    public class DeactivateAction extends MutatingApiAction<DeactivateForm>
     {
 
         @Override
