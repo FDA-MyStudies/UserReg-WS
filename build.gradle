@@ -13,7 +13,7 @@ plugins {
 
 project.dependencies {
     external 'com.notnoop.apns:apns:1.0.0.Beta6'
-    external group: 'org.slf4j', name: 'slf4j-api', version: '1.6.6'
+    external group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 
     // You might already have other libraries/dependencies here you should leave them
     // as they are and just add your on new line
