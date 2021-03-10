@@ -7,10 +7,11 @@
  *
  */
 
-apply plugin: 'java'
+plugins {
+    id 'org.labkey.build.module'
+}
 
 project.dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'lib')
     external 'com.notnoop.apns:apns:1.0.0.Beta6'
     external group: 'org.slf4j', name: 'slf4j-api', version: '1.6.6'
 
