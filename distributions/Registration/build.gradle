@@ -38,11 +38,11 @@ apply plugin: 'org.labkey.distribution'
 project.task(
         "distribution",
         group: GroupNames.DISTRIBUTION,
-        description: "Make a LabKey modules distribution",
         type: ModuleDistribution,
         {ModuleDistribution dist ->
             dist.subDirName='Registration'
             dist.versionPrefix="Registration-1.38"
+            dist.extraFileIdentifier='-Registration-1.38'
             dist.includeTarGZArchive=true
         }
 )
