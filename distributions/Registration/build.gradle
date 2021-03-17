@@ -59,6 +59,7 @@ BuildUtils.addModuleDistributionDependencies(project, [
         ":server:modules:platform:filecontent",
         ":server:modules:platform:pipeline",
         ":server:modules:platform:query",
+        ":server:modules:platform:visualization",
         ":server:modules:platform:wiki",
         ":server:modules:UserReg-WS"
 ]
