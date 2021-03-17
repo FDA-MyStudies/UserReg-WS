@@ -7,5 +7,189 @@
   ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   ~
   -->
-<ns:tables xsi:schemaLocation="http://labkey.org/data/xml ..\..\..\..\schemas\tableInfo.xsd" xmlns:ns="http://labkey.org/data/xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-</ns:tables>
+<tables xmlns="http://labkey.org/data/xml">
+    <table tableName="apppropertiesdetails" tableDbType="TABLE">
+        <columns>
+            <column columnName="id"/>
+            <column columnName="appid"/>
+            <column columnName="orgid"/>
+            <column columnName="iosbundleid"/>
+            <column columnName="androidbundleid"/>
+            <column columnName="ioscertificate"/>
+            <column columnName="ioscertificatepassword"/>
+            <column columnName="androidserverkey"/>
+            <column columnName="createdon"/>
+            <column columnName="email"/>
+            <column columnName="emailpassword"/>
+            <column columnName="regemailsub"/>
+            <column columnName="regemailbody"/>
+            <column columnName="forgotemailsub"/>
+            <column columnName="forgotemailbody"/>
+            <column columnName="methodhandler"/>
+            <column columnName="container"/>
+            <column columnName="feedbackemail"/>
+            <column columnName="contactusemail"/>
+            <column columnName="appname"/>
+        </columns>
+    </table>
+    <table tableName="participantstudies" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="id"/>
+            <column columnName="studyid"/>
+            <column columnName="consentstatus"/>
+            <column columnName="status"/>
+            <column columnName="bookmark"/>
+            <column columnName="eligbibility"/>
+            <column columnName="participantid"/>
+            <column columnName="userid"/>
+            <column columnName="enrolleddate"/>
+            <column columnName="sharing"/>
+            <column columnName="completion"/>
+            <column columnName="adherence"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="userdetails" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="id"/>
+            <column columnName="firstname"/>
+            <column columnName="lastname"/>
+            <column columnName="email"/>
+            <column columnName="usepasscode"/>
+            <column columnName="touchid"/>
+            <column columnName="localnotificationflag"/>
+            <column columnName="remotenotificationflag"/>
+            <column columnName="status"/>
+            <column columnName="password"/>
+            <column columnName="entityid"/>
+            <column columnName="reminderleadtime"/>
+            <column columnName="securitytoken"/>
+            <column columnName="userid"/>
+            <column columnName="temppassword"/>
+            <column columnName="locale"/>
+            <column columnName="resetpassword"/>
+            <column columnName="verificationdate"/>
+            <column columnName="temppassworddate"/>
+            <column columnName="passwordupdateddate"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="customscheduleruns" tableDbType="TABLE">
+        <columns>
+            <column columnName="id"/>
+            <column columnName="activityid"/>
+            <column columnName="studyid"/>
+            <column columnName="runstartdate"/>
+            <column columnName="runenddate"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="participantactivities" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="id"/>
+            <column columnName="participantid"/>
+            <column columnName="studyid"/>
+            <column columnName="activityid"/>
+            <column columnName="activitycompleteid"/>
+            <column columnName="activitytype"/>
+            <column columnName="bookmark"/>
+            <column columnName="status"/>
+            <column columnName="activityversion"/>
+            <column columnName="activitystate"/>
+            <column columnName="activityrunid"/>
+            <column columnName="total"/>
+            <column columnName="completed"/>
+            <column columnName="missed"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="container"/>
+            <column columnName="activitystartdate"/>
+            <column columnName="activityenddate"/>
+            <column columnName="anchordateversion"/>
+            <column columnName="anchordatecreateddate"/>
+            <column columnName="lastmodifieddate"/>
+        </columns>
+    </table>
+    <table tableName="versioninfo" tableDbType="TABLE">
+        <columns>
+            <column columnName="id"/>
+            <column columnName="androidversion"/>
+            <column columnName="iosversion"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="userappdetails" tableDbType="TABLE">
+        <columns>
+            <column columnName="userappid"/>
+            <column columnName="userid"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="createdon"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="authinfo" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="authid"/>
+            <column columnName="participantid"/>
+            <column columnName="devicetoken"/>
+            <column columnName="devicetype"/>
+            <column columnName="createdon"/>
+            <column columnName="modifiedon"/>
+            <column columnName="authkey"/>
+            <column columnName="iosappversion"/>
+            <column columnName="androidappversion"/>
+            <column columnName="sessionexpireddate"/>
+            <column columnName="remotenotificationflag"/>
+            <column columnName="refreshtoken"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="loginattempts" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="id"/>
+            <column columnName="email"/>
+            <column columnName="lastmodified"/>
+            <column columnName="attempts"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="passwordhistory" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="id"/>
+            <column columnName="userid"/>
+            <column columnName="password"/>
+            <column columnName="created"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+    <table tableName="studyconsent" tableDbType="TABLE">
+        <columns>
+            <column columnName="_ts"/>
+            <column columnName="id"/>
+            <column columnName="userid"/>
+            <column columnName="studyid"/>
+            <column columnName="version"/>
+            <column columnName="status"/>
+            <column columnName="pdf"/>
+            <column columnName="pdfpath"/>
+            <column columnName="applicationid"/>
+            <column columnName="orgid"/>
+            <column columnName="container"/>
+        </columns>
+    </table>
+</tables>
