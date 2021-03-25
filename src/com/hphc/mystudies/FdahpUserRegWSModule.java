@@ -23,13 +23,11 @@
 package com.hphc.mystudies;
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager;
+import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.view.WebPartFactory;
-import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.module.ModuleProperty;
+import org.labkey.api.view.WebPartFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +36,6 @@ import java.util.Set;
 public class FdahpUserRegWSModule extends DefaultModule
 {
     public static final String NAME = "FdahpUserRegWS";
-    public static final double VERSION = 1.38;
 
     @Override
     public String getName()
@@ -49,7 +46,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     @Override
     public Double getSchemaVersion()
     {
-        return VERSION;
+        return 21.000;
     }
 
     @Override
@@ -77,16 +74,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     @Override
     public void doStartup(ModuleContext moduleContext)
     {
-        // add a container listener so we'll know when our container is deleted:
-        ContainerManager.addContainerListener(new FdahpUserRegWSContainerListener());
         AuditLogService.get().registerAuditType(new FdaAuditProvider());
-    }
-
-    @Override
-    @NotNull
-    public Collection<String> getSummary(Container c)
-    {
-        return Collections.emptyList();
     }
 
     @Override

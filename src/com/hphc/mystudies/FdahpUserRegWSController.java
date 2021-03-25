@@ -57,6 +57,7 @@ import org.labkey.api.security.MethodsAllowed;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.HttpUtil;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.CommandResponse;
 import org.labkey.remoteapi.Connection;
@@ -101,12 +102,16 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class PingAction extends ReadOnlyApiAction<Object>
     {
-
         @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
         {
+            Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+
+            if (module == null)
+                throw new NotFoundException(FdahpUserRegWSModule.NAME + " was not found!");
+
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
-            apiSimpleResponse.put("reponse", "FdahpUserRegWebServices-" + FdahpUserRegWSModule.VERSION + " Works!");
+            apiSimpleResponse.put("response", "FdahpUserRegWebServices " + module.getReleaseVersion() + " Works!");
             apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase(), true);
             return apiSimpleResponse;
         }
