@@ -2,15 +2,13 @@ package com.hphc.remoteapi.registration;
 
 import org.apache.http.HttpRequest;
 import org.labkey.remoteapi.Connection;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
+import org.labkey.remoteapi.GuestCredentialsProvider;
 
 public class NoCsrfConnection extends Connection
 {
-    public NoCsrfConnection(String baseUrl) throws URISyntaxException, IOException
+    public NoCsrfConnection(String baseUrl)
     {
-        super(baseUrl);
+        super(baseUrl, new GuestCredentialsProvider());
     }
 
     @Override
