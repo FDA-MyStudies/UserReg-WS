@@ -8,18 +8,16 @@ import java.net.URI;
 
 import static com.hphc.remoteapi.registration.FdahpUserRegWSCommandUtils.addHeaders;
 
-public class FdahpUserRegWSPostCommand extends PostCommand<CommandResponse>
+public class FdahpUserRegWSPostCommand<ResponseType extends CommandResponse> extends FdahpUserRegWSCommand<ResponseType>
 {
-    private final FdahpUserRegWSCommandHeaders _headers = new FdahpUserRegWSCommandHeaders();
-
     public FdahpUserRegWSPostCommand(String actionName)
     {
-        super(FdahpUserRegWSCommandUtils.CONTROLLER, actionName);
+        super(actionName);
     }
 
     @Override
-    protected HttpUriRequest createRequest(URI uri)
+    protected boolean isPost()
     {
-        return addHeaders(super.createRequest(uri), _headers);
+        return true;
     }
 }
