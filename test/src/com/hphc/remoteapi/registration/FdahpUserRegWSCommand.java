@@ -9,16 +9,17 @@ import org.labkey.remoteapi.Connection;
 
 import java.io.IOException;
 import java.net.URI;
-
-import static com.hphc.remoteapi.registration.FdahpUserRegWSCommandUtils.addHeaders;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
 {
-    private final FdahpUserRegWSCommandHeaders _headers = new FdahpUserRegWSCommandHeaders();
+    private static final String CONTROLLER = "fdahpuserregws";
+    private final Map<String, String> _headers = new HashMap<>();
 
     public FdahpUserRegWSCommand(String actionName)
     {
-        super(FdahpUserRegWSCommandUtils.CONTROLLER, actionName);
+        super(CONTROLLER, actionName);
     }
 
     @Override
@@ -35,7 +36,17 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
     protected HttpUriRequest createRequest(URI uri)
     {
         HttpUriRequest request = isPost() ? new HttpPost(uri) : super.createRequest(uri);
-        return addHeaders(request, _headers);
+        for (Map.Entry<String, String> header : _headers.entrySet())
+        {
+            request.addHeader(header.getKey(), header.getValue());
+        }
+        return request;
+    }
+
+    @Override
+    public void setParameters(Map<String, Object> parameters)
+    {
+        super.setParameters(new HashMap<>(parameters));
     }
 
     protected boolean isPost()
@@ -43,23 +54,25 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
         return false;
     }
 
+    // Header setters
+
     public void setApplicationId(String applicationId)
     {
-        _headers._applicationId = applicationId;
+        _headers.put("applicationId", applicationId);
     }
 
     public void setAuthKey(String auth)
     {
-        _headers._auth = auth;
+        _headers.put("auth", auth);
     }
 
     public void setUserId(String userId)
     {
-        _headers._userId = userId;
+        _headers.put("userId", userId);
     }
 
     public void setOrgId(String orgId)
     {
-        _headers._orgId = orgId;
+        _headers.put("orgId", orgId);
     }
 }
