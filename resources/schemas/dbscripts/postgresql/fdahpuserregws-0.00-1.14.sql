@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
--- Create schema, tables, indexes, and constraints used for FdahpUserRegWS module here
--- All SQL VIEW definitions should be created in fdahpuserregws-create.sql and dropped in fdahpuserregws-drop.sql
 create schema fdahpUserRegWS;
 
 create table fdahpUserRegWS.AuthInfo
@@ -32,8 +30,16 @@ create table fdahpUserRegWS.AuthInfo
     AndroidAppVersion  varchar(50) null,
 
     constraint PK_AuthInfo primary key (AuthId)
-
 );
+
+ALTER TABLE fdahpUserRegWS.AuthInfo ADD SessionExpiredDate TIMESTAMP without time zone;
+UPDATE fdahpUserRegWS.AuthInfo SET SessionExpiredDate = now();
+
+ALTER TABLE fdahpUserRegWS.AuthInfo ADD RemoteNotificationFlag BOOLEAN NULL;
+UPDATE fdahpUserRegWS.AuthInfo SET RemoteNotificationFlag = true;
+
+ALTER TABLE fdahpUserRegWS.AuthInfo ADD RefreshToken VARCHAR(255) NULL;
+UPDATE fdahpUserRegWS.AuthInfo SET RefreshToken = ParticipantId;
 
 create table fdahpUserRegWS.ParticipantActivities
 (
@@ -51,8 +57,11 @@ create table fdahpUserRegWS.ParticipantActivities
     ActivityRunId varchar(50) null,
 
     constraint PK_ParticipantActivities primary key (Id)
-
 );
+
+ALTER TABLE fdahpUserRegWS.participantactivities ADD Total integer;
+ALTER TABLE fdahpUserRegWS.participantactivities ADD Completed integer;
+ALTER TABLE fdahpUserRegWS.participantactivities ADD Missed integer;
 
 create table fdahpUserRegWS.UserDetails
 (
@@ -76,9 +85,13 @@ create table fdahpUserRegWS.UserDetails
     ResetPassword varchar(100) null,
     VerificationDate timestamp without time zone,
     TempPasswordDate timestamp without time zone,
- constraint PK_UserDetails primary key (Id)
 
+    constraint PK_UserDetails primary key (Id)
 );
+
+ALTER TABLE fdahpUserRegWS.UserDetails ADD PasswordUpdatedDate TIMESTAMP without time zone;
+UPDATE fdahpUserRegWS.UserDetails SET PasswordUpdatedDate = _ts;
+
 create table fdahpUserRegWS.ParticipantStudies
 (
     _ts timestamp not null,
@@ -92,9 +105,24 @@ create table fdahpUserRegWS.ParticipantStudies
     UserId varchar(50) null,
     EnrolledDate varchar(50) null,
     Sharing text null,
-    constraint PK_ParticipantStudies primary key (Id)
 
+    constraint PK_ParticipantStudies primary key (Id)
 );
+
+ALTER TABLE fdahpUserRegWS.participantstudies ADD Completion integer;
+ALTER TABLE fdahpUserRegWS.participantstudies ADD Adherence integer;
+
+-- Create a temporary TIMESTAMP column
+ALTER TABLE fdahpUserRegWS.participantstudies ADD COLUMN EnrolledDateTemp TIMESTAMP without time zone NULL;
+
+-- Copy casted value over to the temporary column
+UPDATE fdahpUserRegWS.participantstudies SET EnrolledDateTemp = EnrolledDate::TIMESTAMP;
+
+-- Modify original column using the temporary column
+ALTER TABLE fdahpUserRegWS.participantstudies ALTER COLUMN EnrolledDate TYPE TIMESTAMP without time zone USING EnrolledDateTemp;
+
+-- Drop the temporary column (after examining altered column values)
+ALTER TABLE fdahpUserRegWS.participantstudies DROP COLUMN EnrolledDateTemp;
 
 create table fdahpUserRegWS.StudyConsent
 (
@@ -105,9 +133,11 @@ create table fdahpUserRegWS.StudyConsent
     Version  varchar(50) null,
     Status  varchar(50) null,
     Pdf  text null,
-    constraint PK_StudyConsent primary key (Id)
 
+    constraint PK_StudyConsent primary key (Id)
 );
+
+ALTER TABLE fdahpUserRegWS.StudyConsent ADD PdfPath VARCHAR(255) NULL;
 
 create table fdahpUserRegWS.PasswordHistory
 (
@@ -116,6 +146,18 @@ create table fdahpUserRegWS.PasswordHistory
     UserId  varchar(50) null,
     Password varchar(50) null,
     Created timestamp without time zone,
-    constraint PK_PasswordHistory primary key (Id)
 
+    constraint PK_PasswordHistory primary key (Id)
 );
+
+CREATE TABLE fdahpUserRegWS.LoginAttempts
+(
+    _ts TIMESTAMP NOT NULL,
+    Id SERIAL ,
+    Email  VARCHAR(100) NULL,
+    LastModified TIMESTAMP WITHOUT TIME ZONE,
+    Attempts integer,
+
+    CONSTRAINT PK_LoginAttempts PRIMARY KEY (Id)
+);
+

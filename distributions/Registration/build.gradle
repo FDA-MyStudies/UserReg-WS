@@ -41,12 +41,10 @@ project.task(
         type: ModuleDistribution,
         {ModuleDistribution dist ->
             dist.subDirName='Registration'
-            dist.versionPrefix="Registration-1.38"
-            dist.extraFileIdentifier='-Registration-1.38'
+            dist.extraFileIdentifier='-Registration'
             dist.includeTarGZArchive=true
         }
 )
-dist.description="Distribution of User Registration Modules"
 
 // Might change if folder structure is changed
 BuildUtils.addModuleDistributionDependencies(project, [
