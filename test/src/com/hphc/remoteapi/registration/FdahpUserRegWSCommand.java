@@ -1,6 +1,5 @@
 package com.hphc.remoteapi.registration;
 
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.labkey.remoteapi.Command;
 import org.labkey.remoteapi.CommandException;
@@ -33,14 +32,19 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
     }
 
     @Override
-    protected HttpUriRequest createRequest(URI uri)
+    protected final HttpUriRequest createRequest(URI uri)
     {
-        HttpUriRequest request = isPost() ? new HttpPost(uri) : super.createRequest(uri);
+        HttpUriRequest request = _createRequest(uri);
         for (Map.Entry<String, String> header : _headers.entrySet())
         {
             request.addHeader(header.getKey(), header.getValue());
         }
         return request;
+    }
+
+    protected HttpUriRequest _createRequest(URI uri)
+    {
+        return super.createRequest(uri);
     }
 
     @Override
