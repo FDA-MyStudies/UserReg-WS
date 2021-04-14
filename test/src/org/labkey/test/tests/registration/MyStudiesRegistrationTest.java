@@ -14,9 +14,9 @@ import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.CommandResponse;
 import org.labkey.remoteapi.Connection;
+import org.labkey.remoteapi.query.InsertExternalSchemaCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.ModulePropertyValue;
-import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.components.dumbster.EmailRecordTable;
 import org.labkey.test.util.TestLogger;
@@ -37,12 +37,6 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     private static final String MODULE_NAME = "FdahpUserRegWS";
     private static final String ORG_ID = "MyStudies Test Organization";
     private static final Pattern verificationCodePattern = Pattern.compile("Verification Code:(\\w+)");
-
-    @Override
-    protected void doCleanup(boolean afterTest) throws TestTimeoutException
-    {
-        super.doCleanup(afterTest);
-    }
 
     @BeforeClass
     public static void setupProject()
@@ -112,17 +106,74 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
     }
 
+    @Test
+    public void testNotifications() throws IOException, CommandException
+    {
+        Map.Entry<String, String> emailPassword = generateEmailPassword("notification@mystudies.registration.test");
+        String email = emailPassword.getKey();
+        String password = emailPassword.getValue();
+        String appId = "RegisterNotificationApplication";
+        AppPropertiesDetails appProperties = new AppPropertiesDetails();
+        appProperties.setOrgId(ORG_ID);
+        appProperties.setAppId(appId);
+//        appProperties.setRegEmailBody();
+//        appProperties.setRegEmailSub();
+
+        enableEmailRecorder();
+
+        createAppFolder(appId, appProperties);
+
+        RegisterCommand registerCommand = new RegisterCommand();
+        registerCommand.setOrgId(ORG_ID);
+        registerCommand.setApplicationId(appId);
+        registerCommand.setParameters(Map.of("emailId", email, "password", password));
+
+        CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+        Map<String, Object> parsedData = registrationResponse.getParsedData();
+        assertEquals("success", parsedData.get("message"));
+
+        var code = getVerificationCode();
+
+        var verifyCommand = new VerifyCommand();
+        verifyCommand.setOrgId(ORG_ID);
+        verifyCommand.setApplicationId(appId);
+        verifyCommand.setParameters(Map.of("emailId", email, "code", code));
+
+        CommandResponse verifyResponse = verifyCommand.execute(getRegistrationConnection(), null);
+        parsedData = verifyResponse.getParsedData();
+        assertEquals("success", parsedData.get("message"));
+
+    }
+
+    @Test
+    public void testFeedback()
+    {
+
+    }
+
     private void createAppFolder(String appId, AppPropertiesDetails appProperties) throws IOException, CommandException
     {
         _containerHelper.createSubfolder(getProjectName(), appId);
-        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, getProjectName() + "/" + appId, "StudyId", appId)));
+        String containerPath = getProjectName() + "/" + appId;
+        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, containerPath, "StudyId", appId)));
         executeRegistrationCommand(new AppPropertiesUpdateCommand(appProperties));
+        InsertExternalSchemaCommand.Params params = new InsertExternalSchemaCommand.Params("fdahpuserregws", "fdahpuserregws")
+                .setTables(List.of("apppropertiesdetails", "authinfo", "loginattempts", "passwordhistory", "userappdetails", "userdetails"));
+        CommandResponse response = new InsertExternalSchemaCommand(params)
+                .execute(createDefaultConnection(), containerPath);
+        response.getParsedData();
     }
 
-    private void createStudyFolder(String appId, String studyId)
+    private void createStudyFolder(String appId, String studyId) throws IOException, CommandException
     {
         _containerHelper.createSubfolder(getProjectName() + "/" + appId, studyId);
-        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, getProjectName() + "/" + appId + "/" + studyId, "StudyId", studyId)));
+        String containerPath = getProjectName() + "/" + appId + "/" + studyId;
+        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, containerPath, "StudyId", studyId)));
+        InsertExternalSchemaCommand.Params params = new InsertExternalSchemaCommand.Params("fdahpuserregws", "fdahpuserregws")
+                .setTables(List.of("participantactivities", "participantstudies", "studyconsent"));
+        CommandResponse response = new InsertExternalSchemaCommand(params)
+                .execute(createDefaultConnection(), containerPath);
+        response.getParsedData();
     }
 
     private CommandResponse executeRegistrationCommand(FdahpUserRegWSCommand command) throws IOException, CommandException
