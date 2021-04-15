@@ -7,6 +7,9 @@ import com.hphc.remoteapi.registration.PingCommand;
 import com.hphc.remoteapi.registration.RegisterCommand;
 import com.hphc.remoteapi.registration.VerifyCommand;
 import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
+import org.apache.http.HttpStatus;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -96,6 +99,25 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             assertEquals("success", parsedData.get("message"));
         }
 
+        TestLogger.log("Attempt to re-register unverified user");
+        {
+            RegisterCommand registerCommand = new RegisterCommand();
+            registerCommand.setOrgId(ORG_ID);
+            registerCommand.setApplicationId(appId);
+            registerCommand.setParameters(Map.of("emailId", email, "password", password));
+
+            try
+            {
+                CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+                Assert.fail("Re-registering an existing user should have returned an error.\n" + registrationResponse.getText());
+            }
+            catch (CommandException expected)
+            {
+                checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
+                checker().verifyThat("Response text", expected.getResponseText(), CoreMatchers.containsString("This email has already been used"));
+            }
+        }
+
         TestLogger.log("Verify new user");
         {
             var code = getVerificationCode();
@@ -110,14 +132,23 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             assertEquals("success", parsedData.get("message"));
         }
 
-        TestLogger.log("Attempt to re-register existing user");
+        TestLogger.log("Attempt to re-register verified user");
         {
             RegisterCommand registerCommand = new RegisterCommand();
             registerCommand.setOrgId(ORG_ID);
             registerCommand.setApplicationId(appId);
             registerCommand.setParameters(Map.of("emailId", email, "password", password));
 
-            CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+            try
+            {
+                CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+                Assert.fail("Re-registering an existing user should have returned an error.\n" + registrationResponse.getText());
+            }
+            catch (CommandException expected)
+            {
+                checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
+                checker().verifyThat("Response text", expected.getResponseText(), CoreMatchers.containsString("This email has already been used"));
+            }
         }
     }
 
