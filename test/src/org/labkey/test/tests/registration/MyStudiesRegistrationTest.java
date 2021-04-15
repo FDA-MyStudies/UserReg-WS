@@ -19,6 +19,7 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.ModulePropertyValue;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.components.dumbster.EmailRecordTable;
+import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.TestLogger;
 
 import java.io.IOException;
@@ -66,13 +67,12 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         Map<String, Object> parsedData = response.getParsedData();
         assertEquals(true, parsedData.get("success"));
-
     }
 
     @Test
     public void testRegisterNewUser() throws IOException, CommandException
     {
-        Map.Entry<String, String> emailPassword = generateEmailPassword("newuser@mystudies.registration.test");
+        Map.Entry<String, String> emailPassword = generateEmailPassword("regNewUser@mystudies.registration.test");
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
         String appId = "RegisterUserApplication";
@@ -84,40 +84,55 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         createAppFolder(appId, appProperties);
 
-        RegisterCommand registerCommand = new RegisterCommand();
-        registerCommand.setOrgId(ORG_ID);
-        registerCommand.setApplicationId(appId);
-        registerCommand.setParameters(Map.of("emailId", email, "password", password));
+        TestLogger.log("Register new user");
+        {
+            RegisterCommand registerCommand = new RegisterCommand();
+            registerCommand.setOrgId(ORG_ID);
+            registerCommand.setApplicationId(appId);
+            registerCommand.setParameters(Map.of("emailId", email, "password", password));
 
-        CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
-        Map<String, Object> parsedData = registrationResponse.getParsedData();
-        assertEquals("success", parsedData.get("message"));
+            CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+            Map<String, Object> parsedData = registrationResponse.getParsedData();
+            assertEquals("success", parsedData.get("message"));
+        }
 
-        var code = getVerificationCode();
+        TestLogger.log("Verify new user");
+        {
+            var code = getVerificationCode();
 
-        var verifyCommand = new VerifyCommand();
-        verifyCommand.setOrgId(ORG_ID);
-        verifyCommand.setApplicationId(appId);
-        verifyCommand.setParameters(Map.of("emailId", email, "code", code));
+            var verifyCommand = new VerifyCommand();
+            verifyCommand.setOrgId(ORG_ID);
+            verifyCommand.setApplicationId(appId);
+            verifyCommand.setParameters(Map.of("emailId", email, "code", code));
 
-        CommandResponse verifyResponse = verifyCommand.execute(getRegistrationConnection(), null);
-        parsedData = verifyResponse.getParsedData();
-        assertEquals("success", parsedData.get("message"));
+            CommandResponse verifyResponse = verifyCommand.execute(getRegistrationConnection(), null);
+            Map<String, Object> parsedData = verifyResponse.getParsedData();
+            assertEquals("success", parsedData.get("message"));
+        }
 
+        TestLogger.log("Attempt to re-register existing user");
+        {
+            RegisterCommand registerCommand = new RegisterCommand();
+            registerCommand.setOrgId(ORG_ID);
+            registerCommand.setApplicationId(appId);
+            registerCommand.setParameters(Map.of("emailId", email, "password", password));
+
+            CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+        }
     }
 
     @Test
-    public void testNotifications() throws IOException, CommandException
+    public void testRegEmail() throws IOException, CommandException
     {
-        Map.Entry<String, String> emailPassword = generateEmailPassword("notification@mystudies.registration.test");
+        Map.Entry<String, String> emailPassword = generateEmailPassword("regEmail@mystudies.registration.test");
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
         String appId = "RegisterNotificationApplication";
         AppPropertiesDetails appProperties = new AppPropertiesDetails();
         appProperties.setOrgId(ORG_ID);
         appProperties.setAppId(appId);
-//        appProperties.setRegEmailBody();
-//        appProperties.setRegEmailSub();
+        appProperties.setRegEmailSub("Custom Email Subject <<< TOKEN HERE >>>");
+        appProperties.setRegEmailBody("Custom Email Body <<< TOKEN HERE >>>");
 
         enableEmailRecorder();
 
@@ -132,16 +147,13 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         Map<String, Object> parsedData = registrationResponse.getParsedData();
         assertEquals("success", parsedData.get("message"));
 
+        goToEmailRecord();
         var code = getVerificationCode();
+    }
 
-        var verifyCommand = new VerifyCommand();
-        verifyCommand.setOrgId(ORG_ID);
-        verifyCommand.setApplicationId(appId);
-        verifyCommand.setParameters(Map.of("emailId", email, "code", code));
-
-        CommandResponse verifyResponse = verifyCommand.execute(getRegistrationConnection(), null);
-        parsedData = verifyResponse.getParsedData();
-        assertEquals("success", parsedData.get("message"));
+    @Test
+    public void testForgotPassEmail()
+    {
 
     }
 
@@ -151,12 +163,19 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
     }
 
+    @Test
+    public void testPasswordReset()
+    {
+
+    }
+
+    @LogMethod
     private void createAppFolder(String appId, AppPropertiesDetails appProperties) throws IOException, CommandException
     {
         _containerHelper.createSubfolder(getProjectName(), appId);
         String containerPath = getProjectName() + "/" + appId;
         setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, containerPath, "StudyId", appId)));
-        executeRegistrationCommand(new AppPropertiesUpdateCommand(appProperties));
+        updateAppProperties(appProperties);
         InsertExternalSchemaCommand.Params params = new InsertExternalSchemaCommand.Params("fdahpuserregws", "fdahpuserregws")
                 .setTables(List.of("apppropertiesdetails", "authinfo", "loginattempts", "passwordhistory", "userappdetails", "userdetails"));
         CommandResponse response = new InsertExternalSchemaCommand(params)
@@ -164,6 +183,12 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         response.getParsedData();
     }
 
+    private CommandResponse updateAppProperties(AppPropertiesDetails appProperties) throws IOException, CommandException
+    {
+        return executeRegistrationCommand(new AppPropertiesUpdateCommand(appProperties));
+    }
+
+    @LogMethod
     private void createStudyFolder(String appId, String studyId) throws IOException, CommandException
     {
         _containerHelper.createSubfolder(getProjectName() + "/" + appId, studyId);
