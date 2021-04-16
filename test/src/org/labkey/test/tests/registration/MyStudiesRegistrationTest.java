@@ -5,6 +5,7 @@ import com.hphc.remoteapi.registration.FdahpUserRegWSCommand;
 import com.hphc.remoteapi.registration.NoCsrfConnection;
 import com.hphc.remoteapi.registration.PingCommand;
 import com.hphc.remoteapi.registration.RegisterCommand;
+import com.hphc.remoteapi.registration.ResendConfirmationCommand;
 import com.hphc.remoteapi.registration.VerifyCommand;
 import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
 import org.apache.http.HttpStatus;
@@ -66,12 +67,23 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     @Test
     public void testPing() throws Exception
     {
-        CommandResponse response = new PingCommand().execute(getRegistrationConnection(), null);
+        CommandResponse response = executeRegistrationCommand(new PingCommand());
 
         Map<String, Object> parsedData = response.getParsedData();
         assertEquals(true, parsedData.get("success"));
     }
 
+    /**
+     * 1. Register new user
+     * 2. Attempt to register user again (rejected)
+     * 3. Resend verification code
+     * 4. Attempt to verify with first code (rejected)
+     * 5. Verify new user
+     * 6. Attempt to register verified user (rejected)
+     *
+     * @throws IOException from LabKey remote API commands
+     * @throws CommandException from LabKey remote API commands
+     */
     @Test
     public void testRegisterNewUser() throws IOException, CommandException
     {
@@ -104,7 +116,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             RegisterCommand registerCommand = new RegisterCommand();
             registerCommand.setOrgId(ORG_ID);
             registerCommand.setApplicationId(appId);
-            registerCommand.setParameters(Map.of("emailId", email, "password", password));
+            registerCommand.setParameters(Map.of("emailId", email, "password", password + "_bad"));
 
             try
             {
@@ -118,17 +130,48 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             }
         }
 
+        String code = getVerificationCode();
+        String resentCode;
+
+        TestLogger.log("Resend verification code");
+        {
+            enableEmailRecorder(); // Clear out initial verification email
+            var resendConfirmationCommand = new ResendConfirmationCommand();
+            resendConfirmationCommand.setOrgId(ORG_ID);
+            resendConfirmationCommand.setApplicationId(appId);
+            resendConfirmationCommand.setParameters(Map.of("emailId", email));
+
+            CommandResponse resendResponse = executeRegistrationCommand(resendConfirmationCommand);
+            Map<String, Object> parsedData = resendResponse.getParsedData();
+            assertEquals("success", parsedData.get("message"));
+
+            resentCode = getVerificationCode();
+            Assert.assertNotEquals("Same verification code received from 'ResendConfirmation'", code, resentCode);
+        }
+
         TestLogger.log("Verify new user");
         {
-            var code = getVerificationCode();
-
             var verifyCommand = new VerifyCommand();
             verifyCommand.setOrgId(ORG_ID);
             verifyCommand.setApplicationId(appId);
             verifyCommand.setParameters(Map.of("emailId", email, "code", code));
 
-            CommandResponse verifyResponse = verifyCommand.execute(getRegistrationConnection(), null);
-            Map<String, Object> parsedData = verifyResponse.getParsedData();
+            TestLogger.log("Attempt to verify with invalid/replaced verification code");
+            try
+            {
+                CommandResponse verifyResponse = executeRegistrationCommand(verifyCommand);
+                Assert.fail("Verifying with an invalid code should have returned an error.\n" + verifyResponse.getText());
+            }
+            catch (CommandException expected)
+            {
+                checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
+                checker().verifyThat("Response text", expected.getResponseText(), CoreMatchers.containsString("Invalid code"));
+            }
+
+            verifyCommand.setParameters(Map.of("emailId", email, "code", resentCode));
+
+            var verifyResponse = executeRegistrationCommand(verifyCommand);
+            var parsedData = verifyResponse.getParsedData();
             assertEquals("success", parsedData.get("message"));
         }
 
@@ -152,6 +195,12 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         }
     }
 
+    /**
+     * Test custom email template for new user registration (including resending notification)
+     *
+     * @throws IOException from LabKey remote API commands
+     * @throws CommandException from LabKey remote API commands
+     */
     @Test
     public void testRegEmail() throws IOException, CommandException
     {
