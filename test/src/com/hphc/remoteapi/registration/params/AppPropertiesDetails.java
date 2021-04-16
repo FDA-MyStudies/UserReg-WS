@@ -2,10 +2,13 @@ package com.hphc.remoteapi.registration.params;
 
 import org.json.simple.JSONObject;
 
+/**
+ * Mirrors 'com.hphc.mystudies.bean.AppPropertiesDetailsBean'
+ */
 public class AppPropertiesDetails
 {
-//    private int _Id;
     private String _AppId;
+//    private String _AppType;
     private String _OrgId;
 //    private String _IosBundleId;
 //    private String _AndroidBundleId;
@@ -14,10 +17,10 @@ public class AppPropertiesDetails
 //    private String _AndroidServerKey;
     private String _Email;
 //    private String _EmailPassword;
-    private String _RegEmailSub;
-    private String _RegEmailBody;
-    private String _ForgotEmailSub;
-    private String _ForgotEmailBody;
+    private String _RegisterEmailSubject;
+    private String _RegisterEmailBody;
+    private String _ForgotPassEmailSubject;
+    private String _ForgotPassEmailBody;
     private String _FeedbackEmail;
     private String _ContactUsEmail;
     private String _AppName;
@@ -29,10 +32,10 @@ public class AppPropertiesDetails
         json.put("AppId", _AppId);
         json.put("OrgId", _OrgId);
         json.put("Email", _Email);
-        json.put("RegEmailSub", _RegEmailSub);
-        json.put("RegEmailBody", _RegEmailBody);
-        json.put("ForgotEmailSub", _ForgotEmailSub);
-        json.put("ForgotEmailBody", _ForgotEmailBody);
+        json.put("RegisterEmailSubject", _RegisterEmailSubject);
+        json.put("RegisterEmailBody", _RegisterEmailBody);
+        json.put("ForgotPassEmailSubject", _ForgotPassEmailSubject);
+        json.put("ForgotPassEmailBody", _ForgotPassEmailBody);
         json.put("FeedbackEmail", _FeedbackEmail);
         json.put("ContactUsEmail", _ContactUsEmail);
         json.put("AppName", _AppName);
@@ -179,43 +182,43 @@ public class AppPropertiesDetails
 //        _AndroidServerKey = androidServerKey;
 //    }
 
-    public String getRegEmailBody()
+    public String getRegisterEmailBody()
     {
-        return _RegEmailBody;
+        return _RegisterEmailBody;
     }
 
-    public void setRegEmailBody(String regEmailBody)
+    public void setRegisterEmailBody(String registerEmailBody)
     {
-        _RegEmailBody = regEmailBody;
+        _RegisterEmailBody = registerEmailBody;
     }
 
-    public String getForgotEmailBody()
+    public String getForgotPassEmailBody()
     {
-        return _ForgotEmailBody;
+        return _ForgotPassEmailBody;
     }
 
-    public void setForgotEmailBody(String forgotEmailBody)
+    public void setForgotPassEmailBody(String forgotPassEmailBody)
     {
-        _ForgotEmailBody = forgotEmailBody;
+        _ForgotPassEmailBody = forgotPassEmailBody;
     }
 
-    public String getRegEmailSub()
+    public String getRegisterEmailSubject()
     {
-        return _RegEmailSub;
+        return _RegisterEmailSubject;
     }
 
-    public void setRegEmailSub(String regEmailSub)
+    public void setRegisterEmailSubject(String registerEmailSubject)
     {
-        _RegEmailSub = regEmailSub;
+        _RegisterEmailSubject = registerEmailSubject;
     }
 
-    public String getForgotEmailSub()
+    public String getForgotPassEmailSubject()
     {
-        return _ForgotEmailSub;
+        return _ForgotPassEmailSubject;
     }
 
-    public void setForgotEmailSub(String forgotEmailSub)
+    public void setForgotPassEmailSubject(String forgotPassEmailSubject)
     {
-        _ForgotEmailSub = forgotEmailSub;
+        _ForgotPassEmailSubject = forgotPassEmailSubject;
     }
 }

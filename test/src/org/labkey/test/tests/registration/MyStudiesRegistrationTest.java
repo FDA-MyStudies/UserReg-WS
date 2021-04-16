@@ -9,7 +9,7 @@ import com.hphc.remoteapi.registration.ResendConfirmationCommand;
 import com.hphc.remoteapi.registration.VerifyCommand;
 import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
 import org.apache.http.HttpStatus;
-import org.hamcrest.CoreMatchers;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 
 @Category({})
@@ -126,7 +128,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             catch (CommandException expected)
             {
                 checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
-                checker().verifyThat("Response text", expected.getResponseText(), CoreMatchers.containsString("This email has already been used"));
+                checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
             }
         }
 
@@ -165,7 +167,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             catch (CommandException expected)
             {
                 checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
-                checker().verifyThat("Response text", expected.getResponseText(), CoreMatchers.containsString("Invalid code"));
+                checker().verifyThat("Response text", expected.getResponseText(), containsString("Invalid code"));
             }
 
             verifyCommand.setParameters(Map.of("emailId", email, "code", resentCode));
@@ -190,7 +192,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             catch (CommandException expected)
             {
                 checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
-                checker().verifyThat("Response text", expected.getResponseText(), CoreMatchers.containsString("This email has already been used"));
+                checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
             }
         }
     }
@@ -211,8 +213,8 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         AppPropertiesDetails appProperties = new AppPropertiesDetails();
         appProperties.setOrgId(ORG_ID);
         appProperties.setAppId(appId);
-        appProperties.setRegEmailSub("Custom Email Subject <<< TOKEN HERE >>>");
-        appProperties.setRegEmailBody("Custom Email Body <<< TOKEN HERE >>>");
+        appProperties.setRegisterEmailSubject("Custom Email Subject <<< TOKEN HERE >>>");
+        appProperties.setRegisterEmailBody("Custom Email Body <<< TOKEN HERE >>>");
 
         enableEmailRecorder();
 
@@ -227,8 +229,29 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         Map<String, Object> parsedData = registrationResponse.getParsedData();
         assertEquals("success", parsedData.get("message"));
 
-        goToEmailRecord();
-        var code = getVerificationCode();
+        EmailRecordTable.EmailMessage verificationEmail = getVerificationEmail();
+        checker().verifyThat("Registration email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
+        checker().verifyThat("Registration email body.", verificationEmail.getBody(), not(containsString("<<<")));
+        checker().verifyThat("Registration email body.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
+        checker().verifyThat("Registration email body.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().screenShotIfNewError("confirmationEmail");
+
+        enableEmailRecorder(); // Clear out initial verification email
+        var resendConfirmationCommand = new ResendConfirmationCommand();
+        resendConfirmationCommand.setOrgId(ORG_ID);
+        resendConfirmationCommand.setApplicationId(appId);
+        resendConfirmationCommand.setParameters(Map.of("emailId", email));
+
+        CommandResponse resendResponse = executeRegistrationCommand(resendConfirmationCommand);
+        parsedData = resendResponse.getParsedData();
+        assertEquals("success", parsedData.get("message"));
+
+        verificationEmail = getVerificationEmail();
+        checker().verifyThat("Resent registration email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
+        checker().verifyThat("Resent registration email body.", verificationEmail.getBody(), not(containsString("<<<")));
+        checker().verifyThat("Resent registration email body.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
+        checker().verifyThat("Resent registration email body.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().screenShotIfNewError("resentConfirmationEmail");
     }
 
     @Test
@@ -301,12 +324,19 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
     protected String getVerificationCode()
     {
-        EmailRecordTable emailRecordTable = goToEmailRecord();
-        EmailRecordTable.EmailMessage message = emailRecordTable.getEmailAtTableIndex(3);
-        emailRecordTable.clickMessage(message);
+        EmailRecordTable.EmailMessage message = getVerificationEmail();
         Matcher matcher = verificationCodePattern.matcher(message.getBody());
         matcher.find();
         return matcher.group(1);
+    }
+
+    @NotNull
+    private EmailRecordTable.EmailMessage getVerificationEmail()
+    {
+        EmailRecordTable emailRecordTable = goToEmailRecord();
+        EmailRecordTable.EmailMessage message = emailRecordTable.getEmailAtTableIndex(3);
+        emailRecordTable.clickMessage(message);
+        return message;
     }
 
     String randString()
