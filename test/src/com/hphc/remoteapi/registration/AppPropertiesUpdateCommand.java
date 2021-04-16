@@ -6,7 +6,7 @@ public class AppPropertiesUpdateCommand extends FdahpUserRegWSPostCommand
 {
     public AppPropertiesUpdateCommand(AppPropertiesDetails appProperties)
     {
-        super("appPropertiesUpdate");
+        super("appPropertiesUpdate", null, null);
         setJsonObject(appProperties.toJSONObject());
     }
 }

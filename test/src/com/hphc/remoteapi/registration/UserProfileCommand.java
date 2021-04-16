@@ -2,8 +2,8 @@ package com.hphc.remoteapi.registration;
 
 public class UserProfileCommand extends FdahpUserRegWSCommand
 {
-    public UserProfileCommand()
+    public UserProfileCommand(String orgId, String appId)
     {
-        super("userProfile");
+        super("userProfile", orgId, appId);
     }
 }

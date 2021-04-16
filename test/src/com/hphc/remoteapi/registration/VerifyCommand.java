@@ -2,8 +2,8 @@ package com.hphc.remoteapi.registration;
 
 public class VerifyCommand extends FdahpUserRegWSPostCommand
 {
-    public VerifyCommand()
+    public VerifyCommand(String orgId, String appId)
     {
-        super("verify");
+        super("verify", orgId, appId);
     }
 }

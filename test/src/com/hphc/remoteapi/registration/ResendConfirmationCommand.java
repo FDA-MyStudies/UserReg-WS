@@ -2,8 +2,8 @@ package com.hphc.remoteapi.registration;
 
 public class ResendConfirmationCommand extends FdahpUserRegWSPostCommand
 {
-    public ResendConfirmationCommand()
+    public ResendConfirmationCommand(String orgId, String appId)
     {
-        super("resendConfirmation");
+        super("resendConfirmation", orgId, appId);
     }
 }

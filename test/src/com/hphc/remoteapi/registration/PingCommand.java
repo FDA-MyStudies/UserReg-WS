@@ -4,6 +4,6 @@ public class PingCommand extends FdahpUserRegWSCommand
 {
     public PingCommand()
     {
-        super("ping");
+        super("ping", null, null);
     }
 }

@@ -13,9 +13,9 @@ public class FdahpUserRegWSPostCommand<ResponseType extends CommandResponse> ext
 {
     private JSONObject _jsonObject = null;
 
-    public FdahpUserRegWSPostCommand(String actionName)
+    public FdahpUserRegWSPostCommand(String actionName, String orgId, String appId)
     {
-        super(actionName);
+        super(actionName, orgId, appId);
     }
 
     @Override

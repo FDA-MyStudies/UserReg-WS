@@ -2,8 +2,8 @@ package com.hphc.remoteapi.registration;
 
 public class RegisterCommand extends FdahpUserRegWSPostCommand
 {
-    public RegisterCommand()
+    public RegisterCommand(String orgId, String appId)
     {
-        super("register");
+        super("register", orgId, appId);
     }
 }

@@ -103,9 +103,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         TestLogger.log("Register new user");
         {
-            RegisterCommand registerCommand = new RegisterCommand();
-            registerCommand.setOrgId(ORG_ID);
-            registerCommand.setApplicationId(appId);
+            RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
             registerCommand.setParameters(Map.of("emailId", email, "password", password));
 
             CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
@@ -115,9 +113,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         TestLogger.log("Attempt to re-register unverified user");
         {
-            RegisterCommand registerCommand = new RegisterCommand();
-            registerCommand.setOrgId(ORG_ID);
-            registerCommand.setApplicationId(appId);
+            RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
             registerCommand.setParameters(Map.of("emailId", email, "password", password + "_bad"));
 
             try
@@ -138,9 +134,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         TestLogger.log("Resend verification code");
         {
             enableEmailRecorder(); // Clear out initial verification email
-            var resendConfirmationCommand = new ResendConfirmationCommand();
-            resendConfirmationCommand.setOrgId(ORG_ID);
-            resendConfirmationCommand.setApplicationId(appId);
+            var resendConfirmationCommand = new ResendConfirmationCommand(ORG_ID, appId);
             resendConfirmationCommand.setParameters(Map.of("emailId", email));
 
             CommandResponse resendResponse = executeRegistrationCommand(resendConfirmationCommand);
@@ -153,9 +147,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         TestLogger.log("Verify new user");
         {
-            var verifyCommand = new VerifyCommand();
-            verifyCommand.setOrgId(ORG_ID);
-            verifyCommand.setApplicationId(appId);
+            var verifyCommand = new VerifyCommand(ORG_ID, appId);
             verifyCommand.setParameters(Map.of("emailId", email, "code", code));
 
             TestLogger.log("Attempt to verify with invalid/replaced verification code");
@@ -179,9 +171,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         TestLogger.log("Attempt to re-register verified user");
         {
-            RegisterCommand registerCommand = new RegisterCommand();
-            registerCommand.setOrgId(ORG_ID);
-            registerCommand.setApplicationId(appId);
+            RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
             registerCommand.setParameters(Map.of("emailId", email, "password", password));
 
             try
@@ -220,9 +210,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         createAppFolder(appId, appProperties);
 
-        RegisterCommand registerCommand = new RegisterCommand();
-        registerCommand.setOrgId(ORG_ID);
-        registerCommand.setApplicationId(appId);
+        RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
         registerCommand.setParameters(Map.of("emailId", email, "password", password));
 
         CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
@@ -237,9 +225,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         checker().screenShotIfNewError("confirmationEmail");
 
         enableEmailRecorder(); // Clear out initial verification email
-        var resendConfirmationCommand = new ResendConfirmationCommand();
-        resendConfirmationCommand.setOrgId(ORG_ID);
-        resendConfirmationCommand.setApplicationId(appId);
+        var resendConfirmationCommand = new ResendConfirmationCommand(ORG_ID, appId);
         resendConfirmationCommand.setParameters(Map.of("emailId", email));
 
         CommandResponse resendResponse = executeRegistrationCommand(resendConfirmationCommand);

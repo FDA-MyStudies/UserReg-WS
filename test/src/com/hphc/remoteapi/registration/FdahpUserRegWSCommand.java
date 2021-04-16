@@ -16,9 +16,11 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
     private static final String CONTROLLER = "fdahpuserregws";
     private final Map<String, String> _headers = new HashMap<>();
 
-    public FdahpUserRegWSCommand(String actionName)
+    public FdahpUserRegWSCommand(String actionName, String orgId, String appId)
     {
         super(CONTROLLER, actionName);
+        setOrgId(orgId);
+        setApplicationId(appId);
     }
 
     @Override
@@ -60,14 +62,14 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
 
     // Header setters
 
+    public void setOrgId(String orgId)
+    {
+        _headers.put("orgId", orgId);
+    }
+
     public void setApplicationId(String applicationId)
     {
         _headers.put("applicationId", applicationId);
-    }
-
-    public void setAuthKey(String auth)
-    {
-        _headers.put("auth", auth);
     }
 
     public void setUserId(String userId)
@@ -75,8 +77,8 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
         _headers.put("userId", userId);
     }
 
-    public void setOrgId(String orgId)
+    public void setAuthKey(String auth)
     {
-        _headers.put("orgId", orgId);
+        _headers.put("auth", auth);
     }
 }

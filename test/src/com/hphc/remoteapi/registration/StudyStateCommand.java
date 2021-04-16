@@ -2,8 +2,8 @@ package com.hphc.remoteapi.registration;
 
 public class StudyStateCommand extends FdahpUserRegWSCommand
 {
-    public StudyStateCommand()
+    public StudyStateCommand(String orgId, String appId)
     {
-        super("studyState");
+        super("studyState", orgId, appId);
     }
 }

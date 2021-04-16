@@ -1,4 +1,4 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.registration.params;
 
 import org.labkey.api.action.ReturnUrlForm;
 
