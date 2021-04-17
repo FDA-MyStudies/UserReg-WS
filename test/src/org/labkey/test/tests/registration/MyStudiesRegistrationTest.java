@@ -18,11 +18,13 @@ import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.CommandResponse;
 import org.labkey.remoteapi.Connection;
+import org.labkey.remoteapi.core.SaveModulePropertiesCommand;
 import org.labkey.remoteapi.query.InsertExternalSchemaCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.ModulePropertyValue;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.components.dumbster.EmailRecordTable;
+import org.labkey.test.params.ModuleProperty;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.TestLogger;
 
@@ -43,21 +45,23 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 {
     private static final String MODULE_NAME = "FdahpUserRegWS";
     private static final String ORG_ID = "MyStudies Test Organization";
+    private static final String APP_ID = "Shared App";
     private static final Pattern verificationCodePattern = Pattern.compile("Verification Code:(\\w+)");
 
     @BeforeClass
-    public static void setupProject()
+    public static void setupProject() throws IOException, CommandException
     {
         MyStudiesRegistrationTest init = (MyStudiesRegistrationTest) getCurrentTest();
 
         init.doSetup();
     }
 
-    private void doSetup()
+    private void doSetup() throws IOException, CommandException
     {
         _containerHelper.createProject(getProjectName(), null);
         _containerHelper.enableModule("FdahpUserRegWS");
-        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, getProjectName(), "StudyId", getProjectName())));
+        new SaveModulePropertiesCommand(List.of(new ModulePropertyValue(MODULE_NAME, getProjectName(), "StudyId", getProjectName())))
+            .execute(createDefaultConnection(), getProjectName());
     }
 
     @Before
@@ -199,7 +203,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         Map.Entry<String, String> emailPassword = generateEmailPassword("regEmail@mystudies.registration.test");
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
-        String appId = "RegisterNotificationApplication";
+        String appId = "RegisterNotificationApp";
         AppPropertiesDetails appProperties = new AppPropertiesDetails();
         appProperties.setOrgId(ORG_ID);
         appProperties.setAppId(appId);
@@ -241,9 +245,13 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     }
 
     @Test
-    public void testForgotPassEmail()
+    public void testForgotPassEmail() throws IOException, CommandException
     {
-
+        String baseEmail = "forgotpass@mystudies.registration.test";
+        String appId = "RegisterNotificationApplication";
+        Map.Entry<String, String> emailPassword = createAppAndUser(baseEmail, appId);
+        String email = emailPassword.getKey();
+        String password = emailPassword.getValue();
     }
 
     @Test
@@ -263,7 +271,8 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     {
         _containerHelper.createSubfolder(getProjectName(), appId);
         String containerPath = getProjectName() + "/" + appId;
-        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, containerPath, "StudyId", appId)));
+        new SaveModulePropertiesCommand(List.of(new ModuleProperty(MODULE_NAME, containerPath, "StudyId", appId)))
+                .execute(createDefaultConnection(), containerPath);
         updateAppProperties(appProperties);
         InsertExternalSchemaCommand.Params params = new InsertExternalSchemaCommand.Params("fdahpuserregws", "fdahpuserregws")
                 .setTables(List.of("apppropertiesdetails", "authinfo", "loginattempts", "passwordhistory", "userappdetails", "userdetails"));
@@ -282,12 +291,43 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     {
         _containerHelper.createSubfolder(getProjectName() + "/" + appId, studyId);
         String containerPath = getProjectName() + "/" + appId + "/" + studyId;
-        setModuleProperties(List.of(new ModulePropertyValue(MODULE_NAME, containerPath, "StudyId", studyId)));
+        new SaveModulePropertiesCommand(List.of(new ModuleProperty(MODULE_NAME, containerPath, "StudyId", studyId)))
+                .execute(createDefaultConnection(), containerPath);
         InsertExternalSchemaCommand.Params params = new InsertExternalSchemaCommand.Params("fdahpuserregws", "fdahpuserregws")
                 .setTables(List.of("participantactivities", "participantstudies", "studyconsent"));
         CommandResponse response = new InsertExternalSchemaCommand(params)
                 .execute(createDefaultConnection(), containerPath);
         response.getParsedData();
+    }
+
+    private Map.Entry<String, String> createAppAndUser(String baseEmail, String appId) throws IOException, CommandException
+    {
+        Map.Entry<String, String> emailPassword = generateEmailPassword(baseEmail);
+        String email = emailPassword.getKey();
+        String password = emailPassword.getValue();
+        AppPropertiesDetails appProperties = new AppPropertiesDetails();
+        appProperties.setOrgId(ORG_ID);
+        appProperties.setAppId(appId);
+
+        enableEmailRecorder();
+
+        createAppFolder(appId, appProperties);
+
+        RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
+        registerCommand.setParameters(Map.of("emailId", email, "password", password));
+
+        CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
+        Map<String, Object> parsedData = registrationResponse.getParsedData();
+        assertEquals("success", parsedData.get("message"));
+        var code = getVerificationCode();
+
+        var verifyCommand = new VerifyCommand(ORG_ID, appId);
+        verifyCommand.setParameters(Map.of("emailId", email, "code", code));
+
+        var verifyResponse = executeRegistrationCommand(verifyCommand);
+        assertEquals("success", verifyResponse.getParsedData().get("message"));
+
+        return emailPassword;
     }
 
     private CommandResponse executeRegistrationCommand(FdahpUserRegWSCommand command) throws IOException, CommandException
