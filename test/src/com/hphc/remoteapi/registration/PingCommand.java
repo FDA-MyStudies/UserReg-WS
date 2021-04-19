@@ -1,6 +1,8 @@
 package com.hphc.remoteapi.registration;
 
-public class PingCommand extends FdahpUserRegWSCommand
+import org.labkey.remoteapi.CommandResponse;
+
+public class PingCommand extends FdahpUserRegWSCommand<CommandResponse>
 {
     public PingCommand()
     {

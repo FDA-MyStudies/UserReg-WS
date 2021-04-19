@@ -29,7 +29,7 @@ public class FdahpUserRegWSPostCommand<ResponseType extends CommandResponse> ext
         return _jsonObject;
     }
 
-    public void setJsonObject(JSONObject jsonObject)
+    protected void setJsonObject(JSONObject jsonObject)
     {
         _jsonObject = jsonObject;
     }

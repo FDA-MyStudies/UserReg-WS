@@ -2,13 +2,15 @@ package org.labkey.test.tests.registration;
 
 import com.hphc.remoteapi.registration.AppPropertiesUpdateCommand;
 import com.hphc.remoteapi.registration.FdahpUserRegWSCommand;
+import com.hphc.remoteapi.registration.ForgotPasswordCommand;
+import com.hphc.remoteapi.registration.LoginCommand;
+import com.hphc.remoteapi.registration.LogoutCommand;
 import com.hphc.remoteapi.registration.NoCsrfConnection;
 import com.hphc.remoteapi.registration.PingCommand;
 import com.hphc.remoteapi.registration.RegisterCommand;
 import com.hphc.remoteapi.registration.ResendConfirmationCommand;
 import com.hphc.remoteapi.registration.VerifyCommand;
 import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
-import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,6 +38,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
@@ -47,16 +51,17 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     private static final String ORG_ID = "MyStudies Test Organization";
     private static final String APP_ID = "Shared App";
     private static final Pattern verificationCodePattern = Pattern.compile("Verification Code:(\\w+)");
+    private static final Pattern forgotPasswordPattern = Pattern.compile("Temporary Password: (\\w+)");
 
     @BeforeClass
-    public static void setupProject() throws IOException, CommandException
+    public static void setupProject() throws Exception
     {
         MyStudiesRegistrationTest init = (MyStudiesRegistrationTest) getCurrentTest();
 
         init.doSetup();
     }
 
-    private void doSetup() throws IOException, CommandException
+    private void doSetup() throws Exception
     {
         _containerHelper.createProject(getProjectName(), null);
         _containerHelper.enableModule("FdahpUserRegWS");
@@ -91,12 +96,12 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
      * @throws CommandException from LabKey remote API commands
      */
     @Test
-    public void testRegisterNewUser() throws IOException, CommandException
+    public void testRegisterNewUser() throws Exception
     {
         Map.Entry<String, String> emailPassword = generateEmailPassword("regNewUser@mystudies.registration.test");
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
-        String appId = "RegisterUserApplication";
+        String appId = "testRegisterNewUser";
         AppPropertiesDetails appProperties = new AppPropertiesDetails();
         appProperties.setOrgId(ORG_ID);
         appProperties.setAppId(appId);
@@ -120,16 +125,8 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
             registerCommand.setParameters(Map.of("emailId", email, "password", password + "_bad"));
 
-            try
-            {
-                CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
-                Assert.fail("Re-registering an existing user should have returned an error.\n" + registrationResponse.getText());
-            }
-            catch (CommandException expected)
-            {
-                checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
-                checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
-            }
+            var expected = executeBadRequest(registerCommand);
+            checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
         }
 
         String code = getVerificationCode();
@@ -138,8 +135,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         TestLogger.log("Resend verification code");
         {
             enableEmailRecorder(); // Clear out initial verification email
-            var resendConfirmationCommand = new ResendConfirmationCommand(ORG_ID, appId);
-            resendConfirmationCommand.setParameters(Map.of("emailId", email));
+            var resendConfirmationCommand = new ResendConfirmationCommand(ORG_ID, appId, email);
 
             CommandResponse resendResponse = executeRegistrationCommand(resendConfirmationCommand);
             Map<String, Object> parsedData = resendResponse.getParsedData();
@@ -151,20 +147,11 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         TestLogger.log("Verify new user");
         {
-            var verifyCommand = new VerifyCommand(ORG_ID, appId);
-            verifyCommand.setParameters(Map.of("emailId", email, "code", code));
+            var verifyCommand = new VerifyCommand(ORG_ID, appId, email, code);
 
             TestLogger.log("Attempt to verify with invalid/replaced verification code");
-            try
-            {
-                CommandResponse verifyResponse = executeRegistrationCommand(verifyCommand);
-                Assert.fail("Verifying with an invalid code should have returned an error.\n" + verifyResponse.getText());
-            }
-            catch (CommandException expected)
-            {
-                checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
-                checker().verifyThat("Response text", expected.getResponseText(), containsString("Invalid code"));
-            }
+            CommandException expected = executeBadRequest(verifyCommand);
+            checker().verifyThat("Response text", expected.getResponseText(), containsString("Invalid code"));
 
             verifyCommand.setParameters(Map.of("emailId", email, "code", resentCode));
 
@@ -178,16 +165,8 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId);
             registerCommand.setParameters(Map.of("emailId", email, "password", password));
 
-            try
-            {
-                CommandResponse registrationResponse = executeRegistrationCommand(registerCommand);
-                Assert.fail("Re-registering an existing user should have returned an error.\n" + registrationResponse.getText());
-            }
-            catch (CommandException expected)
-            {
-                checker().verifyEquals("Wrong status code", HttpStatus.SC_BAD_REQUEST, expected.getStatusCode());
-                checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
-            }
+            CommandException expected = executeBadRequest(registerCommand);
+            checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
         }
     }
 
@@ -198,12 +177,12 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
      * @throws CommandException from LabKey remote API commands
      */
     @Test
-    public void testRegEmail() throws IOException, CommandException
+    public void testRegEmail() throws Exception
     {
         Map.Entry<String, String> emailPassword = generateEmailPassword("regEmail@mystudies.registration.test");
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
-        String appId = "RegisterNotificationApp";
+        String appId = "testRegEmail";
         AppPropertiesDetails appProperties = new AppPropertiesDetails();
         appProperties.setOrgId(ORG_ID);
         appProperties.setAppId(appId);
@@ -221,49 +200,180 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         Map<String, Object> parsedData = registrationResponse.getParsedData();
         assertEquals("success", parsedData.get("message"));
 
-        EmailRecordTable.EmailMessage verificationEmail = getVerificationEmail();
+        EmailRecordTable.EmailMessage verificationEmail = getNotificationEmail();
+        checker().verifyEquals("Registration email to.", Arrays.asList(email), Arrays.asList(emailPassword.getKey()));
         checker().verifyThat("Registration email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
         checker().verifyThat("Registration email body.", verificationEmail.getBody(), not(containsString("<<<")));
-        checker().verifyThat("Registration email body.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
-        checker().verifyThat("Registration email body.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().verifyThat("Registration email subject.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
+        checker().verifyThat("Registration email subject.", verificationEmail.getSubject(), containsString("<<<"));
         checker().screenShotIfNewError("confirmationEmail");
 
         enableEmailRecorder(); // Clear out initial verification email
-        var resendConfirmationCommand = new ResendConfirmationCommand(ORG_ID, appId);
-        resendConfirmationCommand.setParameters(Map.of("emailId", email));
+        var resendConfirmationCommand = new ResendConfirmationCommand(ORG_ID, appId, email);
 
         CommandResponse resendResponse = executeRegistrationCommand(resendConfirmationCommand);
         parsedData = resendResponse.getParsedData();
         assertEquals("success", parsedData.get("message"));
 
-        verificationEmail = getVerificationEmail();
+        verificationEmail = getNotificationEmail();
+        checker().verifyEquals("Registration email to.", Arrays.asList(email), Arrays.asList(emailPassword.getKey()));
         checker().verifyThat("Resent registration email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
         checker().verifyThat("Resent registration email body.", verificationEmail.getBody(), not(containsString("<<<")));
-        checker().verifyThat("Resent registration email body.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
-        checker().verifyThat("Resent registration email body.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().verifyThat("Resent registration email subject.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
+        checker().verifyThat("Resent registration email subject.", verificationEmail.getSubject(), containsString("<<<"));
         checker().screenShotIfNewError("resentConfirmationEmail");
     }
 
     @Test
-    public void testForgotPassEmail() throws IOException, CommandException
+    public void testForgotPassEmail() throws Exception
     {
-        String baseEmail = "forgotpass@mystudies.registration.test";
-        String appId = "RegisterNotificationApplication";
+        String baseEmail = "forgotpassemail@mystudies.registration.test";
+        String appId = "testForgotPassEmail";
+
+        Map.Entry<String, String> emailPassword = createAppAndUser(baseEmail, appId);
+
+        AppPropertiesDetails appProperties = new AppPropertiesDetails();
+        appProperties.setOrgId(ORG_ID);
+        appProperties.setAppId(appId);
+        appProperties.setForgotPassEmailSubject("Custom Forgot Password Subject <<< TOKEN HERE >>>");
+        appProperties.setForgotPassEmailBody("Custom Forgot Password Body <<< TOKEN HERE >>>");
+        updateAppProperties(appProperties);
+
+        executeRegistrationCommand(new ForgotPasswordCommand(ORG_ID, appId, emailPassword.getKey()));
+
+        var verificationEmail = getNotificationEmail();
+        checker().verifyEquals("Forgot password email to.", Arrays.asList(emailPassword.getKey()), Arrays.asList(verificationEmail.getTo()));
+        checker().verifyThat("Forgot password email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
+        checker().verifyThat("Forgot password email body.", verificationEmail.getBody(), not(containsString("<<<")));
+        checker().verifyThat("Forgot password email subject.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
+        checker().verifyThat("Forgot password email subject.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().screenShotIfNewError("forgotPasswordEmail");
+    }
+
+    @Test
+    public void testForgotPasswordAndReset() throws Exception
+    {
+        String baseEmail = "forgotpassword@mystudies.registration.test";
+        String appId = "testForgotPasswordAndReset";
+
         Map.Entry<String, String> emailPassword = createAppAndUser(baseEmail, appId);
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
+
+        CommandResponse commandResponse;
+        Map<String, Object> parsedData;
+
+        commandResponse = executeRegistrationCommand(new ForgotPasswordCommand(ORG_ID, appId, email));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Forgot password", Map.of("message", "success"), parsedData);
+        var temporaryPassword = getTemporaryPassword();
+
+        commandResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Login with temporary password", "success", parsedData.get("message"));
+        String auth = (String) parsedData.get("auth");
+
     }
 
     @Test
-    public void testFeedback()
+    public void testLoginInvalidatesTemporaryPassword() throws Exception
+    {
+        String baseEmail = "forgotpassword2@mystudies.registration.test";
+        String appId = "testLoginInvalidatesTemporaryPassword";
+
+        Map.Entry<String, String> emailPassword = createAppAndUser(baseEmail, appId);
+        String email = emailPassword.getKey();
+        String password = emailPassword.getValue();
+
+        CommandResponse commandResponse;
+        Map<String, Object> parsedData;
+
+        commandResponse = executeRegistrationCommand(new ForgotPasswordCommand(ORG_ID, appId, email));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Forgot password", Map.of("message", "success"), parsedData);
+        var temporaryPassword = getTemporaryPassword();
+
+        commandResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, password));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Login with initial password after forgot password", "success", parsedData.get("message"));
+        String auth = (String) parsedData.get("auth");
+
+        commandResponse = executeRegistrationCommand(new LogoutCommand(ORG_ID, appId, email, auth));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Logout initial password session", "success", parsedData.get("message"));
+
+        try
+        {
+            executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
+            Assert.fail("Temporary password did not expire after logging in with existing password");
+        }
+        catch (CommandException e)
+        {
+            checker().verifyEquals("Wrong response using invalid temporary password", SC_UNAUTHORIZED, e.getStatusCode());
+            checker().verifyThat("Wrong response using invalid temporary password", e.getResponseText(), containsString("asdf"));
+        }
+    }
+
+    @Test
+    public void testSingleUseTemporaryPassword() throws Exception
+    {
+        String baseEmail = "forgotpassword3@mystudies.registration.test";
+        String appId = "testSingleUseTemporaryPassword";
+
+        Map.Entry<String, String> emailPassword = createAppAndUser(baseEmail, appId);
+        String email = emailPassword.getKey();
+        String password = emailPassword.getValue();
+
+        CommandResponse commandResponse;
+        Map<String, Object> parsedData;
+
+        commandResponse = executeRegistrationCommand(new ForgotPasswordCommand(ORG_ID, appId, email));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Forgot password", Map.of("message", "success"), parsedData);
+        var temporaryPassword = getTemporaryPassword();
+
+        commandResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Login with temporary password", "success", parsedData.get("message"));
+        String auth = (String) parsedData.get("auth");
+
+        commandResponse = executeRegistrationCommand(new LogoutCommand(ORG_ID, appId, email, auth));
+        parsedData = commandResponse.getParsedData();
+        checker().verifyEquals("Logout temporary password session", "success", parsedData.get("message"));
+
+        try
+        {
+            executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
+            Assert.fail("Temporary password did not expire after a single use");
+        }
+        catch (CommandException e)
+        {
+            checker().verifyEquals("Wrong response after reusing temporary password", SC_UNAUTHORIZED, e.getStatusCode());
+            checker().verifyThat("Wrong response after reusing temporary password", e.getResponseText(), containsString("asdf"));
+        }
+    }
+
+    @Test
+    public void testPasswordReset() throws Exception
     {
 
     }
 
     @Test
-    public void testPasswordReset()
+    public void testChangePassword() throws Exception
     {
 
+    }
+
+    @Test
+    public void testFeedback() throws Exception
+    {
+        String baseEmail = "feedback@mystudies.registration.test";
+        String appId = "FeedbackTestApplication";
+
+        Map.Entry<String, String> emailPassword = createAppAndUser(baseEmail, appId);
+        String email = emailPassword.getKey();
+        String password = emailPassword.getValue();
     }
 
     @LogMethod
@@ -321,8 +431,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         assertEquals("success", parsedData.get("message"));
         var code = getVerificationCode();
 
-        var verifyCommand = new VerifyCommand(ORG_ID, appId);
-        verifyCommand.setParameters(Map.of("emailId", email, "code", code));
+        var verifyCommand = new VerifyCommand(ORG_ID, appId, email, code);
 
         var verifyResponse = executeRegistrationCommand(verifyCommand);
         assertEquals("success", verifyResponse.getParsedData().get("message"));
@@ -330,7 +439,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         return emailPassword;
     }
 
-    private CommandResponse executeRegistrationCommand(FdahpUserRegWSCommand command) throws IOException, CommandException
+    private <T extends CommandResponse> T executeRegistrationCommand(FdahpUserRegWSCommand<T> command) throws IOException, CommandException
     {
         try
         {
@@ -343,6 +452,22 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         }
     }
 
+    private CommandException executeBadRequest(FdahpUserRegWSCommand<?> command) throws IOException
+    {
+        try
+        {
+            CommandResponse response = executeRegistrationCommand(command);
+            throw new AssertionError(String.format("%s should have returned an error. Received: \"%s\"",
+                    command.getClass().getSimpleName(), response.getText()));
+        }
+        catch (CommandException e)
+        {
+            Assert.assertEquals(String.format("%s should have returned an error. Received: \"%s\"", command.getClass().getSimpleName(), e.getResponseText()),
+                    SC_BAD_REQUEST, e.getStatusCode());
+            return e;
+        }
+    }
+
     protected Connection getRegistrationConnection()
     {
         return new NoCsrfConnection(WebTestHelper.getBaseURL());
@@ -350,14 +475,22 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
     protected String getVerificationCode()
     {
-        EmailRecordTable.EmailMessage message = getVerificationEmail();
+        EmailRecordTable.EmailMessage message = getNotificationEmail();
         Matcher matcher = verificationCodePattern.matcher(message.getBody());
         matcher.find();
         return matcher.group(1);
     }
 
+    protected String getTemporaryPassword()
+    {
+        EmailRecordTable.EmailMessage message = getNotificationEmail();
+        Matcher matcher = forgotPasswordPattern.matcher(message.getBody());
+        matcher.find();
+        return matcher.group(1);
+    }
+
     @NotNull
-    private EmailRecordTable.EmailMessage getVerificationEmail()
+    private EmailRecordTable.EmailMessage getNotificationEmail()
     {
         EmailRecordTable emailRecordTable = goToEmailRecord();
         EmailRecordTable.EmailMessage message = emailRecordTable.getEmailAtTableIndex(3);
