@@ -1,14 +1,26 @@
 package com.hphc.remoteapi.registration;
 
-import org.labkey.remoteapi.CommandResponse;
+import org.json.simple.JSONObject;
 
 import java.util.Map;
 
-public class LoginCommand extends FdahpUserRegWSPostCommand<CommandResponse>
+public class LoginCommand extends RegistrationCommand<LoginResponse>
 {
     public LoginCommand(String orgId, String appId, String email, String password)
     {
         super("login", orgId, appId);
         setParameters(Map.of("emailId", email, "password", password));
+    }
+
+    @Override
+    protected LoginResponse createResponse(String text, int status, String contentType, JSONObject json)
+    {
+        return new LoginResponse(text, status, contentType, json, this.copy());
+    }
+
+    @Override
+    protected String getRequestType()
+    {
+        return "POST";
     }
 }

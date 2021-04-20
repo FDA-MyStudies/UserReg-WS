@@ -1,24 +1,18 @@
 package com.hphc.remoteapi.registration;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpUriRequest;
+import com.hphc.remoteapi.registration.params.RegistrationSession;
 import org.labkey.remoteapi.CommandResponse;
 
-import java.net.URI;
-import java.util.Map;
-
-public class LogoutCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class LogoutCommand extends RegistrationCommand<CommandResponse>
 {
-    public LogoutCommand(String orgId, String appId, String email, String auth)
+    public LogoutCommand(RegistrationSession auth)
     {
-        super("logout", orgId, appId);
-        setParameters(Map.of("emailId", email));
-        setAuthKey(auth);
+        super("logout", auth);
     }
 
     @Override
-    protected HttpUriRequest _createRequest(URI uri)
+    protected String getRequestType()
     {
-        return new HttpDelete(uri);
+        return "DELETE";
     }
 }

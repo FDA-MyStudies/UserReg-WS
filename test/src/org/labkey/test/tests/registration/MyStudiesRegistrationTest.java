@@ -1,13 +1,14 @@
 package org.labkey.test.tests.registration;
 
 import com.hphc.remoteapi.registration.AppPropertiesUpdateCommand;
-import com.hphc.remoteapi.registration.FdahpUserRegWSCommand;
 import com.hphc.remoteapi.registration.ForgotPasswordCommand;
 import com.hphc.remoteapi.registration.LoginCommand;
+import com.hphc.remoteapi.registration.LoginResponse;
 import com.hphc.remoteapi.registration.LogoutCommand;
 import com.hphc.remoteapi.registration.NoCsrfConnection;
 import com.hphc.remoteapi.registration.PingCommand;
 import com.hphc.remoteapi.registration.RegisterCommand;
+import com.hphc.remoteapi.registration.RegistrationCommand;
 import com.hphc.remoteapi.registration.ResendConfirmationCommand;
 import com.hphc.remoteapi.registration.VerifyCommand;
 import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
@@ -243,10 +244,9 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         var verificationEmail = getNotificationEmail();
         checker().verifyEquals("Forgot password email to.", Arrays.asList(emailPassword.getKey()), Arrays.asList(verificationEmail.getTo()));
-        checker().verifyThat("Forgot password email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
+        checker().verifyThat("Forgot password email body.", verificationEmail.getBody(), containsString("Custom Forgot Password Body"));
         checker().verifyThat("Forgot password email body.", verificationEmail.getBody(), not(containsString("<<<")));
-        checker().verifyThat("Forgot password email subject.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
-        checker().verifyThat("Forgot password email subject.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().verifyEquals("Forgot password email subject.", "Custom Forgot Password Subject <<< TOKEN HERE >>>", verificationEmail.getSubject());
         checker().screenShotIfNewError("forgotPasswordEmail");
     }
 
@@ -293,12 +293,13 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         checker().verifyEquals("Forgot password", Map.of("message", "success"), parsedData);
         var temporaryPassword = getTemporaryPassword();
 
-        commandResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, password));
-        parsedData = commandResponse.getParsedData();
+        LoginResponse loginResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, password));
+        parsedData = loginResponse.getParsedData();
         checker().verifyEquals("Login with initial password after forgot password", "success", parsedData.get("message"));
-        String auth = (String) parsedData.get("auth");
+        checker().verifyEquals("Login with initial password after forgot password", true, parsedData.get("verified"));
+        var auth = loginResponse.getAuth();
 
-        commandResponse = executeRegistrationCommand(new LogoutCommand(ORG_ID, appId, email, auth));
+        commandResponse = executeRegistrationCommand(new LogoutCommand(auth));
         parsedData = commandResponse.getParsedData();
         checker().verifyEquals("Logout initial password session", "success", parsedData.get("message"));
 
@@ -310,7 +311,6 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         catch (CommandException e)
         {
             checker().verifyEquals("Wrong response using invalid temporary password", SC_UNAUTHORIZED, e.getStatusCode());
-            checker().verifyThat("Wrong response using invalid temporary password", e.getResponseText(), containsString("asdf"));
         }
     }
 
@@ -332,12 +332,12 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         checker().verifyEquals("Forgot password", Map.of("message", "success"), parsedData);
         var temporaryPassword = getTemporaryPassword();
 
-        commandResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
-        parsedData = commandResponse.getParsedData();
+        LoginResponse loginResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
+        parsedData = loginResponse.getParsedData();
         checker().verifyEquals("Login with temporary password", "success", parsedData.get("message"));
-        String auth = (String) parsedData.get("auth");
+        var auth = loginResponse.getAuth();
 
-        commandResponse = executeRegistrationCommand(new LogoutCommand(ORG_ID, appId, email, auth));
+        commandResponse = executeRegistrationCommand(new LogoutCommand(auth));
         parsedData = commandResponse.getParsedData();
         checker().verifyEquals("Logout temporary password session", "success", parsedData.get("message"));
 
@@ -439,7 +439,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         return emailPassword;
     }
 
-    private <T extends CommandResponse> T executeRegistrationCommand(FdahpUserRegWSCommand<T> command) throws IOException, CommandException
+    private <T extends CommandResponse> T executeRegistrationCommand(RegistrationCommand<T> command) throws IOException, CommandException
     {
         try
         {
@@ -452,7 +452,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         }
     }
 
-    private CommandException executeBadRequest(FdahpUserRegWSCommand<?> command) throws IOException
+    private CommandException executeBadRequest(RegistrationCommand<?> command) throws IOException
     {
         try
         {

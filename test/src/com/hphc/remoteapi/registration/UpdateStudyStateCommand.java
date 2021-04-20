@@ -1,11 +1,18 @@
 package com.hphc.remoteapi.registration;
 
+import com.hphc.remoteapi.registration.params.RegistrationSession;
 import org.labkey.remoteapi.CommandResponse;
 
-public class UpdateStudyStateCommand extends FdahpUserRegWSPostCommand<CommandResponse>
+public class UpdateStudyStateCommand extends RegistrationCommand<CommandResponse>
 {
-    public UpdateStudyStateCommand(String orgId, String appId)
+    public UpdateStudyStateCommand(RegistrationSession session)
     {
-        super("updateStudyState", orgId, appId);
+        super("updateStudyState", session);
+    }
+
+    @Override
+    protected String getRequestType()
+    {
+        return "POST";
     }
 }
