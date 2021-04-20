@@ -349,7 +349,6 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         catch (CommandException e)
         {
             checker().verifyEquals("Wrong response after reusing temporary password", SC_UNAUTHORIZED, e.getStatusCode());
-            checker().verifyThat("Wrong response after reusing temporary password", e.getResponseText(), containsString("asdf"));
         }
     }
 
