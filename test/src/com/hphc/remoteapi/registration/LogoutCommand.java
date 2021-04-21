@@ -5,9 +5,9 @@ import org.labkey.remoteapi.CommandResponse;
 
 public class LogoutCommand extends RegistrationCommand<CommandResponse>
 {
-    public LogoutCommand(RegistrationSession auth)
+    public LogoutCommand(RegistrationSession session)
     {
-        super("logout", auth);
+        super("logout", session);
     }
 
     @Override

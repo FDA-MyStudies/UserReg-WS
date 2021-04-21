@@ -21,12 +21,12 @@ public class RegistrationCommand<ResponseType extends CommandResponse> extends C
 {
     private static final String CONTROLLER = "fdahpuserregws";
 
-    private final RegistrationSession _auth;
+    private final RegistrationSession _session;
 
-    protected RegistrationCommand(String actionName, RegistrationSession auth)
+    protected RegistrationCommand(String actionName, RegistrationSession session)
     {
         super(CONTROLLER, actionName);
-        _auth = auth;
+        _session = session;
     }
 
     public RegistrationCommand(String actionName, String orgId, String appId)
@@ -37,7 +37,7 @@ public class RegistrationCommand<ResponseType extends CommandResponse> extends C
     @Override
     public RegistrationCommand<?> copy()
     {
-        return new RegistrationCommand<>(getActionName(), _auth);
+        return new RegistrationCommand<>(getActionName(), _session);
     }
 
     @Override
@@ -66,13 +66,13 @@ public class RegistrationCommand<ResponseType extends CommandResponse> extends C
         Map<String, String> headers = new HashMap<>();
         headers.put("orgId", getOrgId());
         headers.put("applicationId", getApplicationId());
-        if (_auth.getUserId() != null)
+        if (_session.getUserId() != null)
         {
-            headers.put("userId", _auth.getUserId());
+            headers.put("userId", _session.getUserId());
         }
-        if (_auth.getAuth() != null)
+        if (_session.getAuth() != null)
         {
-            headers.put("auth", _auth.getAuth());
+            headers.put("auth", _session.getAuth());
         }
         return headers;
     }
@@ -99,12 +99,12 @@ public class RegistrationCommand<ResponseType extends CommandResponse> extends C
 
     protected final String getOrgId()
     {
-        return _auth.getOrgId();
+        return _session.getOrgId();
     }
 
     protected final String getApplicationId()
     {
-        return _auth.getApplicationId();
+        return _session.getApplicationId();
     }
 
     private HttpUriRequest createPost(URI uri)

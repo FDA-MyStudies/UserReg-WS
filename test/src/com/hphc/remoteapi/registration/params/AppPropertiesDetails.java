@@ -7,9 +7,10 @@ import org.json.simple.JSONObject;
  */
 public class AppPropertiesDetails
 {
-    private String _AppId;
+    private final String _OrgId;
+    private final String _AppId;
+
 //    private String _AppType;
-    private String _OrgId;
 //    private String _IosBundleId;
 //    private String _AndroidBundleId;
 //    private String _IosCertificate;
@@ -25,6 +26,12 @@ public class AppPropertiesDetails
     private String _ContactUsEmail;
     private String _AppName;
     private boolean _MethodHandler = false;
+
+    public AppPropertiesDetails(String orgId, String appId)
+    {
+        _OrgId = orgId;
+        _AppId = appId;
+    }
 
     public JSONObject toJSONObject()
     {
@@ -117,19 +124,9 @@ public class AppPropertiesDetails
         return _AppId;
     }
 
-    public void setAppId(String appId)
-    {
-        _AppId = appId;
-    }
-
     public String getOrgId()
     {
         return _OrgId;
-    }
-
-    public void setOrgId(String orgId)
-    {
-        _OrgId = orgId;
     }
 
 //    public String getIosBundleId()
