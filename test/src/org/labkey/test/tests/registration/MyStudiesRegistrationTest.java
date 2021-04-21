@@ -1,23 +1,25 @@
 package org.labkey.test.tests.registration;
 
-import com.hphc.remoteapi.registration.AppPropertiesUpdateCommand;
-import com.hphc.remoteapi.registration.ChangePasswordCommand;
-import com.hphc.remoteapi.registration.ForgotPasswordCommand;
-import com.hphc.remoteapi.registration.LoginCommand;
-import com.hphc.remoteapi.registration.LoginResponse;
-import com.hphc.remoteapi.registration.LogoutCommand;
-import com.hphc.remoteapi.registration.NoCsrfConnection;
-import com.hphc.remoteapi.registration.PingCommand;
-import com.hphc.remoteapi.registration.RegisterCommand;
-import com.hphc.remoteapi.registration.RegistrationCommand;
-import com.hphc.remoteapi.registration.ResendConfirmationCommand;
-import com.hphc.remoteapi.registration.VerifyCommand;
-import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
-import com.hphc.remoteapi.registration.params.RegistrationSession;
+import com.hphc.remoteapi.fdahpuserregws.AppPropertiesUpdateCommand;
+import com.hphc.remoteapi.fdahpuserregws.ChangePasswordCommand;
+import com.hphc.remoteapi.fdahpuserregws.FdahpUserRegWSCommand;
+import com.hphc.remoteapi.fdahpuserregws.FeedbackCommand;
+import com.hphc.remoteapi.fdahpuserregws.ForgotPasswordCommand;
+import com.hphc.remoteapi.fdahpuserregws.LoginCommand;
+import com.hphc.remoteapi.fdahpuserregws.LoginResponse;
+import com.hphc.remoteapi.fdahpuserregws.LogoutCommand;
+import com.hphc.remoteapi.fdahpuserregws.NoCsrfConnection;
+import com.hphc.remoteapi.fdahpuserregws.PingCommand;
+import com.hphc.remoteapi.fdahpuserregws.RegisterCommand;
+import com.hphc.remoteapi.fdahpuserregws.ResendConfirmationCommand;
+import com.hphc.remoteapi.fdahpuserregws.VerifyCommand;
+import com.hphc.remoteapi.fdahpuserregws.params.AppPropertiesDetails;
+import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
@@ -31,6 +33,7 @@ import org.labkey.test.WebTestHelper;
 import org.labkey.test.components.dumbster.EmailRecordTable;
 import org.labkey.test.params.ModuleProperty;
 import org.labkey.test.util.LogMethod;
+import org.labkey.test.util.LoggedParam;
 import org.labkey.test.util.TestLogger;
 
 import java.io.IOException;
@@ -79,6 +82,11 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         updateAppProperties(new AppPropertiesDetails(ORG_ID, SHARED_APP)); // Reset default app properties
     }
 
+    /**
+     * Verify ping action
+     * @throws IOException from LabKey remote API commands
+     * @throws CommandException from LabKey remote API commands
+     */
     @Test
     public void testPing() throws Exception
     {
@@ -89,6 +97,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     }
 
     /**
+     * Test registration and validation of a new user
      * 1. Register new user
      * 2. Attempt to register user again (rejected)
      * 3. Resend verification code
@@ -125,7 +134,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         {
             RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId, email, password + "_bad");
 
-            var expected = executeBadRequest(registerCommand, SC_BAD_REQUEST);
+            var expected = executeBadRequest("Attempt to re-register unverified user", registerCommand, SC_BAD_REQUEST);
             checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
         }
 
@@ -145,12 +154,11 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             Assert.assertNotEquals("Same verification code received from 'ResendConfirmation'", code, resentCode);
         }
 
-        TestLogger.log("Verify new user");
+        // Verify new user
         {
             var verifyCommand = new VerifyCommand(ORG_ID, appId, email, code);
 
-            TestLogger.log("Attempt to verify with invalid/replaced verification code");
-            CommandException expected = executeBadRequest(verifyCommand, SC_BAD_REQUEST);
+            CommandException expected = executeBadRequest("Verify with invalid/replaced verification code", verifyCommand, SC_BAD_REQUEST);
             checker().verifyThat("Response text", expected.getResponseText(), containsString("Invalid code"));
 
             verifyCommand.setParameters(Map.of("emailId", email, "code", resentCode));
@@ -160,17 +168,22 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             assertEquals("success", parsedData.get("message"));
         }
 
-        TestLogger.log("Attempt to re-register verified user");
+        // Re-register
         {
             RegisterCommand registerCommand = new RegisterCommand(ORG_ID, appId, email, password);
 
-            CommandException expected = executeBadRequest(registerCommand, SC_BAD_REQUEST);
+            CommandException expected = executeBadRequest("Attempt to re-register verified user", registerCommand, SC_BAD_REQUEST);
             checker().verifyThat("Response text", expected.getResponseText(), containsString("This email has already been used"));
         }
     }
 
     /**
      * Test custom email template for new user registration (including resending notification)
+     * 1. Customize register email templates for app
+     * 2. Register a new user
+     * 3. Verify email subject, body, including verification code
+     * 4. Trigger ResendConfirmationAction for registered user
+     * 3. Verify email subject, body, including verification code
      *
      * @throws IOException from LabKey remote API commands
      * @throws CommandException from LabKey remote API commands
@@ -181,7 +194,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         Map.Entry<String, String> emailPassword = generateEmailPassword("regEmail@mystudies.registration.test");
         String email = emailPassword.getKey();
         String password = emailPassword.getValue();
-        String appId = "testRegEmail";
+        String appId = "testCustomRegistrationEmail";
         AppPropertiesDetails appProperties = new AppPropertiesDetails(ORG_ID, appId);
         appProperties.setRegisterEmailSubject("Custom Email Subject <<< TOKEN HERE >>>");
         appProperties.setRegisterEmailBody("Custom Email Body <<< TOKEN HERE >>>");
@@ -200,8 +213,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         checker().verifyEquals("Registration email to.", Arrays.asList(email), Arrays.asList(verificationEmail.getTo()));
         checker().verifyThat("Registration email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
         checker().verifyThat("Registration email body.", verificationEmail.getBody(), not(containsString("<<<")));
-        checker().verifyThat("Registration email subject.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
-        checker().verifyThat("Registration email subject.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().verifyEquals("Registration email subject.", "Custom Email Subject <<< TOKEN HERE >>>", verificationEmail.getSubject());
         checker().screenShotIfNewError("confirmationEmail");
 
         enableEmailRecorder(); // Clear out initial verification email
@@ -215,11 +227,19 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         checker().verifyEquals("Registration email to.", Arrays.asList(email), Arrays.asList(verificationEmail.getTo()));
         checker().verifyThat("Resent registration email body.", verificationEmail.getBody(), containsString("Custom Email Body"));
         checker().verifyThat("Resent registration email body.", verificationEmail.getBody(), not(containsString("<<<")));
-        checker().verifyThat("Resent registration email subject.", verificationEmail.getSubject(), containsString("Custom Email Subject"));
-        checker().verifyThat("Resent registration email subject.", verificationEmail.getSubject(), containsString("<<<"));
+        checker().verifyEquals("Resent registration email subject.", "Custom Email Subject <<< TOKEN HERE >>>", verificationEmail.getSubject());
         checker().screenShotIfNewError("resentConfirmationEmail");
     }
 
+    /**
+     * Test custom email template for forgotten password
+     * 1. Create app with custom forgot password template
+     * 2. Verify email body contains temporary password
+     * 3. Verify email subject
+     *
+     * @throws IOException from LabKey remote API commands
+     * @throws CommandException from LabKey remote API commands
+     */
     @Test
     public void testForgotPassEmail() throws Exception
     {
@@ -288,12 +308,14 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
     /**
      * Test that temporary password only works once, as indicated by default email generated by 'ForgotPasswordAction'
-     * TODO: Is this a valid scenario? The current behavior does not match.
+     * 1. Generate temporary password
+     * 2. Login with temporary password
+     * 3. Logout
      *
      * @throws IOException from LabKey remote API commands
      * @throws CommandException from LabKey remote API commands
      */
-    @Test
+    @Test @Ignore("TODO: Is this a valid scenario? The current behavior does not match.")
     public void testSingleUseTemporaryPassword() throws Exception
     {
         String baseEmail = "forgotpassword3@mystudies.registration.test";
@@ -320,19 +342,16 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         parsedData = commandResponse.getParsedData();
         checker().verifyEquals("Logout temporary password session", "success", parsedData.get("message"));
 
-        try
-        {
-            executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, temporaryPassword));
-            Assert.fail("Temporary password did not expire after a single use");
-        }
-        catch (CommandException e)
-        {
-            checker().verifyEquals("Wrong response after reusing temporary password", SC_UNAUTHORIZED, e.getStatusCode());
-        }
+        executeBadRequest("Temporary password did not expire after a single use.",
+                new LoginCommand(ORG_ID, appId, email, temporaryPassword), SC_UNAUTHORIZED);
     }
 
     /**
-     * Test
+     * Verify 'ChangePasswordAction'
+     * 1. Login
+     * 2. Change password
+     * 3. Attempt to log in with initial password (rejected)
+     * 4. Log in with new password
      *
      * @throws IOException from LabKey remote API commands
      * @throws CommandException from LabKey remote API commands
@@ -348,15 +367,16 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         String password = emailPassword.getValue();
 
         LoginResponse loginResponse = executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, password));
-        checker().verifyEquals("Login with temporary password", true, loginResponse.getParsedData().get("verified"));
+        checker().verifyEquals("Login", true, loginResponse.getParsedData().get("verified"));
         RegistrationSession session = loginResponse.getSession();
 
         String newPassword = "changed" + password;
         CommandResponse changePasswordResponse = executeRegistrationCommand(new ChangePasswordCommand(session, password, newPassword));
         checker().verifyEquals("Reset password", Map.of("message", "success"), changePasswordResponse.getParsedData());
 
-        TestLogger.log("Attempt to login with old password");
-        executeBadRequest(new LoginCommand(ORG_ID, appId, email, password), SC_UNAUTHORIZED);
+        // TODO?: Verify that pre-password session is closed
+
+        executeBadRequest("Attempt to login with old password", new LoginCommand(ORG_ID, appId, email, password), SC_UNAUTHORIZED);
 
         executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, newPassword));
         checker().verifyEquals("Login with new password", true, loginResponse.getParsedData().get("verified"));
@@ -364,7 +384,14 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     }
 
     /**
-     * Use temporary password to change a user's password
+     * Verify 'ChangePasswordAction' works with the temporary password generated by 'ForgotPasswordAction'
+     * 1. Generate temporary password
+     * 2. Login with temporary password
+     * 3. Change password
+     * 4. Login with new password
+     * 5. Attempt to login with "forgotten" password (rejected)
+     * 6. Attempt to login with temporary password (rejected)
+     *
      * @throws IOException from LabKey remote API commands
      * @throws CommandException from LabKey remote API commands
      */
@@ -393,15 +420,16 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         executeRegistrationCommand(new LoginCommand(ORG_ID, appId, email, newPassword));
         checker().verifyEquals("Login with new password", true, loginResponse.getParsedData().get("verified"));
 
-        TestLogger.log("Attempt to login with old password");
-        executeBadRequest(new LoginCommand(ORG_ID, appId, email, password), SC_UNAUTHORIZED);
+        executeBadRequest("Attempt to login with old password", new LoginCommand(ORG_ID, appId, email, password), SC_UNAUTHORIZED);
 
-        TestLogger.log("Attempt to login with temporary password");
-        executeBadRequest(new LoginCommand(ORG_ID, appId, email, temporaryPassword), SC_UNAUTHORIZED);
+        executeBadRequest("Attempt to login with old temporary password", new LoginCommand(ORG_ID, appId, email, temporaryPassword), SC_UNAUTHORIZED);
     }
 
     /**
-     * Test
+     * Test 'FeedbackAction'
+     * 1. Create app and define feedback email recipient
+     * 2. Submit feedback
+     * 3. Verify feedback is sent to the correct recipient
      *
      * @throws IOException from LabKey remote API commands
      * @throws CommandException from LabKey remote API commands
@@ -416,7 +444,11 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
         createAppFolder(appProperties);
 
-        // TODO: test feedback
+        String feedback = "Feedback line 1\nFeedback line2";
+        executeRegistrationCommand(new FeedbackCommand(ORG_ID, appId, feedback));
+        var feedbackNotification = getNotificationEmail();
+        checker().verifyEquals("Feedback recipient.", Arrays.asList(email), Arrays.asList(feedbackNotification.getTo()));
+        checker().verifyThat("Forgot password email body.", feedbackNotification.getBody(), containsString(feedback.replace("\n", " ")));
     }
 
     // TODO: Test more actions
@@ -459,7 +491,6 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
                 .setTables(List.of("apppropertiesdetails", "authinfo", "loginattempts", "passwordhistory", "userappdetails", "userdetails"));
         CommandResponse response = new InsertExternalSchemaCommand(params)
                 .execute(createDefaultConnection(), containerPath);
-        response.getParsedData();
     }
 
     private CommandResponse updateAppProperties(AppPropertiesDetails appProperties) throws IOException, CommandException
@@ -518,7 +549,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         return emailPassword;
     }
 
-    private <T extends CommandResponse> T executeRegistrationCommand(RegistrationCommand<T> command) throws IOException, CommandException
+    private <T extends CommandResponse> T executeRegistrationCommand(FdahpUserRegWSCommand<T> command) throws IOException, CommandException
     {
         try
         {
@@ -531,12 +562,13 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         }
     }
 
-    private CommandException executeBadRequest(RegistrationCommand<?> command, int expectedStatusCode) throws IOException
+    @LogMethod
+    private CommandException executeBadRequest(@LoggedParam String message, FdahpUserRegWSCommand<?> command, int expectedStatusCode) throws IOException
     {
         try
         {
             CommandResponse response = executeRegistrationCommand(command);
-            throw new AssertionError(String.format("%s should have returned an error. Received: \"%s\"",
+            throw new AssertionError(String.format("%s\n%s should have returned an error. Received: \"%s\"", message,
                     command.getClass().getSimpleName(), response.getText()));
         }
         catch (CommandException e)

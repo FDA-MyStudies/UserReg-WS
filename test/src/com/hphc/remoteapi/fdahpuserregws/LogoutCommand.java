@@ -1,9 +1,9 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
-import com.hphc.remoteapi.registration.params.RegistrationSession;
+import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.labkey.remoteapi.CommandResponse;
 
-public class LogoutCommand extends RegistrationCommand<CommandResponse>
+public class LogoutCommand extends FdahpUserRegWSCommand<CommandResponse>
 {
     public LogoutCommand(RegistrationSession session)
     {

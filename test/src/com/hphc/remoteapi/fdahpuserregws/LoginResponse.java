@@ -1,6 +1,6 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
-import com.hphc.remoteapi.registration.params.RegistrationSession;
+import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.json.simple.JSONObject;
 import org.labkey.remoteapi.CommandResponse;
 
@@ -14,7 +14,7 @@ public class LoginResponse extends CommandResponse
     private final String _refreshToken;
     private final Boolean _verified;
 
-    public LoginResponse(String text, int statusCode, String contentType, JSONObject json, RegistrationCommand<?> sourceCommand)
+    public LoginResponse(String text, int statusCode, String contentType, JSONObject json, FdahpUserRegWSCommand<?> sourceCommand)
     {
         super(text, statusCode, contentType, json, sourceCommand);
         _orgId = sourceCommand.getOrgId();

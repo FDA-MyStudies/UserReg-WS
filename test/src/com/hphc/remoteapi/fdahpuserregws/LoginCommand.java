@@ -1,10 +1,10 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
 import org.json.simple.JSONObject;
 
 import java.util.Map;
 
-public class LoginCommand extends RegistrationCommand<LoginResponse>
+public class LoginCommand extends FdahpUserRegWSCommand<LoginResponse>
 {
     public LoginCommand(String orgId, String appId, String email, String password)
     {

@@ -1,6 +1,6 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
-import com.hphc.remoteapi.registration.params.RegistrationSession;
+import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -17,27 +17,27 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RegistrationCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
+public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
 {
     private static final String CONTROLLER = "fdahpuserregws";
 
     private final RegistrationSession _session;
 
-    protected RegistrationCommand(String actionName, RegistrationSession session)
+    protected FdahpUserRegWSCommand(String actionName, RegistrationSession session)
     {
         super(CONTROLLER, actionName);
         _session = session;
     }
 
-    public RegistrationCommand(String actionName, String orgId, String appId)
+    public FdahpUserRegWSCommand(String actionName, String orgId, String appId)
     {
         this(actionName, new RegistrationSession(orgId, appId, null, null));
     }
 
     @Override
-    public RegistrationCommand<?> copy()
+    public FdahpUserRegWSCommand<?> copy()
     {
-        return new RegistrationCommand<>(getActionName(), _session);
+        return new FdahpUserRegWSCommand<>(getActionName(), _session);
     }
 
     @Override

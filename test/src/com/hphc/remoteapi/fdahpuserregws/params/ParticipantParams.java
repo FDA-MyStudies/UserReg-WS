@@ -1,4 +1,4 @@
-package com.hphc.remoteapi.registration.params;
+package com.hphc.remoteapi.fdahpuserregws.params;
 
 import org.labkey.api.action.ReturnUrlForm;
 

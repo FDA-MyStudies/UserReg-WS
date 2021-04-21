@@ -1,11 +1,11 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
-import com.hphc.remoteapi.registration.params.RegistrationSession;
+import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class ChangePasswordCommand extends RegistrationCommand<CommandResponse>
+public class ChangePasswordCommand extends FdahpUserRegWSCommand<CommandResponse>
 {
     public ChangePasswordCommand(RegistrationSession auth, String currentPassword, String newPassword)
     {

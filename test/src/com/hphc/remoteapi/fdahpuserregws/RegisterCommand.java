@@ -1,10 +1,10 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
 import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class RegisterCommand extends RegistrationCommand<CommandResponse>
+public class RegisterCommand extends FdahpUserRegWSCommand<CommandResponse>
 {
     public RegisterCommand(String orgId, String appId, String email, String password)
     {

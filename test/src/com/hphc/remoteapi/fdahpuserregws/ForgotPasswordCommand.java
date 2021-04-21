@@ -1,10 +1,10 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
 import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class ForgotPasswordCommand extends RegistrationCommand<CommandResponse>
+public class ForgotPasswordCommand extends FdahpUserRegWSCommand<CommandResponse>
 {
     public ForgotPasswordCommand(String orgId, String appId, String email)
     {

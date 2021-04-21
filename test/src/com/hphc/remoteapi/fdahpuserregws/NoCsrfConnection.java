@@ -1,4 +1,4 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
 import org.apache.http.HttpRequest;
 import org.labkey.remoteapi.Connection;

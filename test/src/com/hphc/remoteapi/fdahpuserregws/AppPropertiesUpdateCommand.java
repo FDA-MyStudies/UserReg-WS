@@ -1,10 +1,10 @@
-package com.hphc.remoteapi.registration;
+package com.hphc.remoteapi.fdahpuserregws;
 
-import com.hphc.remoteapi.registration.params.AppPropertiesDetails;
+import com.hphc.remoteapi.fdahpuserregws.params.AppPropertiesDetails;
 import org.json.simple.JSONObject;
 import org.labkey.remoteapi.CommandResponse;
 
-public class AppPropertiesUpdateCommand extends RegistrationCommand<CommandResponse>
+public class AppPropertiesUpdateCommand extends FdahpUserRegWSCommand<CommandResponse>
 {
     private final AppPropertiesDetails _appProperties;
 
