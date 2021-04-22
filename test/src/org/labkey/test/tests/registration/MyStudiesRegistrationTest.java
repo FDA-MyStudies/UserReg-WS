@@ -311,6 +311,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
      * 1. Generate temporary password
      * 2. Login with temporary password
      * 3. Logout
+     * 4. Login a second time with temporary password (shoud fail?)
      *
      * @throws IOException from LabKey remote API commands
      * @throws CommandException from LabKey remote API commands
