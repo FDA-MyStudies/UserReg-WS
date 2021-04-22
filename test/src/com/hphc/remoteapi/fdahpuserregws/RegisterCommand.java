@@ -9,7 +9,7 @@ public class RegisterCommand extends FdahpUserRegWSCommand<CommandResponse>
     public RegisterCommand(String orgId, String appId, String email, String password)
     {
         super("register", orgId, appId);
-        setParameters(Map.of("emailId", email, "password", password));
+        setJsonObject(Map.of("emailId", email, "password", password));
     }
 
     @Override

@@ -161,8 +161,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
             CommandException expected = executeBadRequest("Verify with invalid/replaced verification code", verifyCommand, SC_BAD_REQUEST);
             checker().verifyThat("Response text", expected.getResponseText(), containsString("Invalid code"));
 
-            verifyCommand.setParameters(Map.of("emailId", email, "code", resentCode));
-
+            verifyCommand = new VerifyCommand(ORG_ID, appId, email, resentCode);
             var verifyResponse = executeRegistrationCommand(verifyCommand);
             var parsedData = verifyResponse.getParsedData();
             assertEquals("success", parsedData.get("message"));

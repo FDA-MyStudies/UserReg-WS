@@ -9,7 +9,7 @@ public class ForgotPasswordCommand extends FdahpUserRegWSCommand<CommandResponse
     public ForgotPasswordCommand(String orgId, String appId, String email)
     {
         super("forgotPassword", orgId, appId);
-        setParameters(Map.of("emailId", email));
+        setJsonObject(Map.of("emailId", email));
     }
 
     @Override

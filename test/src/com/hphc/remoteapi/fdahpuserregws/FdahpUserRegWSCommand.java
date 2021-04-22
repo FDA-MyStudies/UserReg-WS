@@ -23,13 +23,15 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
 
     private final RegistrationSession _session;
 
+    private JSONObject _json = new JSONObject();
+
     protected FdahpUserRegWSCommand(String actionName, RegistrationSession session)
     {
         super(CONTROLLER, actionName);
         _session = session;
     }
 
-    public FdahpUserRegWSCommand(String actionName, String orgId, String appId)
+    protected FdahpUserRegWSCommand(String actionName, String orgId, String appId)
     {
         this(actionName, new RegistrationSession(orgId, appId, null, null));
     }
@@ -111,20 +113,22 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
     {
         HttpPost request = new HttpPost(uri);
 
-        //set the post body based on the supplied JSON object
-        JSONObject json = getJsonObject();
-
-        if (null != json)
+        if (null != _json && !_json.isEmpty())
         {
-            request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
+            request.setEntity(new StringEntity(_json.toString(), ContentType.APPLICATION_JSON));
         }
 
         return request;
     }
 
-    protected JSONObject getJsonObject()
+    protected void setJsonObject(Map<String, Object> json)
     {
-        return null;
+        if (!"POST".equals(getRequestType()))
+        {
+            throw new IllegalArgumentException("JSON body will only be included in 'POST' requests");
+        }
+        _json.clear();
+        _json.putAll(json);
     }
 
     @Override

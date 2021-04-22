@@ -9,7 +9,7 @@ public class VerifyCommand extends FdahpUserRegWSCommand<CommandResponse>
     public VerifyCommand(String orgId, String appId, String email, String code)
     {
         super("verify", orgId, appId);
-        setParameters(Map.of("emailId", email, "code", code));
+        setJsonObject(Map.of("emailId", email, "code", code));
     }
 
     @Override

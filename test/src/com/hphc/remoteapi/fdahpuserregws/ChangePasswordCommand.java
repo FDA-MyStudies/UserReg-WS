@@ -10,7 +10,7 @@ public class ChangePasswordCommand extends FdahpUserRegWSCommand<CommandResponse
     public ChangePasswordCommand(RegistrationSession auth, String currentPassword, String newPassword)
     {
         super("changePassword", auth);
-        setParameters(Map.of("currentPassword", currentPassword, "newPassword", newPassword));
+        setJsonObject(Map.of("currentPassword", currentPassword, "newPassword", newPassword));
     }
 
     @Override

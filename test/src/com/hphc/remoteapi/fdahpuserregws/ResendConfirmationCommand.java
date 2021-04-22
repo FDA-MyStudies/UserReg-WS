@@ -9,7 +9,7 @@ public class ResendConfirmationCommand extends FdahpUserRegWSCommand<CommandResp
     public ResendConfirmationCommand(String orgId, String appId, String email)
     {
         super("resendConfirmation", orgId, appId);
-        setParameters(Map.of("emailId", email));
+        setJsonObject(Map.of("emailId", email));
     }
 
     @Override

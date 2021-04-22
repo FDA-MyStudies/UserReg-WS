@@ -9,7 +9,7 @@ public class LoginCommand extends FdahpUserRegWSCommand<LoginResponse>
     public LoginCommand(String orgId, String appId, String email, String password)
     {
         super("login", orgId, appId);
-        setParameters(Map.of("emailId", email, "password", password));
+        setJsonObject(Map.of("emailId", email, "password", password));
     }
 
     @Override
