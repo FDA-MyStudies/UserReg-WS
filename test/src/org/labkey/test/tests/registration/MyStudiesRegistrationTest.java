@@ -243,9 +243,9 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     @Test
     public void testForgotPassEmail() throws Exception
     {
-        String email = "forgotpassemail@mystudies.registration.test";
+        String baseEmail = "forgotpassemail@mystudies.registration.test";
         String appId = "testForgotPassEmail";
-        createAppAndUser(email, appId);
+        String email = createAppAndUser(baseEmail, appId).getKey();
 
         AppPropertiesDetails appProperties = new AppPropertiesDetails(ORG_ID, appId);
         appProperties.setForgotPassEmailSubject("Custom Forgot Password Subject <<< TOKEN HERE >>>");
