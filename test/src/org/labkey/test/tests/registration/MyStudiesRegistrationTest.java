@@ -15,6 +15,7 @@ import com.hphc.remoteapi.fdahpuserregws.ResendConfirmationCommand;
 import com.hphc.remoteapi.fdahpuserregws.VerifyCommand;
 import com.hphc.remoteapi.fdahpuserregws.params.AppPropertiesDetails;
 import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
@@ -609,31 +610,6 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         return message;
     }
 
-    private static String randString()
-    {
-        StringBuilder s = new StringBuilder();
-        while (s.length() < 6)
-        {
-            int r = WebTestHelper.RANDOM.nextInt(54);
-            int ch;
-            if (r < 10)
-                ch = 48 + r;
-            else
-            {
-                r -= 10;
-                if (r < 26)
-                    ch = 65 + r;
-                else
-                {
-                    r -= 26;
-                    ch = 97 + r;
-                }
-            }
-            s.append((char)ch);
-        }
-        return s.toString();
-    }
-
     private static Map.Entry<String,String> generateEmailPassword(String baseEmail)
     {
         int at = baseEmail.indexOf('@');
@@ -641,9 +617,10 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         String domain = baseEmail.substring(at);
         if (-1 != name.indexOf('+'))
             name = name.substring(0,name.indexOf('+'));
+        String password = RandomStringUtils.randomAlphanumeric(6);
         return new AbstractMap.SimpleEntry<>(
-                name + "+" + randString().toLowerCase() + domain,
-                randString()
+                name + "+" + password + domain,
+                password
         );
     }
 
