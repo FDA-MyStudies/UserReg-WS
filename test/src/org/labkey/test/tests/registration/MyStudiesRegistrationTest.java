@@ -1,8 +1,8 @@
 package org.labkey.test.tests.registration;
 
 import com.hphc.remoteapi.fdahpuserregws.AppPropertiesUpdateCommand;
+import com.hphc.remoteapi.fdahpuserregws.BaseRegistrationCommand;
 import com.hphc.remoteapi.fdahpuserregws.ChangePasswordCommand;
-import com.hphc.remoteapi.fdahpuserregws.FdahpUserRegWSCommand;
 import com.hphc.remoteapi.fdahpuserregws.FeedbackCommand;
 import com.hphc.remoteapi.fdahpuserregws.ForgotPasswordCommand;
 import com.hphc.remoteapi.fdahpuserregws.LoginCommand;
@@ -550,7 +550,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
         return emailPassword;
     }
 
-    private <T extends CommandResponse> T executeRegistrationCommand(FdahpUserRegWSCommand<T> command) throws IOException, CommandException
+    private <T extends CommandResponse> T executeRegistrationCommand(BaseRegistrationCommand<T> command) throws IOException, CommandException
     {
         try
         {
@@ -564,7 +564,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    private CommandException executeBadRequest(@LoggedParam String message, FdahpUserRegWSCommand<?> command, int expectedStatusCode) throws IOException
+    private CommandException executeBadRequest(@LoggedParam String message, BaseRegistrationCommand<?> command, int expectedStatusCode) throws IOException
     {
         try
         {

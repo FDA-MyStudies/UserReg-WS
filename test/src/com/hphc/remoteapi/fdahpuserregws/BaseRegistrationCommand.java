@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
+public class BaseRegistrationCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
 {
     private static final String CONTROLLER = "fdahpuserregws";
 
@@ -25,21 +25,21 @@ public class FdahpUserRegWSCommand<ResponseType extends CommandResponse> extends
 
     private JSONObject _json = new JSONObject();
 
-    protected FdahpUserRegWSCommand(String actionName, RegistrationSession session)
+    protected BaseRegistrationCommand(String actionName, RegistrationSession session)
     {
         super(CONTROLLER, actionName);
         _session = session;
     }
 
-    protected FdahpUserRegWSCommand(String actionName, String orgId, String appId)
+    protected BaseRegistrationCommand(String actionName, String orgId, String appId)
     {
         this(actionName, new RegistrationSession(orgId, appId, null, null));
     }
 
     @Override
-    public FdahpUserRegWSCommand<?> copy()
+    public BaseRegistrationCommand<?> copy()
     {
-        return new FdahpUserRegWSCommand<>(getActionName(), _session);
+        return new BaseRegistrationCommand<>(getActionName(), _session);
     }
 
     @Override

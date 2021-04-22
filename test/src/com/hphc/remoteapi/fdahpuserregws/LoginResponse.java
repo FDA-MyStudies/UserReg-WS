@@ -14,7 +14,7 @@ public class LoginResponse extends CommandResponse
     private final String _refreshToken;
     private final Boolean _verified;
 
-    public LoginResponse(String text, int statusCode, String contentType, JSONObject json, FdahpUserRegWSCommand<?> sourceCommand)
+    public LoginResponse(String text, int statusCode, String contentType, JSONObject json, BaseRegistrationCommand<?> sourceCommand)
     {
         super(text, statusCode, contentType, json, sourceCommand);
         _orgId = sourceCommand.getOrgId();

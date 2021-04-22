@@ -3,7 +3,7 @@ package com.hphc.remoteapi.fdahpuserregws;
 import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.labkey.remoteapi.CommandResponse;
 
-public class LogoutCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class LogoutCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public LogoutCommand(RegistrationSession session)
     {

@@ -4,7 +4,7 @@ import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class ForgotPasswordCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class ForgotPasswordCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public ForgotPasswordCommand(String orgId, String appId, String email)
     {

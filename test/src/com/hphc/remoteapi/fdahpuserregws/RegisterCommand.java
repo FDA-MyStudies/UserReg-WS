@@ -4,7 +4,7 @@ import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class RegisterCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class RegisterCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public RegisterCommand(String orgId, String appId, String email, String password)
     {

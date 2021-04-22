@@ -1,10 +1,9 @@
 package com.hphc.remoteapi.fdahpuserregws;
 
 import com.hphc.remoteapi.fdahpuserregws.params.AppPropertiesDetails;
-import org.json.simple.JSONObject;
 import org.labkey.remoteapi.CommandResponse;
 
-public class AppPropertiesUpdateCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class AppPropertiesUpdateCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public AppPropertiesUpdateCommand(AppPropertiesDetails appProperties)
     {

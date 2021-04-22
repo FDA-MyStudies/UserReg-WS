@@ -4,7 +4,7 @@ import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class VerifyCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class VerifyCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public VerifyCommand(String orgId, String appId, String email, String code)
     {

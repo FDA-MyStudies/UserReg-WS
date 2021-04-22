@@ -1,10 +1,8 @@
 package com.hphc.remoteapi.fdahpuserregws;
 
-import org.json.simple.JSONObject;
-
 import java.util.Map;
 
-public class FeedbackCommand extends FdahpUserRegWSCommand<LoginResponse>
+public class FeedbackCommand extends BaseRegistrationCommand<LoginResponse>
 {
     public FeedbackCommand(String orgId, String appId, String feedback)
     {

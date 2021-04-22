@@ -5,7 +5,7 @@ import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class ChangePasswordCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class ChangePasswordCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public ChangePasswordCommand(RegistrationSession auth, String currentPassword, String newPassword)
     {

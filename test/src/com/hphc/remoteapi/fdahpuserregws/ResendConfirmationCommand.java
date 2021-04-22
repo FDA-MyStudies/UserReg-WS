@@ -4,7 +4,7 @@ import org.labkey.remoteapi.CommandResponse;
 
 import java.util.Map;
 
-public class ResendConfirmationCommand extends FdahpUserRegWSCommand<CommandResponse>
+public class ResendConfirmationCommand extends BaseRegistrationCommand<CommandResponse>
 {
     public ResendConfirmationCommand(String orgId, String appId, String email)
     {
