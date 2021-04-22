@@ -22,11 +22,19 @@ import org.labkey.api.files.FileContentService;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.ModuleProperty;
+import org.labkey.api.resource.FileResource;
 import org.labkey.api.resource.Resource;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.MailHelper;
 
 import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -374,7 +382,7 @@ public class FdahpUserRegUtil
         {
             MailHelper.MultipartMessage msg = MailHelper.createMultipartMessage();
 
-            if (appPropertiesDetails != null && appPropertiesDetails.getEmail() != null)
+            if (appPropertiesDetails.getEmail() != null)
             {
                 msg.getSession().getProperties().put("mail.smtp.user", appPropertiesDetails.getEmail());
 //                msg.getSession().getProperties().put("mail.smtp.password", AES.decrypt(appPropertiesDetails.getEmailPassword())); //Not needed if any mailing services is used on server
