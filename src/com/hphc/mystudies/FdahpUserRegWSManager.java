@@ -11,7 +11,6 @@ package com.hphc.mystudies;
 
 import com.hphc.mystudies.FdahpUserRegWSController.DeactivateForm;
 import com.hphc.mystudies.bean.CustomScheduleRunsBean;
-import com.hphc.mystudies.bean.ParticipantForm;
 import com.hphc.mystudies.bean.ProfileBean;
 import com.hphc.mystudies.bean.SettingsBean;
 import com.hphc.mystudies.bean.StudiesBean;
@@ -50,6 +49,7 @@ import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.util.ContainerUtil;
 
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -78,6 +78,30 @@ public class FdahpUserRegWSManager
     }
 
     private static final Logger _log = Logger.getLogger(FdahpUserRegWSManager.class);
+
+    public static void purgeContainer(Container c)
+    {
+        FdahpUserRegWSSchema userRegWSSchema = FdahpUserRegWSSchema.getInstance();
+        try (DbScope.Transaction transaction = userRegWSSchema.getSchema().getScope().ensureTransaction())
+        {
+            ContainerUtil.purgeTable(userRegWSSchema.getParticipantDetails(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getAuthInfo(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getParticipantStudies(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getParticipantActivities(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getStudyConsent(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getPasswordHistory(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getUserAppDetails(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getLoginAttempts(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getCustomScheduleRuns(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getAppPropertiesDetails(), c, null);
+            ContainerUtil.purgeTable(userRegWSSchema.getVersionInfo(), c, null);
+            transaction.commit();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Saving the user information
