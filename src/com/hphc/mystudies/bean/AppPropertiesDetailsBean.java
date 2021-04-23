@@ -16,6 +16,10 @@ public class AppPropertiesDetailsBean
     private String _RegisterEmailBody;
     private String _ForgotPassEmailSubject;
     private String _ForgotPassEmailBody;
+    private String _RegisterEmailSubjectSpanish;
+    private String _RegisterEmailBodySpanish;
+    private String _ForgotPassEmailSubjectSpanish;
+    private String _ForgotPassEmailBodySpanish;
     private String _FeedbackEmail;
     private String _ContactUsEmail;
     private String _AppName;
@@ -199,5 +203,45 @@ public class AppPropertiesDetailsBean
     public void setForgotPassEmailBody(String forgotPassEmailBody)
     {
         _ForgotPassEmailBody = forgotPassEmailBody;
+    }
+
+    public String getRegisterEmailSubjectSpanish()
+    {
+        return _RegisterEmailSubjectSpanish;
+    }
+
+    public void setRegisterEmailSubjectSpanish(String registerEmailSubjectSpanish)
+    {
+        _RegisterEmailSubjectSpanish = registerEmailSubjectSpanish;
+    }
+
+    public String getRegisterEmailBodySpanish()
+    {
+        return _RegisterEmailBodySpanish;
+    }
+
+    public void setRegisterEmailBodySpanish(String registerEmailBodySpanish)
+    {
+        _RegisterEmailBodySpanish = registerEmailBodySpanish;
+    }
+
+    public String getForgotPassEmailSubjectSpanish()
+    {
+        return _ForgotPassEmailSubjectSpanish;
+    }
+
+    public void setForgotPassEmailSubjectSpanish(String forgotPassEmailSubjectSpanish)
+    {
+        _ForgotPassEmailSubjectSpanish = forgotPassEmailSubjectSpanish;
+    }
+
+    public String getForgotPassEmailBodySpanish()
+    {
+        return _ForgotPassEmailBodySpanish;
+    }
+
+    public void setForgotPassEmailBodySpanish(String forgotPassEmailBodySpanish)
+    {
+        _ForgotPassEmailBodySpanish = forgotPassEmailBodySpanish;
     }
 }

@@ -8,6 +8,7 @@
  */
 package com.hphc.mystudies.model;
 
+import com.hphc.mystudies.FdahpUserRegWSController;
 import com.hphc.mystudies.FdahpUserRegWSManager;
 import com.hphc.mystudies.FdahpUserRegWSModule;
 import com.hphc.mystudies.bean.NotificationBean;
@@ -26,6 +27,7 @@ import org.labkey.api.resource.FileResource;
 import org.labkey.api.resource.Resource;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.MailHelper;
+import org.labkey.api.util.StringUtilsLabKey;
 
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
@@ -65,82 +67,80 @@ public class FdahpUserRegUtil
 
     public enum ErrorCodes
     {
-        INVALID_INPUT("INVALID_INPUT"),
-        UNKNOWN("UNKNOWN"),
-        STATUS_100("100"), // OK
-        STATUS_101("101"), // Invalid Authentication (authKey is not valid).
-        STATUS_102("102"), // Invalid Inputs (If any of the input parameter is missing).
-        STATUS_103("103"), // No Data available.
-        STATUS_104("104"), // Unknown Error
-        STATUS_105("105"), // If there is no data to update.
-        STATUS_106("106"), // Failed to generate token.
-        STATUS_107("107"), // Failed to complete transaction.
-        SESSION_EXPIRED_MSG("Session expired."),
-        INVALID_AUTH_CODE("INVALID_AUTH_CODE"),
-        INVALID_EMAIL("Invalid Email"),
-        ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated"),
-        INVALID_USERNAME_PASSWORD_MSG("Invalid username or password"),
-        EMAIL_EXISTS("This email has already been used. Please try with different email address."),
-        INVALID_INPUT_ERROR_MSG("Invalid input."),
-        INACTIVE("INACTIVE"),
-        SUCCESS("SUCCESS"),
-        FAILURE("FAILURE"),
-        JOINED("Joined"),
-        COMPLETED("Completed"),
-        STARTED("Started"),
-        PAUSED("Paused"),
-        PROFILE("profile"),
-        SETTINGS("settings"),
-        MESSAGE("message"),
-        PARTICIPANTINFO("participantInfo"),
-        STUDIES("studies"),
-        ACTIVITIES("activities"),
-        WITHDRAWN("Withdrawn"),
-        NO_DATA_AVAILABLE("No data available"),
-        CONSENT_VERSION_REQUIRED("Consent version is required"),
-        CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime"),
-        WITHDRAWN_STUDY("You are already Withdrawn from study"),
-        EMAIL_NOT_EXISTS("Email Doesn't Exists"),
-        RESEND_EMAIL_NOT_EXISTS("Email Doesn't Exists OR Email Already Verified"),
-        USER_NOT_EXISTS("User Doesn't Exists"),
-        FAILURE_TO_SENT_MAIL("Oops, something went wrong. Failed to send Email"),
-        OLD_PASSWORD_NOT_EXISTS("Invalid old password"),
-        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Current Password and New Password cannot be same"),
-        NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords."),
-        USER_ALREADY_VERIFIED("User already verified"),
-        INVALID_CODE("Invalid code"),
-        CODE_EXPIRED("Code Expired"),
-        YET_TO_JOIN("yetToJoin"),
-        IN_PROGRESS("inProgress"),
-        STUDY_LEVEL("ST"),
-        GATEWAY_LEVEL("GT"),
-        INVALID_CREDENTIALS("Invalid credentials"),
-        ACCOUNT_LOCKED("As a security measure, this account has been locked for 15 minutes."),
-        ACCOUNT_TEMP_LOCKED("As a security measure, this account has been locked for 15 minutes."),
-        EMAIL_VERIFICATION_SUCCESS_MESSAGE("Thanks, your email has been successfully verified! You can now proceed to completing the sign up process on the mobile app."),
-        EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?"),
-        LABKEY_HOME("http://192.168.0.6:8081"),
-        STUDY("Study"),
-        GATEWAY("Gateway"),
-        DEVICE_ANDROID("android"),
-        DEVICE_IOS("ios"),
-        INVALID_REFRESHTOKEN("Invalid refresh token."),
-        APP_EXIST_NOTEXIST("You already have a valid account for this app. Please directly sign in using the same email and associated password."),
-        ORG_NOTEXIST("Sorry, this email is already in use for platform-powered app(s) belonging to another organization. Please use another email to sign up for this app."),
-        LOGIN_ORG_NOTEXIST("Sorry, this account is in use for platform-powered app(s) belonging to another organization. Please sign up with a different email and try again."),
-        FEEDBACK_NOT_SENT("Sorry, an error occurred and your feedback could not be sent to the organization. Please retry in some time."),
-        INJUIRY_NOT_SENT("Sorry, an error occurred and your inquiry could not be sent to the organization. Please retry in some time.");
+        UNKNOWN("UNKNOWN", "Desconocida"),
+        SESSION_EXPIRED_MSG("Session expired.", "Sesión expirada"),
+        ACCOUNT_DEACTIVATE_ERROR_MSG("Your account has been deactivated", "Tu cuenta ha sido desactivada"),
+        INVALID_USERNAME_PASSWORD_MSG("Invalid username or password", "Usuario o contraseña invalido"),
+        EMAIL_EXISTS("This email has already been used. Please try with different email address.", "Este correo electrónico ya ha sido utilizado. Intente con una dirección de correo electrónico diferente."),
+        INVALID_INPUT_ERROR_MSG("Invalid input.", "Entrada inválida"),
+        NO_DATA_AVAILABLE("No data available", "Datos no disponibles"),
+        CONSENT_VERSION_REQUIRED("Consent version is required", "Se requiere la versión de consentimiento"),
+        CONNECTION_ERROR_MSG("Oops, something went wrong. Please try again after sometime", "Huy! Algo salió mal. Inténtelo de nuevo después de algún tiempo"),
+        WITHDRAWN_STUDY("You are already Withdrawn from study", "Ya estás retirado del estudio"),
+        EMAIL_NOT_EXISTS("Email Doesn't Exists", "El correo electrónico no existe"),
+        FAILURE_TO_SENT_MAIL("Oops, something went wrong. Failed to send Email", "Huy! Algo salió mal. No se pudo enviar el correo electrónico"),
+        OLD_PASSWORD_NOT_EXISTS("Invalid old password", "Contra seña antigua no válida"),
+        OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Current Password and New Password cannot be same", "La contraseña actual y la nueva contraseña no pueden ser la misma"),
+        NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords.", "La nueva contraseña no debe ser la misma que las últimas 10 contraseñas"),
+        USER_ALREADY_VERIFIED("User already verified", "Usuario ya verificada"),
+        INVALID_CODE("Invalid code", "Codigo invalido"),
+        CODE_EXPIRED("Code Expired", "Código caducado"),
+        INVALID_CREDENTIALS("Invalid credentials", "Credenciales no válidas"),
+        ACCOUNT_LOCKED("As a security measure, this account has been locked for 15 minutes.", "Como medida de seguridad, esta cuenta ha estado bloqueada durante 15 minutos."),
+        ACCOUNT_TEMP_LOCKED("As a security measure, this account has been locked for 15 minutes.", "Como medida de seguridad, esta cuenta ha estado bloqueada durante 15 minutos."),
+        EMAIL_NOT_VERIFIED("Your account is not verified. Please verify your account by clicking on verification link which has been sent to your registered email. If not received, would you like to resend verification link?", "Su cuenta no está verificada. Verifique su cuenta haciendo clic en el enlace de verificación que se envió a su correo electrónico registrado. Si no lo recibe,¿le gustaría volver a enviar el enlace de verificación?"),
+        INVALID_REFRESHTOKEN("Invalid refresh token.", "Token de actualización no válido"),
+        APP_EXIST_NOTEXIST("You already have a valid account for this app. Please directly sign in using the same email and associated password.", "Ya tienes una cuenta válida para esta aplicación. Inicie sesión directamente con el mismo correo electrónico y la contraseña asociada."),
+        ORG_NOTEXIST("Sorry, this email is already in use for platform-powered app(s) belonging to another organization. Please use another email to sign up for this app.", "Lo sentimos, este correo electrónico ya está en uso para aplicaciones de plataforma que pertenecen a otra organización. Utilice otro correo electrónico para registrarse en esta aplicación."),
+        LOGIN_ORG_NOTEXIST("Sorry, this account is in use for platform-powered app(s) belonging to another organization. Please sign up with a different email and try again.", "Lo sentimos, esta cuenta está en uso para aplicaciones de plataforma que pertenecen a orta organización. "),
+        FEEDBACK_NOT_SENT("Sorry, an error occurred and your feedback could not be sent to the organization. Please retry in some time.", "Lo sentimos, se produjo un error y sus comentarios no se pudieron enviar a la organización. Vuelva a intentarlo en algún momento."),
+        INJUIRY_NOT_SENT("Sorry, an error occurred and your inquiry could not be sent to the organization. Please retry in some time.", "Lo sentimos, se produjo un error y su consulta no se pudo enviar a la organización. Vuelva a intentarlo en algún momento."),
+
+        PROFILE("profile", "profile"),
+        SETTINGS("settings", "settings"),
+        STUDIES("studies", "studies"),
+        ACTIVITIES("activities", "activities"),
+
+        MESSAGE("message", "message"),
+        SUCCESS("SUCCESS", "SUCCESS"),
+        FAILURE("FAILURE", "FAILURE"),
+        INVALID_INPUT("INVALID_INPUT", "INVALID_INPUT"),
+        INVALID_AUTH_CODE("INVALID_AUTH_CODE", "INVALID_AUTH_CODE"),
+
+        DEVICE_ANDROID("android", "android"),
+        DEVICE_IOS("ios", "ios"),
+        GATEWAY("Gateway", "Gateway"),
+        STUDY("Study", "Study"),
+        STUDY_LEVEL("ST", "ST"),
+        GATEWAY_LEVEL("GT", "GT"),
+        YET_TO_JOIN("yetToJoin", "yetToJoin"),
+        IN_PROGRESS("inProgress", "inProgress"),
+        WITHDRAWN("Withdrawn", "Withdrawn"),
+
+        STATUS_100("100", "100"), // OK
+        STATUS_101("101", "101"), // Invalid Authentication (authKey is not valid).
+        STATUS_102("102", "102"), // Invalid Inputs (If any of the input parameter is missing).
+        STATUS_103("103", "103"), // No Data available.
+        STATUS_104("104", "104"), // Unknown Error
+        STATUS_105("105", "105"), // If there is no data to update.
+        STATUS_106("106", "106"), // Failed to generate token.
+        STATUS_107("107", "107"); // Failed to complete transaction.
 
         private final String value;
+        private final String valueSP;
 
-        ErrorCodes(final String newValue)
+        ErrorCodes(final String newValue, final String newValueSP)
         {
             value = newValue;
+            valueSP = newValueSP;
         }
 
-        public String getValue()
+        public String getValue(String language)
         {
-            return value;
+            if (language != null && language.equalsIgnoreCase(FdahpUserRegWSController.LANGUAGE_SP))
+                return valueSP;
+            else
+                return value;
         }
     }
 
@@ -162,24 +162,28 @@ public class FdahpUserRegUtil
         }
     }
 
-    public static void getFailureResponse(String status, String title, String message, HttpServletResponse response)
+    public static void getFailureResponse(String language, String status, String title, String message, HttpServletResponse response)
     {
         try
         {
             response.setHeader("status", status);
             response.setHeader("title", title);
+            if (language != null && language.equalsIgnoreCase(FdahpUserRegWSController.LANGUAGE_SP))
+            {
+                message = Base64.encodeBase64String(message.getBytes(StringUtilsLabKey.DEFAULT_CHARSET));
+            }
             response.setHeader("StatusMessage", message);
-            if (status.equalsIgnoreCase(ErrorCodes.STATUS_104.getValue()))
+            if (status.equalsIgnoreCase(ErrorCodes.STATUS_104.getValue(language)))
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-            if (status.equalsIgnoreCase(ErrorCodes.STATUS_102.getValue()))
+            if (status.equalsIgnoreCase(ErrorCodes.STATUS_102.getValue(language)))
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-            if (status.equalsIgnoreCase(ErrorCodes.STATUS_101.getValue()))
-                if (message.equalsIgnoreCase(ErrorCodes.SESSION_EXPIRED_MSG.getValue()))
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorCodes.SESSION_EXPIRED_MSG.getValue());
+            if (status.equalsIgnoreCase(ErrorCodes.STATUS_101.getValue(language)))
+                if (message.equalsIgnoreCase(ErrorCodes.SESSION_EXPIRED_MSG.getValue(language)))
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorCodes.SESSION_EXPIRED_MSG.getValue(language));
                 else
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
 
-            if (status.equalsIgnoreCase(ErrorCodes.STATUS_103.getValue()))
+            if (status.equalsIgnoreCase(ErrorCodes.STATUS_103.getValue(language)))
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, message);
 
         }
@@ -458,7 +462,7 @@ public class FdahpUserRegUtil
 //        }
 //    }
 
-    public static void pushNotification(NotificationBean notificationBean)
+    public static void pushNotification(NotificationBean notificationBean, String language)
     {
         Properties configProp = FdahpUserRegUtil.getProperties();
         AppPropertiesDetails appPropertiesDetails = null;
@@ -466,7 +470,7 @@ public class FdahpUserRegUtil
         String certificatePassword = "";
         try
         {
-            appPropertiesDetails = FdahpUserRegWSManager.get().getAppPropertiesDetailsByAppId(notificationBean.getAppId(),notificationBean.getOrgId());
+            appPropertiesDetails = FdahpUserRegWSManager.get(language).getAppPropertiesDetailsByAppId(notificationBean.getAppId(),notificationBean.getOrgId());
 
             Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
             ModuleProperty mp = module.getModuleProperties().get("StudyId");

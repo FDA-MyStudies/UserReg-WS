@@ -64,6 +64,7 @@ import java.util.UUID;
 public class FdahpUserRegWSManager
 {
     private static final FdahpUserRegWSManager _instance = new FdahpUserRegWSManager();
+    private static String language;
 
     Properties configProp = FdahpUserRegUtil.getProperties();
 
@@ -72,8 +73,9 @@ public class FdahpUserRegWSManager
         // prevent external construction with a private default constructor
     }
 
-    public static FdahpUserRegWSManager get()
+    public static FdahpUserRegWSManager get(String newlanguage)
     {
+        language = newlanguage;
         return _instance;
     }
 
@@ -345,7 +347,7 @@ public class FdahpUserRegWSManager
      */
     public String signout(String userId, String applicationId, String orgId)
     {
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         try
         {
             DbSchema schema = FdahpUserRegWSSchema.getInstance().getSchema();
@@ -361,7 +363,7 @@ public class FdahpUserRegWSManager
             int execute = executor.execute(sqlUpdateVisitDates);
             if (execute > 0)
             {
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
             }
         }
         catch (Exception e)
@@ -389,7 +391,7 @@ public class FdahpUserRegWSManager
                 ProfileBean profileBean = new ProfileBean();
                 if (participantDetails.getEmail() != null)
                     profileBean.setEmailId(participantDetails.getEmail());
-                response.put(FdahpUserRegUtil.ErrorCodes.PROFILE.getValue(), profileBean);
+                response.put(FdahpUserRegUtil.ErrorCodes.PROFILE.getValue(language), profileBean);
                 SettingsBean settingsBean = new SettingsBean();
                 if (participantDetails.getLocalNotificationFlag() != null)
                     settingsBean.setLocalNotifications(participantDetails.getLocalNotificationFlag());
@@ -409,8 +411,8 @@ public class FdahpUserRegWSManager
                 }
                 if (participantDetails.getLocale() != null)
                     settingsBean.setLocale(participantDetails.getLocale());
-                response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(), settingsBean);
-                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+                response.put(FdahpUserRegUtil.ErrorCodes.SETTINGS.getValue(language), settingsBean);
+                response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(language), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language).toLowerCase());
             }
         }
         catch (Exception e)
@@ -476,7 +478,7 @@ public class FdahpUserRegWSManager
      */
     public String saveParticipantStudies(List<ParticipantStudies> participantStudiesList)
     {
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -502,7 +504,7 @@ public class FdahpUserRegWSManager
 
             if (participantStudiesList.size() > 0)
             {
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
             }
         }
         catch (Exception e)
@@ -521,7 +523,7 @@ public class FdahpUserRegWSManager
      */
     public String saveParticipantActivities(List<ParticipantActivities> participantActivitiesList)
     {
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -544,7 +546,7 @@ public class FdahpUserRegWSManager
 
             if (participantActivitiesList.size() > 0)
             {
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
             }
         }
         catch (Exception e)
@@ -621,8 +623,8 @@ public class FdahpUserRegWSManager
                     studiesBeenList.add(studiesBean);
                 }
             }
-            response.put(FdahpUserRegUtil.ErrorCodes.STUDIES.getValue(), studiesBeenList);
-            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue().toLowerCase());
+            response.put(FdahpUserRegUtil.ErrorCodes.STUDIES.getValue(language), studiesBeenList);
+            response.put(FdahpUserRegUtil.ErrorCodes.MESSAGE.getValue(language), FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language).toLowerCase());
         }
         catch (Exception e)
         {
@@ -751,7 +753,7 @@ public class FdahpUserRegWSManager
      */
     public String withDrawStudy(String studyId, String userId, String applicationId, String orgId, Boolean deleteData)
     {
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -782,7 +784,7 @@ public class FdahpUserRegWSManager
                 int execute = executor.execute(sqlUpdateVisitDates);
                 if (execute > 0)
                 {
-                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
                 }
             }
             else
@@ -794,7 +796,7 @@ public class FdahpUserRegWSManager
                 int execute = executor.execute(sqlUpdateVisitDates);
                 if (execute > 0)
                 {
-                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
                 }
             }
         }
@@ -973,7 +975,7 @@ public class FdahpUserRegWSManager
      */
     public String deleteAccount(String userId)
     {
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -1003,7 +1005,7 @@ public class FdahpUserRegWSManager
             Table.delete(authInfo, authInfoFilter);
 
             if (count > 0)
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
 
 
         }
@@ -1025,7 +1027,7 @@ public class FdahpUserRegWSManager
     public String deActivate(String userId, DeactivateForm deactivateForm, String applicationId, String orgId)
     {
 
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         int count = 0;
@@ -1081,7 +1083,7 @@ public class FdahpUserRegWSManager
                 count = Table.delete(participantInfo, participantFilter);
 
                 if (count > 0)
-                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                    message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
             }
 
 
@@ -1131,7 +1133,7 @@ public class FdahpUserRegWSManager
         Container availableContainer = getContainer_AppID(applicationId, orgId);
 
         Properties configProp = FdahpUserRegUtil.getProperties();
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         String passwordHistoryCount = (String) configProp.get("password.history.count");
         List<PasswordHistory> passwordHistories = null;
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
@@ -1156,7 +1158,7 @@ public class FdahpUserRegWSManager
             PasswordHistory passwordHistory = new PasswordHistory();
             passwordHistory.setUserId(userId);
             passwordHistory.setPassword(password);
-            message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+            message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
 
             if (availableContainer != null)
                 passwordHistory.setContainer(availableContainer.getId());
@@ -1204,18 +1206,18 @@ public class FdahpUserRegWSManager
                     String devicetype = rs.getString(2);
                     if (devicetoken != null && devicetype != null)
                     {
-                        if (devicetype.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()))
+                        if (devicetype.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(language)))
                         {
                             jsonArray.put(devicetoken.trim());
                         }
-                        else if (devicetype.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()))
+                        else if (devicetype.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(language)))
                         {
                             iosJsonArray.put(devicetoken.trim());
                         }
                     }
                 }
-                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(), jsonArray);
-                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(), iosJsonArray);
+                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(language), jsonArray);
+                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(language), iosJsonArray);
                 rs.close();
             }
             /**
@@ -1247,8 +1249,8 @@ public class FdahpUserRegWSManager
                         }
                     }
                 }
-                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(),jsonArray);
-                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(),iosJsonArray);
+                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(language),jsonArray);
+                deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(language),iosJsonArray);
 
 
             }*/
@@ -1296,18 +1298,18 @@ public class FdahpUserRegWSManager
                             Map<String, JSONArray> deviceMap = new HashMap<>();
                             for (int i = 0; i < deviceTokens.length; i++)
                             {
-                                if (deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue()))
+                                if (deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(language)))
                                 {
                                     jsonArray.put(deviceTokens[i].trim());
                                 }
-                                else if (deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue()))
+                                else if (deviceTypes[i] != null && deviceTypes[i].equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(language)))
                                 {
                                     iosJsonArray.put(deviceTokens[i].trim());
                                 }
 
                             }
-                            deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(), jsonArray);
-                            deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(), iosJsonArray);
+                            deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_ANDROID.getValue(language), jsonArray);
+                            deviceMap.put(FdahpUserRegUtil.ErrorCodes.DEVICE_IOS.getValue(language), iosJsonArray);
 
                             studyDeviceTokenMap.put(studyid, deviceMap);
                         }
@@ -1512,7 +1514,7 @@ public class FdahpUserRegWSManager
         if (availableContainer != null)
             userAppDetails.setContainer(availableContainer.getId());
 
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -1530,7 +1532,7 @@ public class FdahpUserRegWSManager
                 {
                     Table.insert(null, table, userAppDetails);
                 }
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
             }
 
         }
@@ -1566,7 +1568,7 @@ public class FdahpUserRegWSManager
                     {
                         if (appDetails.getApplicationId().equals(appId))
                         {
-                            errorMessage = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                            errorMessage = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
                             break;
                         }
                     }
@@ -1578,22 +1580,22 @@ public class FdahpUserRegWSManager
                         newUserAppDetails.setOrgId(orgId);
                         newUserAppDetails.setApplicationId(appId);
                         newUserAppDetails.setCreatedOn(new Date());
-                        String message = FdahpUserRegWSManager.get().saveUserAppDetails(newUserAppDetails);
-                        errorMessage = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                        String message = FdahpUserRegWSManager.get(language).saveUserAppDetails(newUserAppDetails);
+                        errorMessage = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
                         //save orgId and appid for user end
                     }
                 }
                 else
                 {
-                    errorMessage = FdahpUserRegUtil.ErrorCodes.APP_EXIST_NOTEXIST.getValue();
+                    errorMessage = FdahpUserRegUtil.ErrorCodes.APP_EXIST_NOTEXIST.getValue(language);
                 }
             }
             else
             {
                 if (isLoginAction)
-                    errorMessage = FdahpUserRegUtil.ErrorCodes.LOGIN_ORG_NOTEXIST.getValue();
+                    errorMessage = FdahpUserRegUtil.ErrorCodes.LOGIN_ORG_NOTEXIST.getValue(language);
                 else
-                    errorMessage = FdahpUserRegUtil.ErrorCodes.ORG_NOTEXIST.getValue();
+                    errorMessage = FdahpUserRegUtil.ErrorCodes.ORG_NOTEXIST.getValue(language);
             }
         }
         catch (Exception e)
@@ -1649,21 +1651,21 @@ public class FdahpUserRegWSManager
                     userAppDetailsList = new SqlSelector(FdahpUserRegWSSchema.getInstance().getSchema(), sql).getArrayList(UserAppDetails.class);
                     if (userAppDetailsList != null && userAppDetailsList.size() > 0)
                     {
-                        message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                        message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
                     }
                     else
                     {
-                        message = FdahpUserRegUtil.ErrorCodes.ORG_NOTEXIST.getValue();
+                        message = FdahpUserRegUtil.ErrorCodes.ORG_NOTEXIST.getValue(language);
                     }
                 }
                 else
                 {
-                    message = FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue();
+                    message = FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue(language);
                 }
             }
             else
             {
-                message = FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.ACCOUNT_DEACTIVATE_ERROR_MSG.getValue(language);
             }
         }
         catch (Exception e)
@@ -1704,7 +1706,7 @@ public class FdahpUserRegWSManager
         if (availableContainer != null)
             appPropertiesDetails.setContainer(availableContainer.getId());
 
-        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue();
+        String message = FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language);
         DbScope dbScope = FdahpUserRegWSSchema.getInstance().getSchema().getScope();
         DbScope.Transaction transaction = dbScope.ensureTransaction();
         try
@@ -1725,7 +1727,7 @@ public class FdahpUserRegWSManager
                 {
                     Table.insert(null, table, appPropertiesDetails);
                 }
-                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue();
+                message = FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language);
             }
         }
         catch (Exception e)
