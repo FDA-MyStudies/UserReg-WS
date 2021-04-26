@@ -8,12 +8,16 @@
  */
 package com.hphc.mystudies.model;
 
+import com.eatthepath.pushy.apns.ApnsClient;
+import com.eatthepath.pushy.apns.ApnsClientBuilder;
+import com.eatthepath.pushy.apns.PushNotificationResponse;
+import com.eatthepath.pushy.apns.util.SimpleApnsPayloadBuilder;
+import com.eatthepath.pushy.apns.util.SimpleApnsPushNotification;
+import com.eatthepath.pushy.apns.util.TokenUtil;
 import com.hphc.mystudies.FdahpUserRegWSController;
 import com.hphc.mystudies.FdahpUserRegWSManager;
 import com.hphc.mystudies.FdahpUserRegWSModule;
 import com.hphc.mystudies.bean.NotificationBean;
-import com.notnoop.apns.APNS;
-import com.notnoop.apns.ApnsService;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -52,7 +56,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
 
@@ -470,26 +476,15 @@ public class FdahpUserRegUtil
         String certificatePassword = "";
         try
         {
-            appPropertiesDetails = FdahpUserRegWSManager.get(language).getAppPropertiesDetailsByAppId(notificationBean.getAppId(),notificationBean.getOrgId());
-
+            appPropertiesDetails = FdahpUserRegWSManager.get(language).getAppPropertiesDetailsByAppId(notificationBean.getAppId(), notificationBean.getOrgId());
             Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
             ModuleProperty mp = module.getModuleProperties().get("StudyId");
-
             File file = null;
             if (appPropertiesDetails != null)
             {
                 FileContentService fileContentService = ServiceRegistry.get().getService(FileContentService.class);
-                File root = null;
-                List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
-                for (Container rootContainer : all)
-                {
-                    if (mp.getValueContainerSpecific(rootContainer) != null && mp.getValueContainerSpecific(rootContainer).equalsIgnoreCase(notificationBean.getAppId()))
-                    {
-                        root = fileContentService.getFileRoot(rootContainer, FileContentService.ContentType.files);
-                        break;
-                    }
-                }
-
+                Container availableContainer = getContainer_AppID(notificationBean.getAppId(), notificationBean.getOrgId());
+                File root = fileContentService.getFileRoot(availableContainer, FileContentService.ContentType.files);
                 certificatePassword = appPropertiesDetails.getIosCertificatePassword();
                 try
                 {
@@ -497,7 +492,6 @@ public class FdahpUserRegUtil
                     FileOutputStream fop;
                     decodedBytes = java.util.Base64.getDecoder().decode(appPropertiesDetails.getIosCertificate().replaceAll("\n", ""));
                     file = new File(root, "pushCert_" + appPropertiesDetails.getAppId() + ".p12");
-
                     fop = new FileOutputStream(file);
                     fop.write(decodedBytes);
                     fop.flush();
@@ -506,32 +500,33 @@ public class FdahpUserRegUtil
                 catch (Exception e)
                 {
                     _log.error("FdahpUserRegWSController pushNotificationCertCreation:", e);
-
                 }
-
-                ApnsService service = null;
                 if (file != null)
                 {
-                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withProductionDestination().build(); //for Production with production certificate
-//                    service = APNS.newService().withCert(file.getPath(), certificatePassword).withSandboxDestination().build(); //for Test and UAT with dev certificate
-
-                    List<String> tokens = new ArrayList<String>();
+                    ApnsClient apnsClient = new ApnsClientBuilder()
+                            .setApnsServer(ApnsClientBuilder.PRODUCTION_APNS_HOST)
+                            .setClientCredentials(new File(file.getPath()), certificatePassword)
+                            .build();
+                    String payload = new SimpleApnsPayloadBuilder()
+                            .setAlertBody(notificationBean.getNotificationText())
+                            .addCustomProperty("subtype", notificationBean.getNotificationSubType())
+                            .addCustomProperty("type", notificationBean.getNotificationType())
+                            .addCustomProperty("studyId", notificationBean.getCustomStudyId())
+                            .setSound("default")
+                            .build();
                     if (notificationBean.getDeviceToken() != null)
                     {
                         for (int i = 0; i < notificationBean.getDeviceToken().length(); i++)
                         {
-                            String token = (String) notificationBean.getDeviceToken().get(i);
-                            tokens.add(token);
+                            String token = TokenUtil.sanitizeTokenString(notificationBean.getDeviceToken().get(i).toString());
+                            SimpleApnsPushNotification pushNotification = new SimpleApnsPushNotification(token, appPropertiesDetails.getIosBundleId(), payload);
+                            Future<PushNotificationResponse<SimpleApnsPushNotification>> result = apnsClient.sendNotification(pushNotification);
+                            if (result.get().getRejectionReason() != null)
+                            {
+                                _log.debug(token + "  failed coz of  " + result.get().getRejectionReason());
+                            }
                         }
                     }
-                    String customPayload = APNS.newPayload().badge(1).alertTitle("")
-                            .alertBody(notificationBean.getNotificationText())
-                            .customField("subtype", notificationBean.getNotificationSubType())
-                            .customField("type", notificationBean.getNotificationType())
-                            .customField("studyId", notificationBean.getCustomStudyId())
-                            .sound("default")
-                            .build();
-                    service.push(tokens, customPayload);
                 }
             }
         }
@@ -601,5 +596,43 @@ public class FdahpUserRegUtil
             _log.error("IOException - Unable to connect to " + hostName + ":" + port + ". " + exception.getMessage());
         }
         return isAlive;
+    }
+
+    private static Container getContainer_AppID(String postedAppId, String postedOrgId)
+    {
+        Container appIdContainer = null;
+        Container orgIdContainer = null;
+        Module module = ModuleLoader.getInstance().getModule(FdahpUserRegWSModule.NAME);
+        ModuleProperty mp = module.getModuleProperties().get("StudyId");
+        List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
+        for (Container orgContainer : all)
+        {
+            System.out.println("org - " + mp.getValueContainerSpecific(orgContainer));
+            if (postedOrgId.equalsIgnoreCase(mp.getValueContainerSpecific(orgContainer)))
+            {
+                orgIdContainer = orgContainer;
+                List<Container> allApp = ContainerManager.getChildren(orgContainer);
+                for (Container appContainer : allApp)
+                {
+                    System.out.println("app - " + mp.getValueContainerSpecific(appContainer));
+                    if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
+                    {
+                        appIdContainer = appContainer;
+                        break;
+                    }
+                }
+            }
+        }
+        if (appIdContainer == null)
+        {
+            _log.error("container not available for AppID " + postedAppId);
+            if (orgIdContainer == null)
+                _log.error("container not available for OrgID " + postedOrgId);
+            return orgIdContainer;
+        }
+        else
+        {
+            return appIdContainer;
+        }
     }
 }
