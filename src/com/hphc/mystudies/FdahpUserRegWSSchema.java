@@ -75,4 +75,8 @@ public class FdahpUserRegWSSchema
     public TableInfo getAppPropertiesDetails(){
         return getSchema().getTable("AppPropertiesDetails");
     }
+
+    public TableInfo getVersionInfo(){
+        return getSchema().getTable("VersionInfo");
+    }
 }

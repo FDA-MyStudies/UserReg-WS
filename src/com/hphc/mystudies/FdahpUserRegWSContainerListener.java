@@ -22,40 +22,15 @@
  */
 package com.hphc.mystudies;
 
-import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager.ContainerListener;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.User;
-import java.util.Collections;
-import java.util.Collection;
 
-import java.beans.PropertyChangeEvent;
-
-public class FdahpUserRegWSContainerListener implements ContainerListener
+public class FdahpUserRegWSContainerListener extends ContainerManager.AbstractContainerListener
 {
-    @Override
-    public void containerCreated(Container c, User user)
-    {
-    }
-
     @Override
     public void containerDeleted(Container c, User user)
     {
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-    }
-
-    @Override
-    public void containerMoved(Container c, Container oldParent, User user)
-    {
-    }
-
-    @NotNull @Override
-    public Collection<String> canMove(Container c, Container newParent, User user)
-    {
-        return Collections.emptyList();
+        FdahpUserRegWSManager.purgeContainer(c);
     }
 }
