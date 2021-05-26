@@ -26,7 +26,7 @@ apply from: 'gradle/settings/parameters.gradle'
 include ':distributions:Registration'
 
 gradle.beforeProject { project ->
-    if (!project.hasProperty("standaloneBuild")) {
+    if (!project.hasProperty("labkeyVersion")) {
         throw new GradleException("Please run Gradle with the provided init script ('-I init.gradle') to build outside of a standard LabKey enlistment")
     }
 
