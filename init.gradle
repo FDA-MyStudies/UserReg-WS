@@ -1,0 +1,10 @@
+allprojects {
+    ext {
+        // Properties for standalone build.
+        labkeyVersion = "21.3-SNAPSHOT"
+
+        buildFromSource = true
+
+        standaloneBuild = true
+    }
+}

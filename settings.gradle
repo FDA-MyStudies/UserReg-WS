@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/plugins-release"
+        }
+        if (gradlePluginsVersion.contains("SNAPSHOT")) {
+            mavenLocal()
+            maven {
+                url "${artifactory_contextUrl}/plugins-snapshot-local"
+            }
+        }
+    }
+    dependencies {
+        classpath "org.labkey.build:gradlePlugins:${gradlePluginsVersion}"
+     }
+    configurations.all {
+        // Check for updates every build for SNAPSHOT dependencies
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
+rootProject.name="UserReg-WS"
+
+apply from: 'gradle/settings/parameters.gradle'
+
+include ':distributions:Registration'
+
+gradle.beforeProject { project ->
+    if (!project.hasProperty("standaloneBuild")) {
+        throw new GradleException("Please run Gradle with the provided init script ('-I init.gradle') to build outside of a standard LabKey enlistment")
+    }
+
+    project.repositories {
+        maven {
+            url "${project.artifactory_contextUrl}/ext-tools-local"
+        }
+        maven {
+            url "${project.artifactory_contextUrl}/libs-release"
+        }
+        maven {
+            url "${project.artifactory_contextUrl}/libs-snapshot"
+        }
+        mavenCentral()
+    }
+}
