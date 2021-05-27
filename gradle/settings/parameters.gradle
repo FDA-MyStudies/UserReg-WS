@@ -1,1 +1,1 @@
-gradle.ext.serverProjectPath=":distributions"
+gradle.ext.serverProjectPath=":"
