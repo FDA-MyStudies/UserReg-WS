@@ -19,4 +19,5 @@ _(The following commands and paths are relative to your `UserReg-WS` enlistment)
 1. Follow [instructions for manual deployment](https://www.labkey.org/Documentation/wiki-page.view?name=manualInstall) of the distribution archive
 
 ## Developer Setup Instructions
+- [LabKey Developer Setup](https://www.labkey.org/Documentation/wiki-page.view?name=devMachine)
 - [FDA MyStudies: User-Reg WS](https://www.labkey.org/FDAMyStudiesHelp/wiki-page.view?name=setupInstructions#userReg)
