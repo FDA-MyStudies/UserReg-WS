@@ -5,5 +5,7 @@ allprojects {
         labkeyVersion = "21.3-SNAPSHOT"
 
         buildFromSource = true
+
+        deployMode = "prod"
     }
 }
