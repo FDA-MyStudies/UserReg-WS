@@ -89,7 +89,7 @@ public class FdahpUserRegUtil
         OLD_PASSWORD_AND_NEW_PASSWORD_NOT_SAME("Current Password and New Password cannot be same", "La contraseña actual y la nueva contraseña no pueden ser la misma"),
         NEW_PASSWORD_NOT_SAME_LAST_PASSWORD("New Password should not be the same as the last 10 passwords.", "La nueva contraseña no debe ser la misma que las últimas 10 contraseñas"),
         USER_ALREADY_VERIFIED("User already verified", "Usuario ya verificada"),
-        INVALID_CODE("Invalid code", "Codigo invalido"),
+        INVALID_CODE("Invalid code", "Código inválido"),
         CODE_EXPIRED("Code Expired", "Código caducado"),
         INVALID_CREDENTIALS("Invalid credentials", "Credenciales no válidas"),
         ACCOUNT_LOCKED("As a security measure, this account has been locked for 15 minutes.", "Como medida de seguridad, esta cuenta ha estado bloqueada durante 15 minutos."),
