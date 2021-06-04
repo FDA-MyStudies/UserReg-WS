@@ -24,6 +24,7 @@ package com.hphc.mystudies;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.audit.AuditLogService;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleProperty;
@@ -74,6 +75,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     @Override
     public void doStartup(ModuleContext moduleContext)
     {
+        ContainerManager.addContainerListener(new FdahpUserRegWSContainerListener());
         AuditLogService.get().registerAuditType(new FdaAuditProvider());
     }
 

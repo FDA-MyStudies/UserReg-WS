@@ -2,37 +2,22 @@
 
 This project consists of APIs that required for MyStudies User registration.This project is developed in Spring MVC framework on Labkey environment.
 
-## Getting Started
+## Evaluation Setup Instructions
 
-This project built on Labkey environment and to start this project you need to set up the labkey 
-Development machine. Below link will help you to set up the labkey development machine 
+This module can be used to create a standalone distribution of the MyStudies User Registration Server.
+_(The following commands and paths are relative to your `UserReg-WS` enlistment)_
 
-https://www.labkey.org/Documentation/wiki-page.view?name=devMachine
+1. Install JDK 14+
+   - [AdoptOpenJDK](https://adoptopenjdk.net/releases.html?variant=openjdk14&jvmVariant=hotspot)
+   - Your `JAVA_HOME` environment variable should point at a compatible JDK install
+1. Create Registration LabKey distribution
+   - (Linux/MacOS) `./gradlew -I init.gradle -PdeployMode=prod :distributions:Registration:distribution`
+   - (Windows) `.\gradlew -I init.gradle -PdeployMode=prod :distributions:Registration:distribution`
+1. Locate distribution archive
+    - (Linux/MacOS) `dist/Registration/LabKey*-Registration.tar.gz`
+    - (Windows) `dist\Registration\LabKey*-Registration.tar.gz`
+1. Follow [instructions for manual deployment](https://www.labkey.org/Documentation/wiki-page.view?name=manualInstall) of the distribution archive
 
-Once the Labkey development environment set clone git repositories such as UserReg-WS into the /server/modules folder.
-
-Switch to the release 2019.10 branch and git pull
-
-In your settings.gradle file, find the commented out line with this text:
-//include ":server:optionalModules:workflow"
-Underneath this line, add these two lines:(might change if folder structure is changed)
-include ":server:modules:UserReg-WS"
-include ":server:modules:UserReg-WS:distributions:Registration"
-
-### To generate a local build use the below commands:
-
-Once the setup is done you should be able to build the distribution with this command
-•	gradlew cleanBuild deployApp
-
-Once it’s build successfully, click the run icon in your IDE
-
-### Test URL
-http://localhost:8080/labkey/fdahpUserRegWS/ping.api
-
-### To generate a production build use the below commands:(might change if folder structure is changed)
-•	gradlew deployApp -PdeployMode=prod
-•	gradlew -PdeployMode=prod :server:modules:UserReg-WS:distributions:Registration:distribution
-
-Once the build is completed, you will find the distribution file at below path:
-{LABKEY_HOME}/dist/Registration
-LABKEY_HOME is the root folder where you cloned the labkey code
+## Developer Setup Instructions
+- [LabKey Developer Setup](https://www.labkey.org/Documentation/wiki-page.view?name=devMachine)
+- [FDA MyStudies: User-Reg WS](https://www.labkey.org/FDAMyStudiesHelp/wiki-page.view?name=setupInstructions#userReg)
