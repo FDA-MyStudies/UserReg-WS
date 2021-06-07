@@ -13,6 +13,6 @@ plugins {
 }
 
 project.dependencies {
-    external 'com.notnoop.apns:apns:1.0.0.Beta6'
+    external 'com.eatthepath:pushy:0.14.1'
     external group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 }

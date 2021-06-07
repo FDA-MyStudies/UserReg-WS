@@ -31,6 +31,10 @@ public class AppPropertiesDetails extends Entity
     private String _RegEmailBody;
     private String _ForgotEmailSub;
     private String _ForgotEmailBody;
+    private String _RegEmailSubSpanish;
+    private String _RegEmailBodySpanish;
+    private String _ForgotEmailSubSpanish;
+    private String _ForgotEmailBodySpanish;
     private String _FeedbackEmail;
     private String _ContactUsEmail;
     private String _AppName;
@@ -225,5 +229,45 @@ public class AppPropertiesDetails extends Entity
     public void setForgotEmailSub(String forgotEmailSub)
     {
         _ForgotEmailSub = forgotEmailSub;
+    }
+
+    public String getRegEmailSubSpanish()
+    {
+        return _RegEmailSubSpanish;
+    }
+
+    public void setRegEmailSubSpanish(String regEmailSubSpanish)
+    {
+        _RegEmailSubSpanish = regEmailSubSpanish;
+    }
+
+    public String getRegEmailBodySpanish()
+    {
+        return _RegEmailBodySpanish;
+    }
+
+    public void setRegEmailBodySpanish(String regEmailBodySpanish)
+    {
+        _RegEmailBodySpanish = regEmailBodySpanish;
+    }
+
+    public String getForgotEmailSubSpanish()
+    {
+        return _ForgotEmailSubSpanish;
+    }
+
+    public void setForgotEmailSubSpanish(String forgotEmailSubSpanish)
+    {
+        _ForgotEmailSubSpanish = forgotEmailSubSpanish;
+    }
+
+    public String getForgotEmailBodySpanish()
+    {
+        return _ForgotEmailBodySpanish;
+    }
+
+    public void setForgotEmailBodySpanish(String forgotEmailBodySpanish)
+    {
+        _ForgotEmailBodySpanish = forgotEmailBodySpanish;
     }
 }
