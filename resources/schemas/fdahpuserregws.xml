@@ -30,6 +30,10 @@
             <column columnName="feedbackemail"/>
             <column columnName="contactusemail"/>
             <column columnName="appname"/>
+            <column columnName="regemailsubspanish"/>
+            <column columnName="regemailbodyspanish"/>
+            <column columnName="forgotemailsubspanish"/>
+            <column columnName="forgotemailbodyspanish"/>
         </columns>
     </table>
     <table tableName="participantstudies" tableDbType="TABLE">
