@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * Copyright © 2017-2021 Harvard Pilgrim Health Care Institute (HPHCI) and its Contributors. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  * Funding Source: Food and Drug Administration (“Funding Agency”) effective 18 September 2014 as Contract no. HHSF22320140030I/HHSF22301006T (the “Prime Contract”).
  *
@@ -12,29 +12,24 @@ import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
 import org.labkey.gradle.plugin.Distribution
 
-apply plugin: 'org.labkey.distribution'
+plugins {
+    id 'org.labkey.build.distribution'
+}
 
-//deployMode="prod"
+BuildUtils.addModuleDistributionDependencies(project, [BuildUtils.getApiProjectPath(project.gradle),
+                                                       BuildUtils.getInternalProjectPath(project.gradle),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "announcements"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "audit"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "core"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "experiment"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "filecontent"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "pipeline"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "query"),
+                                                       project.parent.parent.getPath(), // UserReg-WS module
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "visualization"),
+                                                       BuildUtils.getPlatformModuleProjectPath(project.gradle, "wiki"),
+])
 
-/**
- This file can be used to create a distribution of the User Registration Web Server.  
-
- In the following, we assume your labkey code enlistment is located at
-        C:\labkey
- And the Registration module is located in:
-        C:\labkey\server\modules\UserReg-WS
- You will need to do the following:
-   1. Edit this file to update the "versionPrefix" property below to correspond to the 
-      version of the distribution you are creating.
-   2. Create the directory for this build.gradle file to live in.  This directory can be, for example:
-        C:\labkey\server\modules\UserReg-WS\distributions\Registration
-   3. Put this build.gradle file in that directory
-        C:\labkey\server\modules\UserReg-WS\distributions\Registration\build.gradle
-   4. Edit your settings.gradle file to include the distributions project.  That is, add the following
-      line at the end of that file: 
-        include ":server:modules:UserReg-WS"
-        include ":server:modules:UserReg-WS:distributions:Registration"
-**/
 project.task(
         "distribution",
         group: GroupNames.DISTRIBUTION,
@@ -43,22 +38,6 @@ project.task(
             dist.subDirName='Registration'
             dist.extraFileIdentifier='-Registration'
             dist.includeTarGZArchive=true
+            dist.simpleDistribution=true
         }
-)
-
-// Might change if folder structure is changed
-BuildUtils.addModuleDistributionDependencies(project, [
-        ":server:modules:platform:internal",
-        ":server:modules:platform:api",
-        ":server:modules:platform:announcements",
-        ":server:modules:platform:audit",
-        ":server:modules:platform:core",
-        ":server:modules:platform:experiment",
-        ":server:modules:platform:filecontent",
-        ":server:modules:platform:pipeline",
-        ":server:modules:platform:query",
-        ":server:modules:platform:visualization",
-        ":server:modules:platform:wiki",
-        ":server:modules:UserReg-WS"
-]
 )
