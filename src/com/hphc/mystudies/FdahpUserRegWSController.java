@@ -43,30 +43,31 @@ import org.labkey.api.action.Marshaller;
 import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.ReadOnlyApiAction;
 import org.labkey.api.action.ReturnUrlForm;
+import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.admin.AdminUrls;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
-import org.labkey.api.data.NormalContainerType;
 import org.labkey.api.files.FileContentService;
-import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.ModuleProperty;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.MethodsAllowed;
 import org.labkey.api.security.RequiresNoPermission;
+import org.labkey.api.security.RequiresPermission;
+import org.labkey.api.security.permissions.AdminOperationsPermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.HttpUtil;
+import org.labkey.api.view.JspView;
+import org.labkey.api.view.NavTree;
 import org.labkey.api.view.NotFoundException;
-import org.labkey.remoteapi.CommandException;
-import org.labkey.remoteapi.CommandResponse;
-import org.labkey.remoteapi.Connection;
 import org.springframework.validation.BindException;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -106,7 +107,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class PingAction extends ReadOnlyApiAction<Object>
     {
-
         @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
         {
@@ -129,7 +129,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class RegisterAction extends MutatingApiAction<ParticipantForm>
     {
-
         @Override
         public Object execute(ParticipantForm participantForm, BindException errors) throws Exception
         {
@@ -260,7 +259,6 @@ public class FdahpUserRegWSController extends SpringActionController
 
     public static class UserForm
     {
-
         public String _userId;
         public String _reason;
 
@@ -292,7 +290,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class ConfirmRegistrationAction extends ReadOnlyApiAction
     {
-
         @Override
         public Object execute(Object o, BindException errors) throws Exception
         {
@@ -356,7 +353,6 @@ public class FdahpUserRegWSController extends SpringActionController
 
     public static class VerificationForm
     {
-
         public String _emailId;
         public String _code;
 
@@ -388,7 +384,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class VerifyAction extends MutatingApiAction<VerificationForm>
     {
-
         @Override
         public Object execute(VerificationForm verificationForm, BindException errors) throws Exception
         {
@@ -409,7 +404,7 @@ public class FdahpUserRegWSController extends SpringActionController
                         if (StringUtils.isNotEmpty(message) && message.equals(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language)))
                         {
 
-                            UserDetails participantDetails = participantDetails = FdahpUserRegWSManager.get(language).getParticipantDetailsByEmail(verificationForm.getEmailId(), applicationId, orgId);
+                            UserDetails participantDetails = FdahpUserRegWSManager.get(language).getParticipantDetailsByEmail(verificationForm.getEmailId(), applicationId, orgId);
                             if (null != participantDetails)
                             {
                                 if (participantDetails.getSecurityToken() != null && participantDetails.getSecurityToken().equalsIgnoreCase(verificationForm.getCode()))
@@ -494,7 +489,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class LoginAction extends MutatingApiAction<LoginForm>
     {
-
         @Override
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
         {
@@ -745,7 +739,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class ForgotPasswordAction extends MutatingApiAction<LoginForm>
     {
-
         @Override
         public ApiResponse execute(LoginForm loginForm, BindException errors) throws Exception
         {
@@ -1006,7 +999,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class ChangePasswordAction extends MutatingApiAction<ChangePasswordForm>
     {
-
         @Override
         public ApiResponse execute(ChangePasswordForm form, BindException errors) throws Exception
         {
@@ -1277,7 +1269,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class UserProfileAction extends ReadOnlyApiAction<Object>
     {
-
         @Override
         public ApiResponse execute(Object object, BindException errors) throws Exception
         {
@@ -1343,7 +1334,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class UpdateUserProfileAction extends MutatingApiAction<ProfileForm>
     {
-
         @Override
         public ApiResponse execute(ProfileForm profileForm, BindException errors) throws Exception
         {
@@ -1476,8 +1466,6 @@ public class FdahpUserRegWSController extends SpringActionController
 
     public static class ProfileForm
     {
-
-
         public ProfileBean _profile;
         public SettingsBean _settings;
         public InfoBean _info;
@@ -1534,7 +1522,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class UpdatePreferencesAction extends MutatingApiAction<PreferencesForm>
     {
-
         @Override
         public ApiResponse execute(PreferencesForm preferencesForm, BindException errors) throws Exception
         {
@@ -1651,8 +1638,6 @@ public class FdahpUserRegWSController extends SpringActionController
 
     public static class PreferencesForm
     {
-
-
         public List<StudiesBean> _studies;
         public List<ActivitiesBean> _activity;
         public String _studyId;
@@ -3544,65 +3529,89 @@ public class FdahpUserRegWSController extends SpringActionController
         return fileName;
     }
 
-
-    @CSRF(CSRF.Method.NONE)
-    @RequiresNoPermission
-    public class AppPropertiesUpdateAction extends MutatingApiAction<AppPropertiesDetailsBean>
+    @RequiresPermission(AdminOperationsPermission.class)
+    public class ShowAppPropertiesUpdateAction extends SimpleViewAction<Object>
     {
+        @Override
+        public ModelAndView getView(Object o, BindException errors)
+        {
+            return new JspView<>("/com/hphc/mystudies/appProperties.jsp");
+        }
 
         @Override
-        public ApiResponse execute(AppPropertiesDetailsBean appPropertiesDetailsBean, BindException errors) throws Exception
+        public void addNavTrail(NavTree root)
         {
+            urlProvider(AdminUrls.class).addAdminNavTrail(root, "Update Registration Server Properties", AppPropertiesUpdateAction.class, getContainer());
+        }
+    }
+
+    @RequiresPermission(AdminOperationsPermission.class)
+    public class AppPropertiesUpdateAction extends MutatingApiAction<AppPropertiesDetailsBean>
+    {
+        @Override
+        public Object execute(AppPropertiesDetailsBean appPropertiesDetailsBean, BindException errors) throws Exception
+        {
+            String message = null;
+            boolean success = false;
             ApiSimpleResponse apiSimpleResponse = new ApiSimpleResponse();
 
-            if (appPropertiesDetailsBean.getAppId() != null)
+            try
             {
-                //add code for user data partition
-                AppPropertiesDetails appPropertiesDetails = new AppPropertiesDetails();
-
-                appPropertiesDetails.setAppId(appPropertiesDetailsBean.getAppId());
-                appPropertiesDetails.setOrgId(appPropertiesDetailsBean.getOrgId());
-                appPropertiesDetails.setIosBundleId(appPropertiesDetailsBean.getIosBundleId());
-                appPropertiesDetails.setAndroidBundleId(appPropertiesDetailsBean.getAndroidBundleId());
-                appPropertiesDetails.setAndroidServerKey(appPropertiesDetailsBean.getAndroidServerKey());
-                appPropertiesDetails.setIosCertificate(appPropertiesDetailsBean.getIosCertificate());
-                appPropertiesDetails.setIosCertificatePassword(appPropertiesDetailsBean.getIosCertificatePassword());
-
-                appPropertiesDetails.setEmail(appPropertiesDetailsBean.getEmail());
-                appPropertiesDetails.setEmailPassword(appPropertiesDetailsBean.getEmailPassword());
-
-                appPropertiesDetails.setRegEmailSub(appPropertiesDetailsBean.getRegisterEmailSubject());
-                appPropertiesDetails.setRegEmailBody(appPropertiesDetailsBean.getRegisterEmailBody());
-                appPropertiesDetails.setForgotEmailSub(appPropertiesDetailsBean.getForgotPassEmailSubject());
-                appPropertiesDetails.setForgotEmailBody(appPropertiesDetailsBean.getForgotPassEmailBody());
-
-                appPropertiesDetails.setRegEmailSubSpanish(appPropertiesDetailsBean.getRegisterEmailSubjectSpanish());
-                appPropertiesDetails.setRegEmailBodySpanish(appPropertiesDetailsBean.getRegisterEmailBodySpanish());
-                appPropertiesDetails.setForgotEmailSubSpanish(appPropertiesDetailsBean.getForgotPassEmailSubjectSpanish());
-                appPropertiesDetails.setForgotEmailBodySpanish(appPropertiesDetailsBean.getForgotPassEmailBodySpanish());
-
-                appPropertiesDetails.setMethodHandler(appPropertiesDetailsBean.isMethodHandler());
-
-                appPropertiesDetails.setFeedbackEmail(appPropertiesDetailsBean.getFeedbackEmail());
-                appPropertiesDetails.setContactUsEmail(appPropertiesDetailsBean.getContactUsEmail());
-                appPropertiesDetails.setAppName(appPropertiesDetailsBean.getAppName());
-
-                appPropertiesDetails.setCreatedOn(new Date());
-
-                String message = FdahpUserRegWSManager.get(language).saveAppPropertiesDetails(appPropertiesDetails);
-                if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language)))
-                    apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language).toLowerCase(), true);
-                else
+                if (appPropertiesDetailsBean.getAppId() != null)
                 {
-                    apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language).toLowerCase(), true);
-                    FdahpUserRegUtil.getFailureResponse(language, FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(language), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(language), getViewContext().getResponse());
+                    //add code for user data partition
+                    AppPropertiesDetails appPropertiesDetails = new AppPropertiesDetails();
+
+                    appPropertiesDetails.setAppId(appPropertiesDetailsBean.getAppId());
+                    appPropertiesDetails.setOrgId(appPropertiesDetailsBean.getOrgId());
+                    appPropertiesDetails.setIosBundleId(appPropertiesDetailsBean.getIosBundleId());
+                    appPropertiesDetails.setAndroidBundleId(appPropertiesDetailsBean.getAndroidBundleId());
+                    appPropertiesDetails.setAndroidServerKey(appPropertiesDetailsBean.getAndroidServerKey());
+                    appPropertiesDetails.setIosCertificate(appPropertiesDetailsBean.getIosCertificate());
+                    appPropertiesDetails.setIosCertificatePassword(appPropertiesDetailsBean.getIosCertificatePassword());
+
+                    appPropertiesDetails.setEmail(appPropertiesDetailsBean.getEmail());
+                    appPropertiesDetails.setEmailPassword(appPropertiesDetailsBean.getEmailPassword());
+
+                    appPropertiesDetails.setRegEmailSub(appPropertiesDetailsBean.getRegisterEmailSubject());
+                    appPropertiesDetails.setRegEmailBody(appPropertiesDetailsBean.getRegisterEmailBody());
+                    appPropertiesDetails.setForgotEmailSub(appPropertiesDetailsBean.getForgotPassEmailSubject());
+                    appPropertiesDetails.setForgotEmailBody(appPropertiesDetailsBean.getForgotPassEmailBody());
+
+                    appPropertiesDetails.setRegEmailSubSpanish(appPropertiesDetailsBean.getRegisterEmailSubjectSpanish());
+                    appPropertiesDetails.setRegEmailBodySpanish(appPropertiesDetailsBean.getRegisterEmailBodySpanish());
+                    appPropertiesDetails.setForgotEmailSubSpanish(appPropertiesDetailsBean.getForgotPassEmailSubjectSpanish());
+                    appPropertiesDetails.setForgotEmailBodySpanish(appPropertiesDetailsBean.getForgotPassEmailBodySpanish());
+
+                    appPropertiesDetails.setMethodHandler(appPropertiesDetailsBean.isMethodHandler());
+
+                    appPropertiesDetails.setFeedbackEmail(appPropertiesDetailsBean.getFeedbackEmail());
+                    appPropertiesDetails.setContactUsEmail(appPropertiesDetailsBean.getContactUsEmail());
+                    appPropertiesDetails.setAppName(appPropertiesDetailsBean.getAppName());
+
+                    appPropertiesDetails.setCreatedOn(new Date());
+
+                    message = FdahpUserRegWSManager.get(language).saveAppPropertiesDetails(appPropertiesDetails);
+                    if (message.equalsIgnoreCase(FdahpUserRegUtil.ErrorCodes.SUCCESS.getValue(language)))
+                        success = true;
                 }
+            }
+            catch (Exception e)
+            {
+                message = e.getMessage();
+            }
+
+            apiSimpleResponse.put("success", success);
+
+            if (success)
+            {
+                apiSimpleResponse.put("returnUrl", urlProvider(AdminUrls.class).getAdminConsoleURL());
             }
             else
             {
-                apiSimpleResponse.put(FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language).toLowerCase(), true);
-                FdahpUserRegUtil.getFailureResponse(language, FdahpUserRegUtil.ErrorCodes.STATUS_102.getValue(language), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT.name(), FdahpUserRegUtil.ErrorCodes.INVALID_INPUT_ERROR_MSG.getValue(language), getViewContext().getResponse());
+                apiSimpleResponse.put("message", null != message ? message : FdahpUserRegUtil.ErrorCodes.FAILURE.getValue(language));
             }
+
             return apiSimpleResponse;
         }
     }
@@ -3611,7 +3620,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class FeedbackAction extends MutatingApiAction<FeedbackAndContactUsBean>
     {
-
         @Override
         public ApiResponse execute(FeedbackAndContactUsBean feedbackAndContactUsBean, BindException errors) throws Exception
         {
@@ -3620,8 +3628,7 @@ public class FdahpUserRegWSController extends SpringActionController
             String orgId = getViewContext().getRequest().getHeader("orgId");
             language = getViewContext().getRequest().getHeader("language");
 
-            if (applicationId != null && StringUtils.isNotEmpty(applicationId)
-                    && orgId != null && StringUtils.isNotEmpty(orgId))
+            if (StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(orgId))
             {
                 AppPropertiesDetails appPropertiesDetails = FdahpUserRegWSManager.get(language).getAppPropertiesDetailsByAppId(applicationId, orgId);
 
@@ -3653,7 +3660,6 @@ public class FdahpUserRegWSController extends SpringActionController
     @RequiresNoPermission
     public class ContactUsAction extends MutatingApiAction<FeedbackAndContactUsBean>
     {
-
         @Override
         public ApiResponse execute(FeedbackAndContactUsBean feedbackAndContactUsBean, BindException errors) throws Exception
         {
@@ -3732,5 +3738,4 @@ public class FdahpUserRegWSController extends SpringActionController
             return appIdContainer;
         }
     }
-
 }

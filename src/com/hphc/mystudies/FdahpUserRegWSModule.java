@@ -22,12 +22,16 @@
  */
 package com.hphc.mystudies;
 
+import com.hphc.mystudies.FdahpUserRegWSController.ShowAppPropertiesUpdateAction;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleProperty;
+import org.labkey.api.security.permissions.AdminOperationsPermission;
+import org.labkey.api.settings.AdminConsole;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.WebPartFactory;
 
 import java.util.Collection;
@@ -77,6 +81,7 @@ public class FdahpUserRegWSModule extends DefaultModule
     {
         ContainerManager.addContainerListener(new FdahpUserRegWSContainerListener());
         AuditLogService.get().registerAuditType(new FdaAuditProvider());
+        AdminConsole.addLink(AdminConsole.SettingsLinkType.Configuration, "Registration Server", new ActionURL(ShowAppPropertiesUpdateAction.class, ContainerManager.getRoot()), AdminOperationsPermission.class);
     }
 
     @Override
