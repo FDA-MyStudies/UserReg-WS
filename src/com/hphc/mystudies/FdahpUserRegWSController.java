@@ -86,8 +86,8 @@ public class FdahpUserRegWSController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(FdahpUserRegWSController.class);
     public static final String NAME = "fdahpuserregws";
-    public static final String LANGUAGE_EN = "English";
-    public static final String LANGUAGE_SP = "Spanish";
+    public static final String LANGUAGE_EN = "en";
+    public static final String LANGUAGE_SP = "es";
     public static final String DEFAULT_LANGUAGE = LANGUAGE_EN;
     String language = DEFAULT_LANGUAGE;
 
