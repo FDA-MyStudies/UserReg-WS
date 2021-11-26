@@ -1,5 +1,5 @@
 {table}
 Filename|Component|Version|Source|License|Purpose
 pushy-0.14.1.jar|pushy|0.14.1|{link:pushy|https://pushy-apns.org/}|{link:MIT|https://github.com/jchambers/pushy/blob/master/LICENSE.md}|Java Apple Push Notification Service Library
-slf4j-api-1.7.30.jar|SLF4J API|1.7.30|{link:SLF4J|http://www.slf4j.org/}|{link:MIT|http://www.slf4j.org/license.html}|Simple Logging Facade for Java
+slf4j-api-1.7.32.jar|SLF4J API|1.7.32|{link:SLF4J|http://www.slf4j.org/}|{link:MIT|http://www.slf4j.org/license.html}|Simple Logging Facade for Java
 {table}
