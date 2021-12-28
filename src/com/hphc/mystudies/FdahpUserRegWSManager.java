@@ -27,7 +27,8 @@ import com.hphc.mystudies.model.UserAppDetails;
 import com.hphc.mystudies.model.UserDetails;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiSimpleResponse;
@@ -79,7 +80,7 @@ public class FdahpUserRegWSManager
         return _instance;
     }
 
-    private static final Logger _log = Logger.getLogger(FdahpUserRegWSManager.class);
+    private static final Logger _log = LogManager.getLogger(FdahpUserRegWSManager.class);
 
     public static void purgeContainer(Container c)
     {

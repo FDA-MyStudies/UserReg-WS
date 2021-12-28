@@ -20,7 +20,8 @@ import com.hphc.mystudies.FdahpUserRegWSModule;
 import com.hphc.mystudies.bean.NotificationBean;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.files.FileContentService;
@@ -67,7 +68,7 @@ import static org.labkey.api.util.StringUtilsLabKey.DEFAULT_CHARSET;
  */
 public class FdahpUserRegUtil
 {
-    private static final Logger _log = Logger.getLogger(FdahpUserRegUtil.class);
+    private static final Logger _log = LogManager.getLogger(FdahpUserRegUtil.class);
     static String Email = "", password = "";
     static MailHelper.MultipartMessage msg;
 
