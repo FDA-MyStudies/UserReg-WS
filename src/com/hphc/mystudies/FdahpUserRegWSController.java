@@ -33,7 +33,8 @@ import com.hphc.mystudies.model.UserAppDetails;
 import com.hphc.mystudies.model.UserDetails;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiResponse;
@@ -96,7 +97,7 @@ public class FdahpUserRegWSController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    private static final Logger _log = Logger.getLogger(FdahpUserRegWSController.class);
+    private static final Logger _log = LogManager.getLogger(FdahpUserRegWSController.class);
 
     Properties configProp = FdahpUserRegUtil.getProperties();
 
