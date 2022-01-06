@@ -496,7 +496,7 @@ public class MyStudiesRegistrationTest extends BaseWebDriverTest
 
     private CommandResponse updateAppProperties(AppPropertiesDetails appProperties) throws IOException, CommandException
     {
-        return executeRegistrationCommand(new AppPropertiesUpdateCommand(appProperties));
+        return new AppPropertiesUpdateCommand(appProperties).execute(createDefaultConnection(), "/");
     }
 
     @LogMethod
