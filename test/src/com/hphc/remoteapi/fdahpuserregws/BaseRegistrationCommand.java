@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class BaseRegistrationCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
 {
-    private static final String CONTROLLER = "fdahpuserregws";
+    public static final String CONTROLLER = "fdahpuserregws";
 
     private final RegistrationSession _session;
 
