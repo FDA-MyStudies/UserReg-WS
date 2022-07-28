@@ -1,6 +1,6 @@
 # FDA-User Reg WS
 
-This project contains source code for the FDA MyStudies User Registration server. This project is developed and
+This project contains source code for the FDA MyStudies User Registration module. This module is developed and
 deployed on the LabKey Server environment.
 
 ## Setup Instructions
