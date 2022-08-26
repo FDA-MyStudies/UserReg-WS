@@ -7,12 +7,23 @@
  *
  */
 
+import org.labkey.gradle.util.BuildUtils;
+import org.labkey.gradle.util.ExternalDependency
+
 plugins {
     id 'org.labkey.build.module'
     id 'org.labkey.build.standalone'
 }
 
-project.dependencies {
-    external 'com.eatthepath:pushy:0.14.1'
-    external group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
-}
+BuildUtils.addExternalDependency(
+    project,
+    new ExternalDependency(
+        "com.eatthepath:pushy:0.14.1",
+        "Pushy",
+        "Pushy",
+        "https://pushy-apns.org/",
+        ExternalDependency.MIT_LICENSE_NAME,
+        ExternalDependency.MIT_LICENSE_URL,
+        "Java Apple Push Notification Service Library"
+    )
+)
