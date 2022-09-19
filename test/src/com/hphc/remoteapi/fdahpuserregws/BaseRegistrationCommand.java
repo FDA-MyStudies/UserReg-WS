@@ -23,7 +23,7 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
 
     private final RegistrationSession _session;
 
-    private JSONObject _json = new JSONObject();
+    private final JSONObject _json = new JSONObject();
 
     protected BaseRegistrationCommand(String actionName, RegistrationSession session)
     {
@@ -37,7 +37,7 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
     }
 
     @Override
-    public BaseRegistrationCommand<?> copy()
+    public BaseRegistrationCommand<ResponseType> copy()
     {
         return new BaseRegistrationCommand<>(getActionName(), _session);
     }
@@ -81,17 +81,13 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
 
     protected HttpUriRequest _createRequest(URI uri)
     {
-        switch (getRequestType())
+        return switch (getRequestType())
         {
-            case "GET":
-                return super.createRequest(uri);
-            case "POST":
-                return createPost(uri);
-            case "DELETE":
-                return new HttpDelete(uri);
-            default:
-                throw new IllegalArgumentException("Unsupported request type: " + getRequestType());
-        }
+            case "GET" -> super.createRequest(uri);
+            case "POST" -> createPost(uri);
+            case "DELETE" -> new HttpDelete(uri);
+            default -> throw new IllegalArgumentException("Unsupported request type: " + getRequestType());
+        };
     }
 
     protected String getRequestType()
