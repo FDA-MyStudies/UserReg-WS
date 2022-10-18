@@ -37,12 +37,6 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
     }
 
     @Override
-    public BaseRegistrationCommand<ResponseType> copy()
-    {
-        return new BaseRegistrationCommand<>(getActionName(), _session);
-    }
-
-    @Override
     public ResponseType execute(Connection connection, String folderPath) throws IOException, CommandException
     {
         if (!(connection instanceof NoCsrfConnection))

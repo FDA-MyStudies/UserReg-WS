@@ -15,7 +15,7 @@ public class LoginCommand extends BaseRegistrationCommand<LoginResponse>
     @Override
     protected LoginResponse createResponse(String text, int status, String contentType, JSONObject json)
     {
-        return new LoginResponse(text, status, contentType, json, this.copy());
+        return new LoginResponse(text, status, contentType, json, this);
     }
 
     @Override
