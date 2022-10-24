@@ -1,6 +1,6 @@
 package com.hphc.remoteapi.fdahpuserregws.params;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Mirrors 'com.hphc.mystudies.bean.AppPropertiesDetailsBean'

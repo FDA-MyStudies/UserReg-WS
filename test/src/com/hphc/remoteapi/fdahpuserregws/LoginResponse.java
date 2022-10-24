@@ -1,7 +1,7 @@
 package com.hphc.remoteapi.fdahpuserregws;
 
 import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.labkey.remoteapi.CommandResponse;
 
 public class LoginResponse extends CommandResponse

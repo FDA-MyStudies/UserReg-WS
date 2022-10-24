@@ -6,7 +6,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.labkey.remoteapi.Command;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.CommandResponse;
@@ -34,12 +34,6 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
     protected BaseRegistrationCommand(String actionName, String orgId, String appId)
     {
         this(actionName, new RegistrationSession(orgId, appId, null, null));
-    }
-
-    @Override
-    public BaseRegistrationCommand<ResponseType> copy()
-    {
-        return new BaseRegistrationCommand<>(getActionName(), _session);
     }
 
     @Override
@@ -124,7 +118,7 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
             throw new IllegalArgumentException("JSON body will only be included in 'POST' requests");
         }
         _json.clear();
-        _json.putAll(json);
+        json.forEach(_json::put);
     }
 
     @Override

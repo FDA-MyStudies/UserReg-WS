@@ -1,6 +1,6 @@
 package com.hphc.mystudies;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.labkey.remoteapi.CommandResponse;
 import org.labkey.remoteapi.PostCommand;
 
