@@ -8,7 +8,7 @@
  */
 package com.hphc.mystudies.bean;
 
-import org.json.old.JSONArray;
+import org.json.JSONArray;
 
 /**
  * Created by Ravinder on 5/3/2017.

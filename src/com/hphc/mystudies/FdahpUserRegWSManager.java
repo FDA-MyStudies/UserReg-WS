@@ -27,10 +27,9 @@ import com.hphc.mystudies.model.UserAppDetails;
 import com.hphc.mystudies.model.UserDetails;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.json.old.JSONArray;
-import org.json.old.JSONObject;
+import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.data.AuditConfigurable;
@@ -406,7 +405,6 @@ public class FdahpUserRegWSManager
      */
     public ApiSimpleResponse getParticipantInfoDetails(String userId, String applicationId, String orgId)
     {
-        JSONObject jsonObject = new JSONObject();
         ApiSimpleResponse response = new ApiSimpleResponse();
         try
         {
