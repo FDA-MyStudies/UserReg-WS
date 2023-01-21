@@ -103,7 +103,7 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
     {
         HttpPost request = new HttpPost(uri);
 
-        if (null != _json && !_json.isEmpty())
+        if (!_json.isEmpty())
         {
             request.setEntity(new StringEntity(_json.toString(), ContentType.APPLICATION_JSON));
         }
@@ -119,11 +119,5 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
         }
         _json.clear();
         json.forEach(_json::put);
-    }
-
-    @Override
-    public void setParameters(Map<String, Object> parameters)
-    {
-        super.setParameters(new HashMap<>(parameters));
     }
 }
