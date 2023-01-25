@@ -16,7 +16,7 @@ public class LoginResponse extends CommandResponse
 
     public LoginResponse(String text, int statusCode, String contentType, JSONObject json, BaseRegistrationCommand<?> sourceCommand)
     {
-        super(text, statusCode, contentType, json, sourceCommand);
+        super(text, statusCode, contentType, json);
         _orgId = sourceCommand.getOrgId();
         _appId = sourceCommand.getApplicationId();
         _auth = (String) json.get("auth");

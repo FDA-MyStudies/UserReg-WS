@@ -2,6 +2,7 @@ package com.hphc.remoteapi.fdahpuserregws;
 
 import com.hphc.remoteapi.fdahpuserregws.params.RegistrationSession;
 import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.core5.http.ContentType;
@@ -17,7 +18,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BaseRegistrationCommand<ResponseType extends CommandResponse> extends Command<ResponseType>
+public class BaseRegistrationCommand<ResponseType extends CommandResponse> extends Command<ResponseType, HttpUriRequest>
 {
     public static final String CONTROLLER = "fdahpuserregws";
 
@@ -77,7 +78,7 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
     {
         return switch (getRequestType())
         {
-            case "GET" -> super.createRequest(uri);
+            case "GET" -> new HttpGet(uri);
             case "POST" -> createPost(uri);
             case "DELETE" -> new HttpDelete(uri);
             default -> throw new IllegalArgumentException("Unsupported request type: " + getRequestType());
@@ -103,7 +104,7 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
     {
         HttpPost request = new HttpPost(uri);
 
-        if (null != _json && !_json.isEmpty())
+        if (!_json.isEmpty())
         {
             request.setEntity(new StringEntity(_json.toString(), ContentType.APPLICATION_JSON));
         }
@@ -119,11 +120,5 @@ public class BaseRegistrationCommand<ResponseType extends CommandResponse> exten
         }
         _json.clear();
         json.forEach(_json::put);
-    }
-
-    @Override
-    public void setParameters(Map<String, Object> parameters)
-    {
-        super.setParameters(new HashMap<>(parameters));
     }
 }

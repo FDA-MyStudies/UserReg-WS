@@ -19,15 +19,11 @@ public class CreateFolderCommand extends PostCommand<CommandResponse>
     @Override
     public JSONObject getJsonObject()
     {
-        JSONObject result = super.getJsonObject();
-        if (result == null)
-        {
-            result = new JSONObject();
-        }
+        JSONObject result = new JSONObject();
         result.put("name", _name);
         result.put("title", _title);
         result.put("description", _description);
-        setJsonObject(result);
+
         return result;
     }
 
