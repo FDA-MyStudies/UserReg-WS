@@ -2,7 +2,7 @@ allprojects {
         // Properties for standalone build.
         // We define these here, instead of 'gradle.properties' to avoid overwriting properties in a standard build
     ext {
-        labkeyVersion = "23.2-SNAPSHOT"
+        labkeyVersion = "23.3-SNAPSHOT"
 
         buildFromSource = true
 
