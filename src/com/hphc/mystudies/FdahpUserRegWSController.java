@@ -91,6 +91,7 @@ public class FdahpUserRegWSController extends SpringActionController
     public static final String LANGUAGE_SP = "es";
     public static final String DEFAULT_LANGUAGE = LANGUAGE_EN;
     String language = DEFAULT_LANGUAGE;
+    public static final String POLICY = "default-src 'self'; frame-ancestors 'self'; form-action 'self';";
 
     public FdahpUserRegWSController()
     {
@@ -135,6 +136,7 @@ public class FdahpUserRegWSController extends SpringActionController
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
             String applicationId = getViewContext().getRequest().getHeader("applicationId");
+            getViewContext().getResponse().setHeader("Content-Security-Policy", POLICY);
             language = getViewContext().getRequest().getHeader("language");
             String orgId = getViewContext().getRequest().getHeader("orgId");
             UserDetails userParticipantDetails = null;
@@ -498,7 +500,8 @@ public class FdahpUserRegWSController extends SpringActionController
             UserDetails participantDetails = null;
             String applicationId = getViewContext().getRequest().getHeader("applicationId");
             String orgId = getViewContext().getRequest().getHeader("orgId");
-            int maxAttemptsCount = Integer.valueOf((String) configProp.get("max.login.attempts"));
+            getViewContext().getResponse().setHeader("Content-Security-Policy", POLICY);
+            int maxAttemptsCount = Integer.parseInt((String) configProp.get("max.login.attempts"));
             try
             {
                 if (loginForm != null)
