@@ -15,10 +15,19 @@ plugins {
     id 'org.labkey.build.module'
 }
 
+configurations.all {
+    resolutionStrategy {
+        force "io.netty:netty-codec-dns:${nettyVersion}"
+        force "io.netty:netty-codec-http2:${nettyVersion}"
+        force "io.netty:netty-resolver-dns:${nettyVersion}"
+    }
+}
+
+
 BuildUtils.addExternalDependency(
     project,
     new ExternalDependency(
-        "com.eatthepath:pushy:0.14.1",
+        "com.eatthepath:pushy:0.15.2",
         "Pushy",
         "Pushy",
         "https://pushy-apns.org/",
