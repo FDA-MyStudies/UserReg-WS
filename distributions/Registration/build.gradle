@@ -7,6 +7,7 @@
  *
  */
 
+
 import org.labkey.gradle.task.ModuleDistribution
 import org.labkey.gradle.util.BuildUtils
 import org.labkey.gradle.util.GroupNames
@@ -29,15 +30,12 @@ BuildUtils.addModuleDistributionDependencies(project, [BuildUtils.getApiProjectP
                                                        BuildUtils.getPlatformModuleProjectPath(project.gradle, "wiki"),
 ])
 
-project.task(
-        "distribution",
-        group: GroupNames.DISTRIBUTION,
-        type: ModuleDistribution,
+project.tasks.register("distribution", ModuleDistribution)
         {ModuleDistribution dist ->
+            group GroupNames.DISTRIBUTION
             dist.subDirName='Registration'
             dist.extraFileIdentifier='-Registration'
             dist.includeTarGZArchive=true
             dist.simpleDistribution=true
             dist.embeddedArchiveType='tar.gz'
         }
-)
