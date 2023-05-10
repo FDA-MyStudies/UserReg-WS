@@ -1,7 +1,9 @@
 buildscript {
     repositories {
+        mavenCentral()
+        gradlePluginPortal()
         maven {
-            url "${artifactory_contextUrl}/plugins-release"
+            url "${artifactory_contextUrl}/plugins-release-no-proxy"
         }
         if (gradlePluginsVersion.contains("SNAPSHOT")) {
             mavenLocal()
@@ -12,7 +14,7 @@ buildscript {
     }
     dependencies {
         classpath "org.labkey.build:gradlePlugins:${gradlePluginsVersion}"
-     }
+    }
     configurations.all {
         // Check for updates every build for SNAPSHOT dependencies
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
@@ -31,15 +33,18 @@ gradle.beforeProject { project ->
     }
 
     project.repositories {
+        // Maven Central first
+        mavenCentral()
         maven {
             url "${project.artifactory_contextUrl}/ext-tools-local"
         }
         maven {
-            url "${project.artifactory_contextUrl}/libs-release"
+            // Use this repository when relying on release versions of the LabKey artifacts and their external dependencies
+            url "${project.artifactory_contextUrl}/libs-release-no-proxy"
         }
         maven {
-            url "${project.artifactory_contextUrl}/libs-snapshot"
+            // Use this repository when relying on snapshot versions of LabKey artifacts
+            url "${project.artifactory_contextUrl}/libs-snapshot-no-proxy"
         }
-        mavenCentral()
     }
 }
