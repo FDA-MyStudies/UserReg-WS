@@ -5,7 +5,7 @@ To reset the Registration Server properties, enter JSON text in the box and clic
 <textarea id="json" rows="30" cols="80" style="width:100%"></textarea>
 <%= button("Done").href(urlProvider(AdminUrls.class).getAdminConsoleURL()) %>
 <%= button("Submit").onClick("submit();")%>
-<script>
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
     function submit() {
         LABKEY.Ajax.request({
             url: LABKEY.ActionURL.buildURL("fdahpuserregws", "appPropertiesUpdate.api"),
