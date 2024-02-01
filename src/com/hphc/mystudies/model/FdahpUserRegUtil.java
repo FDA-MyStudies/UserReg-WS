@@ -33,8 +33,8 @@ import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.StringUtilsLabKey;
 
-import javax.mail.Message;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.mail.Message;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
