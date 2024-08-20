@@ -1771,14 +1771,14 @@ public class FdahpUserRegWSManager
         List<Container> all = ContainerManager.getChildren(ContainerManager.getRoot());
         for (Container orgContainer : all)
         {
-            System.out.println("org - " + mp.getValueContainerSpecific(orgContainer));
+            _log.debug("org - {}", mp.getValueContainerSpecific(orgContainer));
             if (postedOrgId.equalsIgnoreCase(mp.getValueContainerSpecific(orgContainer)))
             {
                 orgIdContainer = orgContainer;
                 List<Container> allApp = ContainerManager.getChildren(orgContainer);
                 for (Container appContainer : allApp)
                 {
-                    System.out.println("app - " + mp.getValueContainerSpecific(appContainer));
+                    _log.debug("app - {}", mp.getValueContainerSpecific(appContainer));
                     if (postedAppId.equalsIgnoreCase(mp.getValueContainerSpecific(appContainer)))
                     {
                         appIdContainer = appContainer;
