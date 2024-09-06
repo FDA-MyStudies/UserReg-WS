@@ -36,5 +36,4 @@ project.tasks.register("distribution", ModuleDistribution)
             dist.subDirName='Registration'
             dist.extraFileIdentifier='-Registration'
             dist.simpleDistribution=true
-            dist.embeddedArchiveType='tar.gz'
         }
