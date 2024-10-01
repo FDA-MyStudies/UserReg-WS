@@ -32,6 +32,5 @@ BuildUtils.addModuleDistributionDependencies(project, [BuildUtils.getApiProjectP
 
 project.tasks.register("distribution", ModuleDistribution)
         {ModuleDistribution dist ->
-            group GroupNames.DISTRIBUTION
             dist.simpleDistribution=true
         }
