@@ -1,5 +1,10 @@
 # FDA-User Reg WS
 
+Note: The FDA MyStudies project ended December 31, 2024. At that time, the `release24.11-SNAPSHOT` branch of this
+repository was tested and deployed successfully using LabKey Server v24.11. The code in this repository is available
+for use by any interested party, subject to the license detailed in the accompanying LICENSE file, however, the
+code is NOT maintained. Use at your own risk.
+
 This project contains source code for the FDA MyStudies User Registration module. This module is developed and
 deployed on the LabKey Server environment.
 
