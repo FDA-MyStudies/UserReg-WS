@@ -1,7 +1,11 @@
 # FDA-User Reg WS
 
+Warning: Do NOT use the `develop` branch of this repository! It is not maintained, so it no longer builds or runs
+against the LabKey Server `develop` branch. Use the `release24.11-SNAPSHOT` branches of UserReg-WS, Response, and the
+LabKey Server repositories instead.
+
 Note: The FDA MyStudies project ended December 31, 2024. At that time, the `release24.11-SNAPSHOT` branch of this
-repository was tested and deployed successfully using LabKey Server v24.11. The code in this repository is available
+repository was tested and deployed successfully using LabKey Server v24.11. The code in that branch is available
 for use by any interested party, subject to the license detailed in the accompanying LICENSE file, however, the
 code is NOT maintained. Use at your own risk.
 
